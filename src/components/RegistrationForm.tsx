@@ -1,9 +1,13 @@
 import React, { useState } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
+import { db } from "../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 
 export function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorText, setErrorText] = useState("");
+  const [showTerms, setShowTerms] = useState(false);
+  const [selectedGame, setSelectedGame] = useState("");
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -12,7 +16,6 @@ export function RegistrationForm() {
 
     const formData = new FormData(e.currentTarget);
     
-    // Format the message for WhatsApp
     const nama = formData.get("nama") as string;
     const usia = formData.get("usia") as string;
     const kategori = formData.get("kategori") as string;
@@ -34,16 +37,30 @@ Halo Panitia, saya ingin mendaftar lomba eSport dengan data berikut:
 Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
     try {
+      // Save to Firebase
+      await addDoc(collection(db, "registrations"), {
+        nama,
+        usia,
+        kategori,
+        alamat,
+        wa,
+        lomba,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+
       const encodedMessage = encodeURIComponent(message);
       const whatsappNumber = "6282312907731";
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
+      
+      e.currentTarget.reset();
       
       await new Promise(resolve => setTimeout(resolve, 800));
       window.open(whatsappUrl, "_blank");
       
     } catch (err: any) {
       console.error(err);
-      setErrorText("Terjadi kesalahan. Silakan coba lagi.");
+      setErrorText("Terjadi kesalahan sistem. Silakan coba lagi.");
     } finally {
       setIsSubmitting(false);
     }
@@ -67,68 +84,122 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
       </div>
 
       <form onSubmit={handleFormSubmit} className="space-y-4 sm:space-y-6 relative z-0 w-full">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Nama Lengkap / Nama Tim</label>
-            <input required type="text" name="nama" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="Masukkan nama" />
-          </div>
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Usia (Maks 50 Tahun)</label>
-            <input required type="number" name="usia" max="50" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="Misal: 18" />
-          </div>
+        <div className="space-y-1.5 sm:space-y-2">
+          <label className="text-xs sm:text-sm font-semibold text-dark">Pilihan Lomba eSport</label>
+          <select required name="lomba" value={selectedGame} onChange={(e) => setSelectedGame(e.target.value)} className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
+            <option value="">Pilih Game</option>
+            <option value="Mobile Legends (Tim)">Mobile Legends (Tim - 5 Orang)</option>
+            <option value="Free Fire (Squad)">Free Fire (Squad - 4 Orang)</option>
+            <option value="EA Sports FC 26 (Individu)">EA Sports FC 26 PS4 (Individu)</option>
+          </select>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Alamat / Asal Kampung</label>
-            <input required type="text" name="alamat" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="RT/RW, Kp." />
-          </div>
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Nomor WhatsApp Aktif</label>
-            <input required type="tel" name="wa" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="08..." />
-          </div>
-        </div>
+        {selectedGame && (
+          <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-4 sm:space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-dark">
+                  {selectedGame.includes('Individu') ? 'Nama Peserta' : 'Nama Tim / Squad'}
+                </label>
+                <input required type="text" name="nama" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder={selectedGame.includes('Individu') ? "Contoh: Budi" : "Contoh: Evos Legends"} />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-dark">
+                  {selectedGame.includes('Individu') ? 'Usia' : 'Rata-rata Usia Tim'}
+                </label>
+                <input required type="number" name="usia" max="50" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="Misal: 18" />
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Kategori</label>
-            <select required name="kategori" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
-              <option value="">Pilih Kategori Usia</option>
-              <option value="Pelajar (SD-SMA)">Pelajar (SD - SMA)</option>
-              <option value="Umum (18-50 Thn)">Umum (18 - 50 Tahun)</option>
-            </select>
-          </div>
-          <div className="space-y-1.5 sm:space-y-2">
-            <label className="text-xs sm:text-sm font-semibold text-dark">Pilihan Lomba eSport</label>
-            <select required name="lomba" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
-              <option value="">Pilih Game</option>
-              <option value="Mobile Legends (Tim)">Mobile Legends (Tim - 5 Orang)</option>
-              <option value="Free Fire (Squad)">Free Fire (Squad - 4 Orang)</option>
-              <option value="EA Sports FC 26 (Individu)">EA Sports FC 26 PS4 (Individu)</option>
-            </select>
-          </div>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-dark">Alamat / Asal Kampung</label>
+                <input required type="text" name="alamat" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="RT/RW, Kp." />
+              </div>
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-dark">Nomor WhatsApp Aktif</label>
+                <input required type="tel" name="wa" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="08..." />
+              </div>
+            </div>
 
-        <div className="pt-2">
-           <p className="text-xs sm:text-sm text-secondary leading-relaxed bg-gray-50 p-4 rounded-[12px] border border-gray-100">
-             <strong className="text-dark block mb-1">Upload Bukti Pembayaran via WA</strong>
-             Setelah klik tombol daftar, kirim foto/screenshot bukti transfer pendaftaran eSport langsung melalui chat WhatsApp.
-           </p>
-        </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="space-y-1.5 sm:space-y-2">
+                <label className="text-xs sm:text-sm font-semibold text-dark">Kategori</label>
+                <select required name="kategori" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
+                  <option value="">Pilih Kategori Usia</option>
+                  <option value="Pelajar (SD-SMA)">Pelajar (SD - SMA)</option>
+                  <option value="Umum (18-50 Thn)">Umum (18 - 50 Tahun)</option>
+                </select>
+              </div>
+            </div>
 
-        <button 
-          type="submit" 
-          disabled={isSubmitting}
-          className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 sm:py-4 rounded-[16px] mt-4 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base uppercase tracking-wide"
-        >
-          {isSubmitting ? (
-            <Loader2 className="animate-spin w-5 h-5 cursor-wait" />
-          ) : (
-            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
-          )}
-          Kirim Data Pendaftaran
-        </button>
+            <div className="pt-2">
+               <label className="flex items-start gap-3 p-4 bg-red-50/50 rounded-xl border border-red-100 cursor-pointer group">
+                 <input type="checkbox" required className="mt-1 w-4 h-4 text-primary bg-white border-gray-300 rounded focus:ring-primary shadow-sm cursor-pointer shrink-0" />
+                 <span className="text-xs sm:text-sm text-secondary font-medium leading-relaxed select-none">
+                   Saya menyetujui seluruh <button type="button" onClick={() => setShowTerms(true)} className="text-primary font-bold underline underline-offset-2 hover:text-dark transition-colors">Syarat dan Ketentuan (T&C)</button> pendaftaran lomba eSport, termasuk kesiapan menanggung kerugian jika batal hadir serta menaati regulasi keamanan selama acara.
+                 </span>
+               </label>
+            </div>
+
+            <div className="pt-2">
+               <p className="text-xs sm:text-sm text-secondary leading-relaxed bg-gray-50 p-4 rounded-[12px] border border-gray-100">
+                 <strong className="text-dark block mb-1">Upload Bukti Pembayaran via WA</strong>
+                 Setelah klik tombol daftar, kirim foto/screenshot bukti transfer pendaftaran eSport langsung melalui chat WhatsApp.
+               </p>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isSubmitting}
+              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 sm:py-4 rounded-[16px] mt-4 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base uppercase tracking-wide"
+            >
+              {isSubmitting ? (
+                <Loader2 className="animate-spin w-5 h-5 cursor-wait" />
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51a12.8 12.8 0 0 0-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+              )}
+              Kirim Data Pendaftaran
+            </button>
+          </div>
+        )}
       </form>
+
+      {showTerms && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative animate-in fade-in zoom-in duration-200">
+            <button
+              title="Tutup"
+              type="button"
+              onClick={() => setShowTerms(false)}
+              className="absolute top-4 right-4 p-2.5 text-gray-400 bg-gray-50 hover:bg-gray-100 hover:text-dark rounded-full transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark pr-8 mb-5">
+              Syarat dan Ketentuan (T&C) eSport
+            </h3>
+            <div className="text-sm sm:text-base text-gray-600 space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
+              <p>
+                Dengan mencentang dan mengirim form pendaftaran ini, saya sebagai pendaftar/perwakilan tim menyatakan:
+              </p>
+              <ol className="list-decimal pl-4 space-y-2">
+                <li><strong className="text-dark">Pembatalan dan Resiko:</strong> Apabila saya atau tim saya batal hadir pada hari H, maka uang pendaftaran hangus (tidak dapat dikembalikan) dan dianggap sebagai kerugian yang ditanggung pendaftar.</li>
+                <li><strong className="text-dark">Sistem Pertandingan:</strong> Siap mengikuti sistem pertandingan maupun bagan turnamen (bracket) yang diacak otomatis oleh panitia tanpa ada unsur kecurangan.</li>
+                <li><strong className="text-dark">Regulasi Keamanan:</strong> Berkomitmen penuh menjaga ketertiban, keamanan, dan sportivitas tinggi selama acara berlangsung. Segala bentuk keributan atau provokasi akan berakibat diskualifikasi dan diserahkan pada pihak berwajib jika diperlukan.</li>
+                <li><strong className="text-dark">Nominal Hadiah:</strong> Menyadari bahwa total hadiah akan disesuaikan dengan jumlah target peserta/slot dari masing-masing kategori sesuai yang disyaratkan Panitia. Panitia berhak melakukan penyesuaian nominal bila slot tidak terpenuhi hingga Hari H.</li>
+              </ol>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowTerms(false)}
+              className="mt-8 w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg"
+            >
+              Saya Mengerti
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

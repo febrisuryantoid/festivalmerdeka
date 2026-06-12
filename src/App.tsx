@@ -26,6 +26,7 @@ import {
   Check
 } from "lucide-react";
 import { RegistrationForm, SponsorForm } from "./components/RegistrationForm";
+import { LiveLeaderboard } from "./components/LiveLeaderboard";
 
 export default function App() {
   const [timeLeft, setTimeLeft] = useState({
@@ -40,6 +41,25 @@ export default function App() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [slotCounts, setSlotCounts] = useState({ ml: 0, ff: 0, fc: 0 });
+
+  useEffect(() => {
+    import("firebase/firestore").then(({ collection, query, where, onSnapshot }) => {
+      import("./firebase").then(({ db }) => {
+        const q = query(collection(db, "registrations"), where("status", "==", "verified"));
+        onSnapshot(q, (snapshot) => {
+          let ml = 0, ff = 0, fc = 0;
+          snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (data.lomba?.includes("Mobile Legends")) ml++;
+            if (data.lomba?.includes("Free Fire")) ff++;
+            if (data.lomba?.includes("FC")) fc++;
+          });
+          setSlotCounts({ ml, ff, fc });
+        });
+      });
+    });
+  }, []);
 
   useEffect(() => {
     const targetDate = new Date("2026-08-17T00:00:00").getTime();
@@ -153,7 +173,7 @@ export default function App() {
       >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center shrink-0">
-            <img src="/favicon.svg" alt="App Icon" className="w-8 h-8 drop-shadow-sm" />
+            <img src="https://beeimg.com/images/k22145264424.png" alt="App Icon" className="w-8 h-8 drop-shadow-sm rounded-md" />
           </div>
           <div className="flex flex-col">
             <span className="font-heading font-bold text-dark text-sm">Install Aplikasi</span>
@@ -438,18 +458,24 @@ export default function App() {
                 variants={scaleUpVariant}
                 whileHover={{ y: -5 }}
                 key={i}
-                className="bg-white p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] shadow-sm border border-gray-100 flex flex-col items-center text-center transition-all hover:shadow-lg hover:border-primary/20"
+                className="relative p-[2px] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
               >
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/5 text-primary rounded-full flex items-center justify-center mb-5 sm:mb-6 relative shrink-0">
-                  <div className="absolute inset-0 border border-primary/20 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]" />
-                  <item.icon className="w-8 h-8 sm:w-10 sm:h-10" />
+                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] sm:rounded-[30px] flex flex-col items-center text-center z-10 border border-gray-100/50">
+                  <div className="absolute top-5 right-5 w-2.5 h-2.5 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                  
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/5 text-primary rounded-full flex items-center justify-center mb-5 sm:mb-6 relative shrink-0">
+                    <div className="absolute inset-0 border border-primary/20 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]" />
+                    <item.icon className="w-8 h-8 sm:w-10 sm:h-10" />
+                  </div>
+                  <h3 className="text-lg sm:text-xl font-bold font-heading mb-2 sm:mb-3">
+                    {item.title}
+                  </h3>
+                  <p className="text-sm sm:text-base text-secondary leading-relaxed">
+                    {item.desc}
+                  </p>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold font-heading mb-2 sm:mb-3">
-                  {item.title}
-                </h3>
-                <p className="text-sm sm:text-base text-secondary leading-relaxed">
-                  {item.desc}
-                </p>
               </motion.div>
             ))}
           </div>
@@ -511,23 +537,32 @@ export default function App() {
                 viewport={{ once: true, margin: "-50px" }}
                 variants={fadeUpVariant}
                 key={i}
-                className="bg-white p-6 sm:p-8 rounded-[24px] shadow-sm border border-red-100 hover:border-red-300 hover:shadow-lg transition-all group flex flex-col justify-between"
+                className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
               >
-                <div>
-                  <div className="w-12 h-12 rounded-xl bg-red-50 text-primary flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                    <item.icon className="w-6 h-6" />
+                {/* Shiny Chasing Border Layer */}
+                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                {/* Actual Card Content Layer */}
+                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] flex flex-col justify-between z-10 border border-gray-100/50">
+                  {/* Decorative Red Dot */}
+                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+
+                  <div>
+                    <div className="w-12 h-12 rounded-xl bg-red-50 text-primary flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                      <item.icon className="w-6 h-6" />
+                    </div>
+                    <h4 className="font-heading font-extrabold text-lg md:text-xl text-dark mb-2 leading-tight">
+                      {item.title}
+                    </h4>
+                    <p className="text-secondary text-sm font-medium mb-4 leading-relaxed">
+                      {item.desc}
+                    </p>
                   </div>
-                  <h4 className="font-heading font-extrabold text-lg md:text-xl text-dark mb-2 leading-tight">
-                    {item.title}
-                  </h4>
-                  <p className="text-secondary text-sm font-medium mb-4 leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-                <div className="pt-4 border-t border-gray-100 mt-auto">
-                  <span className="inline-block bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-lg">
-                    {item.date}
-                  </span>
+                  <div className="pt-4 border-t border-gray-100 mt-auto">
+                    <span className="inline-block bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-lg">
+                      {item.date}
+                    </span>
+                  </div>
                 </div>
               </motion.div>
             ))}
@@ -590,26 +625,33 @@ export default function App() {
                 viewport={{ once: true, margin: "-50px" }}
                 variants={scaleUpVariant}
                 key={i}
-                className="bg-white p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] shadow-sm border border-gray-100 relative overflow-hidden group hover:border-primary/20 transition-all hover:shadow-lg"
+                className="relative p-[2px] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
               >
-                <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-primary/5 rounded-bl-[80px] sm:rounded-bl-[100px] -z-10 group-hover:scale-110 transition-transform"></div>
-                <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-primary font-heading mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-100 flex items-center justify-between">
-                  {cat.title}
-                  <Star className="w-5 h-5 sm:w-6 sm:h-6 text-gold fill-gold/20 shrink-0" />
-                </h3>
-                <ul className="space-y-3 sm:space-y-4">
-                  {cat.items.map((item, j) => (
-                    <li
-                      key={j}
-                      className="flex items-start sm:items-center gap-3 text-sm sm:text-base text-dark font-medium leading-tight"
-                    >
-                      <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
-                        <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                      </div>
-                      <span className="flex-1">{item}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                
+                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] sm:rounded-[30px] z-10 border border-gray-100/50 flex flex-col">
+                  <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)] z-20" />
+                  <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-primary/5 rounded-bl-[80px] sm:rounded-bl-[100px] z-0 group-hover:scale-110 transition-transform"></div>
+                  
+                  <div className="relative z-10">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-primary font-heading mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-100 flex items-center justify-between pr-8">
+                      {cat.title}
+                    </h3>
+                    <ul className="space-y-3 sm:space-y-4">
+                      {cat.items.map((item, j) => (
+                        <li
+                          key={j}
+                          className="flex items-start sm:items-center gap-3 text-sm sm:text-base text-dark font-medium leading-tight group/item"
+                        >
+                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 group-hover/item:scale-110 group-hover/item:bg-green-100 transition-all">
+                            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
+                          </div>
+                          <span className="flex-1 group-hover/item:text-primary transition-colors">{item}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
               </motion.div>
             ))}
           </div>
@@ -642,30 +684,47 @@ export default function App() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-12 sm:mb-16">
             {[
               {
-                game: "Mobile Legends",
+                game: "Mobile Legends (Tim)",
                 prizes: ["Rp 500.000", "Rp 300.000", "Rp 200.000"],
                 logo: "https://upload.wikimedia.org/wikipedia/en/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png",
+                filled: slotCounts.ml,
               },
               {
-                game: "Free Fire",
+                game: "Free Fire (Squad)",
                 prizes: ["Rp 750.000", "Rp 500.000", "Rp 250.000"],
                 logo: "https://upload.wikimedia.org/wikipedia/id/8/8b/Garena_Free_Fire_New_Style.png",
+                filled: slotCounts.ff,
               },
               {
-                game: "EA Sports FC 26 PS4",
-                prizes: ["Rp 300.000", "Rp 200.000", "Rp 100.000"],
+                game: "EA Sports FC 26 (Individu)",
+                prizes: ["Rp 150.000", "Rp 100.000", "Rp 50.000"],
                 logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/FC_26_Logo.svg/1280px-FC_26_Logo.svg.png",
+                filled: slotCounts.fc,
               },
-            ].map((item, i) => (
+            ].map((item, i) => {
+              const progress = Math.min((item.filled / 32) * 100, 100);
+              return (
                 <motion.div
                   initial="hidden"
                   whileInView="visible"
                   viewport={{ once: true, margin: "-50px" }}
                   variants={i === 1 ? scaleUpVariant : (i === 0 ? slideInLeftVariant : slideInRightVariant)}
                   key={i}
-                  className="group flex flex-col bg-white border border-gray-100 p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] text-center hover:-translate-y-2 hover:shadow-2xl transition-all"
+                  className="group flex flex-col bg-white border border-gray-100 p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] text-center hover:-translate-y-2 hover:shadow-2xl transition-all relative overflow-hidden"
                 >
-                  <div className="relative mx-auto mb-5 sm:mb-6 rounded-[20px] p-[2.5px] overflow-hidden shrink-0 shadow-sm w-32 sm:w-40 aspect-[2/1] bg-white">
+                  <div className="absolute top-0 right-0 left-0 bg-gray-50 border-b border-gray-100 flex flex-col pt-3 z-20">
+                    <div className="flex justify-between items-center px-6 pb-2 text-xs font-bold text-gray-500">
+                      <span>DAFTAR SEKARANG</span>
+                      <span className="text-primary tracking-wide">TARGET: {item.filled} OF 32 SLOTS</span>
+                    </div>
+                    <div className="w-full bg-gray-200 h-1.5 relative overflow-hidden">
+                      <div className="h-full bg-primary relative transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}>
+                        <div className="absolute inset-0 bg-white/30 animate-[shimmerBorder_2s_linear_infinite]" style={{ animation: 'shimmerBorder 2s linear infinite' }} />
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="relative mx-auto mt-10 mb-5 sm:mb-6 rounded-[20px] p-[2.5px] overflow-hidden shrink-0 shadow-sm w-32 sm:w-40 aspect-[2/1] bg-white">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary via-white to-primary bg-[length:200%_auto] animate-[shimmerBorder_3s_linear_infinite]"
                       style={{ animation: 'shimmerBorder 3s linear infinite' }} />
                     <style>{`
@@ -698,7 +757,8 @@ export default function App() {
                   </div>
                   <p className="text-[10px] sm:text-xs mt-6 text-gray-400 text-center font-medium">*Estimasi Nominal Berdasarkan Kuota</p>
                 </motion.div>
-              ))}
+              );
+            })}
           </div>
 
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="max-w-2xl mx-auto mt-6 bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 text-center shadow-sm lg:max-w-4xl xl:max-w-5xl">
@@ -707,9 +767,10 @@ export default function App() {
             </span>
           </motion.div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="max-w-4xl mx-auto rounded-[24px] sm:rounded-[32px] overflow-hidden text-dark relative w-full shadow-xl bg-white border border-gray-100 mt-16 lg:mt-24">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="max-w-4xl mx-auto rounded-[24px] sm:rounded-[32px] overflow-hidden text-dark relative w-full shadow-xl bg-white border border-gray-100 mt-16 lg:mt-24 group">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-gold to-primary" />
-            <div className="p-6 sm:p-10 md:p-12 w-full">
+            <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)] z-20" />
+            <div className="p-6 sm:p-10 md:p-12 w-full relative z-10">
               <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-heading mb-2 text-center text-primary uppercase tracking-tight">
                 Tarif Pendaftaran eSport
               </h3>
@@ -768,9 +829,17 @@ export default function App() {
             </motion.p>
           </div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant}>
-            <RegistrationForm />
-          </motion.div>
+          <div className="max-w-3xl mx-auto items-start">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant}>
+              <RegistrationForm />
+            </motion.div>
+          </div>
+
+          <div className="mt-12 lg:mt-16 w-full mx-auto">
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant}>
+              <LiveLeaderboard />
+            </motion.div>
+          </div>
         </div>
       </section>
 
@@ -824,19 +893,26 @@ export default function App() {
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
             {/* Paket Silver */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInLeftVariant} className="bg-white p-6 sm:p-8 rounded-[24px] border border-gray-100 text-center hover:border-slate-300 hover:shadow-lg transition-all flex flex-col">
-              <h3 className="font-heading font-bold text-xl text-slate-600 mb-2">Paket Silver</h3>
-              <div className="text-3xl font-black text-slate-800 font-heading mb-6">Rp 20.000<span className="text-sm text-secondary font-normal block mt-1">/ Slot Minimal</span></div>
-              <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Pemuatan Nama/Logo di Banner Acara (Kecil)</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Disebutkan oleh MC (1x)</li>
-              </ul>
-              <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 20.000)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors">Pilih Paket Silver</button>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInLeftVariant} className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all flex flex-col">
+              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#94a3b8_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                <h3 className="font-heading font-bold text-xl text-slate-600 mb-2">Paket Silver</h3>
+                <div className="text-3xl font-black text-slate-800 font-heading mb-6">Rp 20.000<span className="text-sm text-secondary font-normal block mt-1">/ Slot Minimal</span></div>
+                <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Pemuatan Nama/Logo di Banner Acara (Kecil)</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Disebutkan oleh MC (1x)</li>
+                </ul>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 20.000)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors relative overflow-hidden group/btn">
+                  <span className="relative z-10">Pilih Paket Silver</span>
+                </button>
+              </div>
             </motion.div>
 
             {/* Paket Gold */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="bg-white p-[3px] rounded-[24px] text-center relative flex flex-col transform md:-translate-y-4 shadow-xl mb-4 md:mb-0 hover:shadow-gold/30 transition-shadow">
-              <div className="absolute inset-0 bg-gradient-to-r from-gold/50 via-yellow-200 to-gold/50 rounded-[24px] animate-[shimmerBorder_3s_linear_infinite] bg-[length:200%_auto]"></div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="relative p-[3px] rounded-[24px] overflow-hidden group shadow-xl mb-4 md:mb-0 transform md:-translate-y-4 hover:shadow-gold/30 transition-shadow flex flex-col text-center">
+              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#fde047_80%,#ca8a04_100%)] animate-[spin_3s_linear_infinite]" />
               <div className="bg-white h-full w-full rounded-[21px] p-6 sm:p-8 flex flex-col relative z-10">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-bold text-xs uppercase tracking-widest py-1 px-4 rounded-full shadow-md">Paling Diminati</div>
                 <h3 className="font-heading font-bold text-xl text-yellow-600 mb-2 mt-2">Paket Gold</h3>
@@ -851,15 +927,22 @@ export default function App() {
             </motion.div>
 
             {/* Paket Platinum */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="bg-white p-6 sm:p-8 rounded-[24px] border border-gray-100 text-center hover:border-dark hover:shadow-lg transition-all flex flex-col">
-              <h3 className="font-heading font-bold text-xl text-dark mb-2">Paket Platinum</h3>
-              <div className="text-3xl font-black text-dark font-heading mb-6 text-balance">Rp 150.000+<span className="text-sm text-secondary font-normal block mt-1">/ Slot Eksklusif</span></div>
-              <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo Terbesar di Center Banner & Kaos Panitia</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi MC Tanpa Batas / Adlips</li>
-                <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Spanduk Khusus Brand di Titik Strategis</li>
-              </ul>
-              <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 150.000+)'); setActiveModal('sponsor'); }} className="w-full bg-dark text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors">Pilih Paket Platinum</button>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all flex flex-col">
+              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#1e293b_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                <h3 className="font-heading font-bold text-xl text-dark mb-2">Paket Platinum</h3>
+                <div className="text-3xl font-black text-dark font-heading mb-6 text-balance">Rp 150.000+<span className="text-sm text-secondary font-normal block mt-1">/ Slot Eksklusif</span></div>
+                <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo Terbesar di Center Banner & Kaos Panitia</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi MC Tanpa Batas / Adlips</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Spanduk Khusus Brand di Titik Strategis</li>
+                </ul>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 150.000+)'); setActiveModal('sponsor'); }} className="w-full bg-dark text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors relative overflow-hidden group/btn">
+                  <span className="relative z-10">Pilih Paket Platinum</span>
+                </button>
+              </div>
             </motion.div>
           </div>
         </div>
@@ -897,33 +980,39 @@ export default function App() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="bg-white p-6 rounded-[24px] shadow-md hover:shadow-xl flex flex-col justify-between border border-gray-100 group transition-all duration-300 gap-6"
+                    className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300"
                   >
-                    <div className={`p-4 rounded-[16px] inline-flex items-center gap-3 w-fit ${item.bg}`}>
-                      {item.logo && <img src={item.logo} alt={item.name} className="h-8 w-auto object-contain rounded-md" />}
-                      <span className={`font-bold tracking-wide uppercase ${item.color}`}>{item.name}</span>
-                    </div>
+                    <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    
+                    <div className="relative flex flex-col justify-between h-full bg-white p-6 rounded-[22px] z-10 border border-gray-100/50 gap-6">
+                      <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                      
+                      <div className={`p-4 rounded-[16px] inline-flex items-center gap-3 w-fit ${item.bg}`}>
+                        {item.logo && <img src={item.logo} alt={item.name} className="h-8 w-auto object-contain rounded-md" />}
+                        <span className={`font-bold tracking-wide uppercase ${item.color}`}>{item.name}</span>
+                      </div>
 
-                    <div>
-                      <div className="text-secondary text-sm font-medium mb-1">
-                        Nomor Rekening / Akun
-                      </div>
-                      <div className="font-heading font-black text-2xl sm:text-3xl tracking-wider text-dark flex items-center justify-between gap-3 group/copy mb-2">
-                        <span className="tabular-nums flex-1">{item.num}</span>
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(item.num.replace(/\s/g, ''));
-                            setCopiedKey(item.name);
-                            setTimeout(() => setCopiedKey(null), 2000);
-                          }}
-                          className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-200 transition-colors focus:outline-none focus:ring-4 focus:ring-gray-100 shrink-0 shadow-sm"
-                          title="Salin Nomor"
-                        >
-                          {copiedKey === item.name ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-dark" />}
-                        </button>
-                      </div>
-                      <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">
-                        a.n. <span className="text-gray-900">{item.a}</span>
+                      <div>
+                        <div className="text-secondary text-sm font-medium mb-1">
+                          Nomor Rekening / Akun
+                        </div>
+                        <div className="font-heading font-black text-2xl sm:text-3xl tracking-wider text-dark flex items-center justify-between gap-3 group/copy mb-2">
+                          <span className="tabular-nums flex-1">{item.num}</span>
+                          <button 
+                            onClick={() => {
+                              navigator.clipboard.writeText(item.num.replace(/\s+/g, ''));
+                              setCopiedKey(item.name);
+                              setTimeout(() => setCopiedKey(null), 2000);
+                            }}
+                            className="w-12 h-12 rounded-full bg-gray-50 flex items-center justify-center hover:bg-gray-200 transition-colors focus:outline-none focus:ring-4 focus:ring-gray-100 shrink-0 shadow-sm"
+                            title="Salin Nomor"
+                          >
+                            {copiedKey === item.name ? <Check className="w-5 h-5 text-green-600" /> : <Copy className="w-5 h-5 text-dark" />}
+                          </button>
+                        </div>
+                        <div className="text-sm font-bold text-gray-400 uppercase tracking-widest">
+                          a.n. <span className="text-gray-900">{item.a}</span>
+                        </div>
                       </div>
                     </div>
                   </div>

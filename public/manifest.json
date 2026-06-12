@@ -8,9 +8,9 @@
   "description": "Aplikasi informasi dan pendaftaran Festival Merdeka Tahun 2026 Desa Padasuka.",
   "icons": [
     {
-      "src": "/favicon.svg",
+      "src": "https://beeimg.com/images/k22145264424.png",
       "sizes": "192x192 512x512 any",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any maskable"
     }
   ]
