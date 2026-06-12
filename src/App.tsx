@@ -28,6 +28,7 @@ import {
 } from "lucide-react";
 import { RegistrationForm, SponsorForm } from "./components/RegistrationForm";
 import { LiveLeaderboard } from "./components/LiveLeaderboard";
+import { getPricingConfig } from "./lib/utils";
 
 export default function App() {
   const [timeLeft, setTimeLeft] = useState({
@@ -778,22 +779,21 @@ export default function App() {
               <p className="text-center text-secondary text-sm sm:text-base mb-6 sm:mb-8 font-medium">Semua perlombaan tradisional dijamin 100% GRATIS.</p>
               
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {[
-                  { k: "SD Kelas 1–3", v: "Rp 5.000" },
-                  { k: "SD Kelas 4–6", v: "Rp 8.000" },
-                  { k: "SMP", v: "Rp 10.000" },
-                  { k: "SMA/SMK", v: "Rp 12.000" },
-                  { k: "Umum (Maks 50 Thn)", v: "Rp 15.000" },
-                ].map((item, i) => (
+                {getPricingConfig().map((item, i) => (
                   <div
                     key={i}
-                    className={`flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors ${item.k.includes('Umum') ? 'sm:col-span-2' : ''}`}
+                    className={`flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors ${item.label.includes('Umum') ? 'sm:col-span-2' : ''}`}
                   >
                     <span className="text-sm sm:text-base font-semibold text-secondary">
-                      {item.k}
+                      {item.label}
                     </span>
-                    <span className="font-bold font-heading text-base sm:text-lg text-primary">
-                      {item.v}
+                    <span className="font-bold font-heading text-base sm:text-lg text-primary flex items-center gap-2">
+                      {!item.isLate && (
+                        <span className="line-through text-gray-400 text-xs sm:text-sm font-normal">
+                          Rp {item.latePrice.toLocaleString('id-ID')}
+                        </span>
+                      )}
+                      Rp {item.price.toLocaleString('id-ID')}
                     </span>
                   </div>
                 ))}

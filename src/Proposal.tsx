@@ -1,13 +1,57 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { motion } from 'motion/react';
-import { ArrowLeft, Printer, Download } from 'lucide-react';
+import { ArrowLeft, Printer, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { getPricingConfig } from './lib/utils';
+import html2pdf from 'html2pdf.js';
 
 export default function Proposal() {
   const navigate = useNavigate();
+  const pricing = getPricingConfig();
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const getPrice = (labelFragment: string) => {
+    const item = pricing.find(p => p.label.includes(labelFragment));
+    if (!item) return '-';
+    return (
+      <span className="flex items-center justify-center gap-1">
+        {!item.isLate && (
+          <span className="line-through text-gray-500 text-[10px]">
+            {item.latePrice / 1000}K
+          </span>
+        )}
+        <span>{item.price / 1000}K</span>
+      </span>
+    );
+  };
 
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDownload = async () => {
+    const element = contentRef.current;
+    if (!element) return;
+    
+    setIsDownloading(true);
+    const opt = {
+      margin:       0,
+      filename:     'Proposal_Kegiatan_HUT_RI_81_Padasuka.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2, useCORS: true },
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
+      pagebreak:    { mode: 'css', avoid: '.avoid-break' }
+    };
+
+    try {
+      await html2pdf().set(opt).from(element).save();
+    } catch (error) {
+      console.error('Failed to generate PDF', error);
+      alert('Gagal mengunduh PDF.');
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   return (
@@ -19,17 +63,25 @@ export default function Proposal() {
         >
           <ArrowLeft className="w-5 h-5" /> Kembali
         </button>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap gap-2 sm:gap-3">
+          <button 
+            onClick={handleDownload}
+            disabled={isDownloading}
+            className="flex items-center justify-center gap-2 bg-primary text-white hover:bg-primary-dark px-3 sm:px-4 py-2 rounded-lg font-sans font-medium transition-colors disabled:opacity-70 text-sm sm:text-base"
+          >
+            {isDownloading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Download className="w-4 h-4" />}
+            {isDownloading ? 'Memproses...' : 'Download PDF'}
+          </button>
           <button 
             onClick={handlePrint}
-             className="flex items-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 px-4 py-2 rounded-lg font-sans font-medium transition-colors"
+             className="flex items-center justify-center gap-2 bg-slate-100 text-slate-700 hover:bg-slate-200 px-3 sm:px-4 py-2 rounded-lg font-sans font-medium transition-colors text-sm sm:text-base"
           >
-            <Printer className="w-4 h-4" /> Cetak / PDF
+            <Printer className="w-4 h-4" /> Cetak
           </button>
         </div>
       </div>
 
-      <div className="mt-16 print:mt-0 flex flex-col items-center gap-8 print:gap-0">
+      <div ref={contentRef} className="mt-20 sm:mt-16 print:mt-0 flex flex-col items-center gap-8 print:gap-0">
         
         {/* Halaman 1: Cover */}
         <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full px-[30mm] pt-[30mm] pb-[20mm] relative mx-auto box-border proposal-page flex flex-col justify-between" style={{ pageBreakAfter: 'always' }}>
@@ -145,28 +197,28 @@ export default function Proposal() {
                       <tbody>
                         <tr>
                           <td className="border border-gray-800 p-1 font-semibold">SD</td>
-                          <td className="border border-gray-800 p-1 text-center">Rp 5.000</td>
+                          <td className="border border-gray-800 p-1 text-center">{getPrice("SD")}</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 150K | J2: 75K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 120K | J2: 60K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 30K | J2: 15K</td>
                         </tr>
                         <tr>
                           <td className="border border-gray-800 p-1 font-semibold">SMP</td>
-                          <td className="border border-gray-800 p-1 text-center">Rp 8.000</td>
+                          <td className="border border-gray-800 p-1 text-center">{getPrice("SMP")}</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 100K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 200K | J2: 100K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 50K | J2: 25K</td>
                         </tr>
                         <tr>
                           <td className="border border-gray-800 p-1 font-semibold">SMA</td>
-                          <td className="border border-gray-800 p-1 text-center">Rp 10.000</td>
+                          <td className="border border-gray-800 p-1 text-center">{getPrice("SMA")}</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 350K | J2: 150K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 125K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 75K | J2: 35K</td>
                         </tr>
                         <tr>
                           <td className="border border-gray-800 p-1 font-semibold">Umum</td>
-                          <td className="border border-gray-800 p-1 text-center">Rp 15.000</td>
+                          <td className="border border-gray-800 p-1 text-center">{getPrice("Umum")}</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 500K | J2: 250K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 400K | J2: 200K</td>
                           <td className="border border-gray-800 p-1 text-center">J1: 100K | J2: 50K</td>

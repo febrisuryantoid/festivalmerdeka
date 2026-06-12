@@ -23,7 +23,7 @@ export function LiveLeaderboard() {
     <div className="w-full bg-white/95 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-[24px] shadow-2xl relative overflow-hidden">
       <div className="flex flex-col items-center text-center gap-5 mb-8">
         <div className="flex flex-col items-center w-full">
-           <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center justify-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Peserta Terdaftar (Real-time)</h3>
+           <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center justify-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Peserta Terdaftar</h3>
            <p className="text-secondary text-sm font-medium mt-1">Tim yang sudah diverifikasi pembayarannya oleh admin.</p>
         </div>
         <div className="flex justify-center mx-auto bg-gray-100 p-1.5 rounded-xl w-max gap-1">

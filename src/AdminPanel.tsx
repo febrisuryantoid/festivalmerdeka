@@ -35,8 +35,8 @@ export default function AdminPanel() {
     setLoginError("");
     setLoading(true);
     
-    if (username !== "festival") {
-      setLoginError("Username tidak dikenali.");
+    if (username !== "festival" || password !== "17Agustus26") {
+      setLoginError("Username atau password tidak dikenali.");
       setLoading(false);
       return;
     }

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Loader2, X } from "lucide-react";
 import { db } from "../firebase";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { getPricingConfig } from "../lib/utils";
+import { motion, AnimatePresence } from "motion/react";
 
 export function RegistrationForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -18,11 +20,9 @@ export function RegistrationForm() {
   };
 
   const getFeePerPerson = (kategori: string) => {
-    if (kategori === "SD (Kelas 1-6)") return 5000;
-    if (kategori === "SMP / Sederajat") return 8000;
-    if (kategori === "SMA / Sederajat") return 10000;
-    if (kategori === "Umum (18-50 Thn)") return 15000;
-    return 0;
+    const pricing = getPricingConfig();
+    const config = pricing.find(p => p.label === kategori);
+    return config ? config.price : 0;
   };
 
   const playerCount = getPlayerCount(selectedGame);
@@ -89,6 +89,41 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
   return (
     <div className="bg-white/95 backdrop-blur-xl border border-white/20 p-5 sm:p-8 md:p-10 rounded-[24px] shadow-2xl relative overflow-hidden w-full text-left">
+      <AnimatePresence>
+        {isSubmitting && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full mb-6 relative"
+            >
+               <div className="absolute inset-0 bg-primary/10 rounded-full animate-pulse" />
+            </motion.div>
+            <motion.h3 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-xl sm:text-2xl font-bold font-heading text-dark mb-2"
+            >
+              Memproses Pendaftaran...
+            </motion.h3>
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-secondary text-sm sm:text-base font-medium max-w-xs mx-auto"
+            >
+              Mohon tunggu sebentar, kami sedang menyiapkan lembar pendaftaran Anda ke sistem.
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {errorText && (
         <div className="bg-red-50 text-primary p-3 sm:p-4 rounded-xl mb-4 sm:mb-6 border border-red-100 text-sm font-medium">
           {errorText}
@@ -148,10 +183,9 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                 <label className="text-xs sm:text-sm font-semibold text-dark">Kategori</label>
                 <select required name="kategori" value={selectedKategori} onChange={(e) => setSelectedKategori(e.target.value)} className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
                   <option value="">Pilih Kategori Usia</option>
-                  <option value="SD (Kelas 1-6)">SD (Kelas 1-6) - Rp 5K/org</option>
-                  <option value="SMP / Sederajat">SMP / Sederajat - Rp 8K/org</option>
-                  <option value="SMA / Sederajat">SMA / Sederajat - Rp 10K/org</option>
-                  <option value="Umum (18-50 Thn)">Umum (18-50 Thn) - Rp 15K/org</option>
+                  {getPricingConfig().map(p => (
+                    <option key={p.label} value={p.label}>{p.label} - Rp {(p.price / 1000)}K/org</option>
+                  ))}
                 </select>
               </div>
               
@@ -281,7 +315,41 @@ Mohon informasi lebih lanjut mengenai teknis pengiriman logo dan MoU. Saya siap 
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className="space-y-4">
+    <form onSubmit={handleFormSubmit} className="space-y-4 relative">
+      <AnimatePresence>
+        {isSubmitting && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-[-16px] xl:inset-[-24px] z-50 bg-white/80 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center"
+          >
+            <motion.div
+              animate={{ rotate: 360 }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="w-12 h-12 border-4 border-primary/20 border-t-primary rounded-full mb-4 relative"
+            >
+               <div className="absolute inset-0 bg-primary/10 rounded-full animate-pulse" />
+            </motion.div>
+            <motion.h3 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="text-lg font-bold font-heading text-dark mb-1"
+            >
+              Memproses...
+            </motion.h3>
+            <motion.p 
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-secondary text-xs sm:text-sm font-medium"
+            >
+              Menyiapkan pengajuan sponsor.
+            </motion.p>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <div className="space-y-1">
         <label className="text-sm font-semibold text-dark">Nama Lengkap / PIC</label>
         <input required type="text" name="nama" className="w-full px-4 py-2.5 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm" placeholder="Nama Anda" />
