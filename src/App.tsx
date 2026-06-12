@@ -23,7 +23,8 @@ import {
   HandCoins,
   X,
   Copy,
-  Check
+  Check,
+  Menu
 } from "lucide-react";
 import { RegistrationForm, SponsorForm } from "./components/RegistrationForm";
 import { LiveLeaderboard } from "./components/LiveLeaderboard";
@@ -42,6 +43,15 @@ export default function App() {
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showInstallBanner, setShowInstallBanner] = useState(false);
   const [slotCounts, setSlotCounts] = useState({ ml: 0, ff: 0, fc: 0 });
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 50);
+    };
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   useEffect(() => {
     import("firebase/firestore").then(({ collection, query, where, onSnapshot }) => {
@@ -201,16 +211,17 @@ export default function App() {
         initial={{ y: -100 }} 
         animate={{ y: 0 }} 
         transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="absolute top-0 left-0 right-0 z-50 bg-transparent"
+        className={`z-50 transition-all duration-300 ${isScrolled ? 'fixed top-[15px] left-0 right-0' : 'absolute top-0 left-0 right-0 bg-transparent'}`}
       >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 sm:h-20 flex items-center justify-between">
-          <div className="flex items-center gap-3 md:gap-4">
-            <div className="flex items-center gap-2 sm:gap-3">
+        <div className={`mx-auto px-4 sm:px-6 transition-all duration-300 max-w-7xl`}>
+          <div className={`flex items-center justify-between w-full h-[65px] lg:h-[70px] transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md shadow-gray-200/50 rounded-full border border-gray-100 px-4 sm:px-6' : ''}`}>
+            <div className={`flex items-center gap-3 md:gap-4 ${!isScrolled ? 'pl-2 sm:pl-0' : ''}`}>
+            <div className="hidden lg:flex items-center gap-2 sm:gap-3">
               <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
               <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
             </div>
             
-            <div className="hidden sm:block h-8 md:h-10 w-px bg-gray-200"></div>
+            <div className="hidden lg:block h-8 md:h-10 w-px bg-gray-200"></div>
             
             <div className="flex items-center gap-1.5 sm:gap-2">
               <div 
@@ -231,54 +242,26 @@ export default function App() {
                 <span className="font-heading font-black text-primary text-[13px] sm:text-[15px] uppercase tracking-wider whitespace-nowrap text-left">Indonesia</span>
               </div>
             </div>
-            <div className="hidden lg:block h-8 w-px bg-gray-200 ml-1"></div>
+            <div className={`hidden lg:block w-px bg-gray-200 ml-1 transition-all duration-300 ${isScrolled ? 'h-6' : 'h-8'}`}></div>
             <div className="hidden lg:flex flex-col leading-none pt-1">
               <span className="font-heading font-semibold text-[8px] text-gray-500 uppercase tracking-widest">Festival</span>
               <span className="font-heading font-black text-gray-800 text-sm uppercase tracking-wide">MERDEKA</span>
             </div>
           </div>
-          <div className="hidden lg:flex gap-8 text-sm font-semibold text-secondary">
+          <div className="flex items-center gap-4 text-sm font-semibold text-secondary">
             <button
-              onClick={() => scrollTo("tentang")}
-              className="hover:text-primary transition-colors"
+              onClick={() => setActiveModal("menu")}
+              className="p-2 sm:p-2.5 text-gray-700 hover:text-primary transition-colors flex items-center justify-center group"
             >
-              Tentang
+              <Menu className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
             </button>
-            <button
-              onClick={() => scrollTo("lomba")}
-              className="hover:text-primary transition-colors"
-            >
-              Kategori Lomba
-            </button>
-            <button
-              onClick={() => scrollTo("jadwal")}
-              className="hover:text-primary transition-colors"
-            >
-              Jadwal
-            </button>
-            <button
-              onClick={() => scrollTo("esport")}
-              className="hover:text-primary transition-colors"
-            >
-              eSport
-            </button>
-              <button onClick={() => scrollTo("lokasi")} className="hover:text-primary transition-colors">
-                Lokasi
-              </button>
-              <button
-                onClick={() => scrollTo("faq")}
-                className="hover:text-primary transition-colors"
-              >
-                FAQ
-              </button>
-          </div>
-          <div className="flex items-center gap-4">
             <button
               onClick={() => scrollTo("daftar")}
               className="bg-primary hover:bg-primary-dark text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-primary/20 transition-all"
             >
               Daftar<span className="hidden sm:inline"> Sekarang</span>
             </button>
+          </div>
           </div>
         </div>
       </motion.nav>
@@ -685,19 +668,34 @@ export default function App() {
             {[
               {
                 game: "Mobile Legends (Tim)",
-                prizes: ["Rp 500.000", "Rp 300.000", "Rp 200.000"],
+                prizes: [
+                  { level: "SD", juara1: "Rp 150.000", juara2: "Rp 75.000" },
+                  { level: "SMP", juara1: "Rp 250.000", juara2: "Rp 100.000" },
+                  { level: "SMA", juara1: "Rp 350.000", juara2: "Rp 150.000" },
+                  { level: "Umum", juara1: "Rp 500.000", juara2: "Rp 250.000" },
+                ],
                 logo: "https://upload.wikimedia.org/wikipedia/en/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png",
                 filled: slotCounts.ml,
               },
               {
                 game: "Free Fire (Squad)",
-                prizes: ["Rp 750.000", "Rp 500.000", "Rp 250.000"],
+                prizes: [
+                  { level: "SD", juara1: "Rp 120.000", juara2: "Rp 60.000" },
+                  { level: "SMP", juara1: "Rp 200.000", juara2: "Rp 100.000" },
+                  { level: "SMA", juara1: "Rp 250.000", juara2: "Rp 125.000" },
+                  { level: "Umum", juara1: "Rp 400.000", juara2: "Rp 200.000" },
+                ],
                 logo: "https://upload.wikimedia.org/wikipedia/id/8/8b/Garena_Free_Fire_New_Style.png",
                 filled: slotCounts.ff,
               },
               {
                 game: "EA Sports FC 26 (Individu)",
-                prizes: ["Rp 150.000", "Rp 100.000", "Rp 50.000"],
+                prizes: [
+                  { level: "SD", juara1: "Rp 30.000", juara2: "Rp 15.000" },
+                  { level: "SMP", juara1: "Rp 50.000", juara2: "Rp 25.000" },
+                  { level: "SMA", juara1: "Rp 75.000", juara2: "Rp 35.000" },
+                  { level: "Umum", juara1: "Rp 100.000", juara2: "Rp 50.000" },
+                ],
                 logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/FC_26_Logo.svg/1280px-FC_26_Logo.svg.png",
                 filled: slotCounts.fc,
               },
@@ -741,19 +739,22 @@ export default function App() {
                     {item.game}
                   </h3>
                   
-                  <div className="space-y-3 relative z-10 w-full text-left mt-auto">
-                     <div className="flex justify-between items-center bg-gradient-to-r from-yellow-50 to-orange-50 p-3.5 rounded-xl border border-yellow-200">
-                       <span className="text-sm sm:text-base font-bold text-yellow-600 flex items-center gap-2.5"><Trophy className="w-5 h-5"/> Juara 1</span>
-                       <span className="font-black text-yellow-700 tracking-wide text-base sm:text-lg">{item.prizes[0]}</span>
-                     </div>
-                     <div className="flex justify-between items-center bg-gradient-to-r from-slate-50 to-gray-100 p-3.5 rounded-xl border border-slate-200">
-                       <span className="text-sm sm:text-base font-bold text-slate-500 flex items-center gap-2.5"><Medal className="w-5 h-5"/> Juara 2</span>
-                       <span className="font-black text-slate-700 tracking-wide text-base sm:text-lg">{item.prizes[1]}</span>
-                     </div>
-                     <div className="flex justify-between items-center bg-gradient-to-r from-orange-50 to-amber-50 p-3.5 rounded-xl border border-orange-200">
-                       <span className="text-sm sm:text-base font-bold text-orange-600 flex items-center gap-2.5"><Medal className="w-5 h-5"/> Juara 3</span>
-                       <span className="font-black text-orange-800 tracking-wide text-base sm:text-lg">{item.prizes[2]}</span>
-                     </div>
+                  <div className="space-y-2 relative z-10 w-full text-left mt-auto">
+                    {item.prizes.map((prize, idx) => (
+                      <div key={idx} className="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:border-slate-300 transition-colors">
+                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-200/60 inline-flex items-center px-2 py-0.5 rounded-md mb-2">{prize.level}</div>
+                        <div className="flex justify-between items-center text-[11px] sm:text-xs">
+                           <div className="flex flex-col">
+                             <span className="text-yellow-600 font-bold flex items-center gap-1"><Trophy className="w-3.5 h-3.5"/> Juara 1</span>
+                             <span className="font-black text-slate-800 text-sm">{prize.juara1}</span>
+                           </div>
+                           <div className="flex flex-col text-right">
+                             <span className="text-slate-500 font-bold flex items-center justify-end gap-1"><Medal className="w-3.5 h-3.5"/> Juara 2</span>
+                             <span className="font-black text-slate-800 text-sm">{prize.juara2}</span>
+                           </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                   <p className="text-[10px] sm:text-xs mt-6 text-gray-400 text-center font-medium">*Estimasi Nominal Berdasarkan Kuota</p>
                 </motion.div>
@@ -911,10 +912,12 @@ export default function App() {
             </motion.div>
 
             {/* Paket Gold */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="relative p-[3px] rounded-[24px] overflow-hidden group shadow-xl mb-4 md:mb-0 transform md:-translate-y-4 hover:shadow-gold/30 transition-shadow flex flex-col text-center">
-              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#fde047_80%,#ca8a04_100%)] animate-[spin_3s_linear_infinite]" />
-              <div className="bg-white h-full w-full rounded-[21px] p-6 sm:p-8 flex flex-col relative z-10">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-bold text-xs uppercase tracking-widest py-1 px-4 rounded-full shadow-md">Paling Diminati</div>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="relative p-[3px] rounded-[24px] group shadow-xl mb-4 md:mb-0 transform md:-translate-y-4 hover:shadow-gold/30 transition-shadow flex flex-col text-center">
+              <div className="absolute inset-0 overflow-hidden rounded-[24px]">
+                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#fde047_80%,#ca8a04_100%)] animate-[spin_3s_linear_infinite]" />
+              </div>
+              <div className="bg-white h-full w-full rounded-[21px] p-6 sm:p-8 flex flex-col relative z-20">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-bold text-xs uppercase tracking-widest py-1 px-4 rounded-full shadow-md z-30 whitespace-nowrap">Paling Diminati</div>
                 <h3 className="font-heading font-bold text-xl text-yellow-600 mb-2 mt-2">Paket Gold</h3>
                 <div className="text-3xl font-black text-yellow-700 font-heading mb-6">Rp 50.000<span className="text-sm text-secondary font-normal block mt-1">/ Slot Menengah</span></div>
                 <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
@@ -1210,12 +1213,12 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-col gap-8 w-full">
           <div className="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-8">
             <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 md:gap-6">
-              <div className="flex items-center gap-3">
+              <div className="hidden lg:flex items-center gap-3">
                 <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-8 md:h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
                 <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-8 md:h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
               </div>
               
-              <div className="hidden sm:block h-8 w-px bg-gray-200"></div>
+              <div className="hidden lg:block h-8 w-px bg-gray-200"></div>
 
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <div 
@@ -1279,6 +1282,7 @@ export default function App() {
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
                 <h3 className="font-heading font-extrabold text-xl text-dark">
+                  {activeModal === 'menu' && 'Menu Navigasi'}
                   {activeModal === 'tentang' && 'Tentang Karang Taruna Padasuka'}
                   {activeModal === 'sk' && 'Syarat & Ketentuan'}
                   {activeModal === 'privasi' && 'Kebijakan Privasi'}
@@ -1293,6 +1297,31 @@ export default function App() {
                 </button>
               </div>
               <div className="p-6 md:p-8 overflow-y-auto font-medium text-secondary text-sm md:text-base leading-relaxed space-y-4">
+                {activeModal === 'menu' && (
+                  <div className="flex flex-col gap-3">
+                     <button onClick={() => { setActiveModal(null); scrollTo("tentang"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       Tentang <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <button onClick={() => { setActiveModal(null); scrollTo("lomba"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       Kategori Lomba <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <button onClick={() => { setActiveModal(null); scrollTo("jadwal"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       Jadwal <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <button onClick={() => { setActiveModal(null); scrollTo("esport"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       eSport <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <button onClick={() => { setActiveModal(null); scrollTo("lokasi"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       Lokasi <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <button onClick={() => { setActiveModal(null); scrollTo("faq"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
+                       FAQ <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+                     </button>
+                     <a href="/proposal" className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-primary transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group bg-primary/5">
+                       Proposal Kegiatan <ArrowRight className="w-4 h-4 text-primary transition-colors" />
+                     </a>
+                  </div>
+                )}
                 {activeModal === 'tentang' && (
                   <>
                     <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-16 w-auto mb-6 drop-shadow-sm block" />

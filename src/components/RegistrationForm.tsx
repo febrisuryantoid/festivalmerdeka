@@ -8,6 +8,26 @@ export function RegistrationForm() {
   const [errorText, setErrorText] = useState("");
   const [showTerms, setShowTerms] = useState(false);
   const [selectedGame, setSelectedGame] = useState("");
+  const [selectedKategori, setSelectedKategori] = useState("");
+
+  const getPlayerCount = (game: string) => {
+    if (game.includes("Mobile Legends")) return 5;
+    if (game.includes("Free Fire")) return 4;
+    if (game.includes("FC 26")) return 1;
+    return 0;
+  };
+
+  const getFeePerPerson = (kategori: string) => {
+    if (kategori === "SD (Kelas 1-6)") return 5000;
+    if (kategori === "SMP / Sederajat") return 8000;
+    if (kategori === "SMA / Sederajat") return 10000;
+    if (kategori === "Umum (18-50 Thn)") return 15000;
+    return 0;
+  };
+
+  const playerCount = getPlayerCount(selectedGame);
+  const feePerPerson = getFeePerPerson(selectedKategori);
+  const totalFee = playerCount * feePerPerson;
 
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,6 +53,7 @@ Halo Panitia, saya ingin mendaftar lomba eSport dengan data berikut:
 *Pilihan Game:* ${lomba}
 *Alamat (Asal Kampung):* ${alamat}
 *No. WhatsApp:* ${wa}
+*Total Biaya (+Kuota Tim):* Rp ${totalFee.toLocaleString('id-ID')}
 
 Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
@@ -99,13 +120,13 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs sm:text-sm font-semibold text-dark">
-                  {selectedGame.includes('Individu') ? 'Nama Peserta' : 'Nama Tim / Squad'}
+                  {selectedGame.includes('FC 26') ? 'Nama Peserta' : 'Nama Tim / Squad'}
                 </label>
-                <input required type="text" name="nama" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder={selectedGame.includes('Individu') ? "Contoh: Budi" : "Contoh: Evos Legends"} />
+                <input required type="text" name="nama" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder={selectedGame.includes('FC 26') ? "Contoh: Budi" : "Contoh: Evos Legends"} />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs sm:text-sm font-semibold text-dark">
-                  {selectedGame.includes('Individu') ? 'Usia' : 'Rata-rata Usia Tim'}
+                  {selectedGame.includes('FC 26') ? 'Usia' : 'Rata-rata Usia Tim'}
                 </label>
                 <input required type="number" name="usia" max="50" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="Misal: 18" />
               </div>
@@ -125,12 +146,26 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs sm:text-sm font-semibold text-dark">Kategori</label>
-                <select required name="kategori" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
+                <select required name="kategori" value={selectedKategori} onChange={(e) => setSelectedKategori(e.target.value)} className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
                   <option value="">Pilih Kategori Usia</option>
-                  <option value="Pelajar (SD-SMA)">Pelajar (SD - SMA)</option>
-                  <option value="Umum (18-50 Thn)">Umum (18 - 50 Tahun)</option>
+                  <option value="SD (Kelas 1-6)">SD (Kelas 1-6) - Rp 5K/org</option>
+                  <option value="SMP / Sederajat">SMP / Sederajat - Rp 8K/org</option>
+                  <option value="SMA / Sederajat">SMA / Sederajat - Rp 10K/org</option>
+                  <option value="Umum (18-50 Thn)">Umum (18-50 Thn) - Rp 15K/org</option>
                 </select>
               </div>
+              
+              {selectedKategori && (
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-semibold text-dark mb-2 block">Total Biaya Pendaftaran</label>
+                  <div className="bg-primary/10 border border-primary/20 rounded-[12px] p-4 flex items-center justify-between">
+                    <div>
+                      <span className="text-xs font-semibold text-primary block">Rp {feePerPerson.toLocaleString('id-ID')} x {playerCount} Orang ({selectedGame.includes('FC 26') ? 'Individu' : 'Tim'})</span>
+                    </div>
+                    <span className="text-lg font-black text-primary">Rp {totalFee.toLocaleString('id-ID')}</span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="pt-2">

@@ -21,12 +21,12 @@ export function LiveLeaderboard() {
 
   return (
     <div className="w-full bg-white/95 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-[24px] shadow-2xl relative overflow-hidden">
-      <div className="flex flex-col items-start gap-5 mb-8">
-        <div>
-           <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Peserta Terdaftar (Real-time)</h3>
+      <div className="flex flex-col items-center text-center gap-5 mb-8">
+        <div className="flex flex-col items-center w-full">
+           <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center justify-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Peserta Terdaftar (Real-time)</h3>
            <p className="text-secondary text-sm font-medium mt-1">Tim yang sudah diverifikasi pembayarannya oleh admin.</p>
         </div>
-        <div className="flex bg-gray-100 p-1.5 rounded-xl w-full sm:w-max overflow-x-auto hide-scrollbar gap-1">
+        <div className="flex justify-center mx-auto bg-gray-100 p-1.5 rounded-xl w-max gap-1">
           {[
             { name: "Mobile Legends", logo: "https://upload.wikimedia.org/wikipedia/en/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png" },
             { name: "Free Fire", logo: "https://upload.wikimedia.org/wikipedia/id/8/8b/Garena_Free_Fire_New_Style.png" },
@@ -39,10 +39,11 @@ export function LiveLeaderboard() {
               <button
                 key={game.name}
                 onClick={() => setActiveTab(isML ? "Mobile Legends (Tim)" : (game.name === "Free Fire" ? "Free Fire (Squad)" : "EA Sports FC 26 (Individu)"))}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-2 whitespace-nowrap px-4 py-2 sm:py-2.5 rounded-lg text-sm font-bold transition-all ${isActive ? 'bg-white text-primary shadow-sm ring-1 ring-gray-200/50' : 'text-gray-500 hover:text-dark hover:bg-gray-200/50'}`}
+                className={`flex items-center justify-center p-2 rounded-lg transition-all shadow-sm ${isActive ? 'bg-white ring-1 ring-gray-200/50' : 'hover:bg-gray-200/50'}`}
               >
-                <img src={game.logo} alt={game.name} className="w-5 h-5 sm:w-6 sm:h-6 object-contain drop-shadow-sm" />
-                <span className={`${isActive ? 'block' : 'hidden sm:block'}`}>{game.name}</span>
+                <div className="w-20 sm:w-28 md:w-32 lg:w-40 aspect-[2/1] flex items-center justify-center">
+                  <img src={game.logo} alt={game.name} className="h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110" />
+                </div>
               </button>
             )
           })}
