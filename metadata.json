@@ -1,0 +1,6 @@
+{
+  "name": "Festival Merdeka",
+  "description": "Aplikasi untuk memeriahkan kemerdekaan Republik Indonesia dengan semangat kebersamaan dan sportivitas. Informasi jadwal dan pendaftaran lomba 17-an.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,17 @@
+{
+  "name": "Festival Padasuka 2026",
+  "short_name": "Padasuka",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#D7001F",
+  "description": "Aplikasi informasi dan pendaftaran Festival Lomba 17-an Tahun 2026 Desa Padasuka.",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "192x192 512x512 any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
