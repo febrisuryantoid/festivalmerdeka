@@ -46,12 +46,12 @@ Jika Anda ingin menjalankan atau mengembangkan situs ini di lokal:
 
 1. Clone repositori ini ke lokal mesin Anda:
    ```bash
-   git clone https://github.com/[username]/festival-padasuka.git
+   git clone https://github.com/febrisuryantoid/festivalmerdeka.git
    ```
 
 2. Masuk ke direktori proyek:
    ```bash
-   cd festival-padasuka
+   cd festivalmerdeka
    ```
 
 3. Install dependensi NPM:

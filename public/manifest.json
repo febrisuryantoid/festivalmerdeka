@@ -1,11 +1,11 @@
 {
-  "name": "Festival Padasuka 2026",
-  "short_name": "Padasuka",
+  "name": "Festival Merdeka 2026",
+  "short_name": "Fest Merdeka",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#D7001F",
-  "description": "Aplikasi informasi dan pendaftaran Festival Lomba 17-an Tahun 2026 Desa Padasuka.",
+  "description": "Aplikasi informasi dan pendaftaran Festival Merdeka Tahun 2026 Desa Padasuka.",
   "icons": [
     {
       "src": "/favicon.svg",
