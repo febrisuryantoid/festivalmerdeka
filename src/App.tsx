@@ -725,7 +725,7 @@ export default function App() {
                 ].map((item, i) => (
                   <div
                     key={i}
-                    className="flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors"
+                    className={`flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors ${item.k.includes('Umum') ? 'sm:col-span-2' : ''}`}
                   >
                     <span className="text-sm sm:text-base font-semibold text-secondary">
                       {item.k}
