@@ -3,7 +3,8 @@ import { motion } from 'motion/react';
 import { ArrowLeft, Printer, Download, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getPricingConfig } from './lib/utils';
-import html2pdf from 'html2pdf.js';
+import domtoimage from 'dom-to-image-more';
+import { jsPDF } from 'jspdf';
 
 export default function Proposal() {
   const navigate = useNavigate();
@@ -16,11 +17,6 @@ export default function Proposal() {
     if (!item) return '-';
     return (
       <span className="flex items-center justify-center gap-1">
-        {!item.isLate && (
-          <span className="line-through text-gray-500 text-[10px]">
-            {item.latePrice / 1000}K
-          </span>
-        )}
         <span>{item.price / 1000}K</span>
       </span>
     );
@@ -35,20 +31,39 @@ export default function Proposal() {
     if (!element) return;
     
     setIsDownloading(true);
-    const opt = {
-      margin:       0,
-      filename:     'Proposal_Kegiatan_HUT_RI_81_Padasuka.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
-      html2canvas:  { scale: 2, useCORS: true },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak:    { mode: 'css', avoid: '.avoid-break' }
-    };
 
     try {
-      await html2pdf().set(opt).from(element).save();
+      // Find all the individual pages
+      const pages = Array.from(element.querySelectorAll('.proposal-page')) as HTMLElement[];
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      for (let i = 0; i < pages.length; i++) {
+        const pageEl = pages[i];
+        
+        // Generate image for this specific page
+        const dataUrl = await domtoimage.toJpeg(pageEl, { 
+          quality: 0.98, 
+          bgcolor: '#ffffff',
+          scale: 2
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgProps = pdf.getImageProperties(dataUrl);
+        const innerWidth = pdfWidth;
+        const innerHeight = (imgProps.height * innerWidth) / imgProps.width;
+
+        if (i > 0) {
+          pdf.addPage();
+        }
+        pdf.addImage(dataUrl, 'JPEG', 0, 0, innerWidth, innerHeight);
+      }
+      
+      pdf.save('Proposal_Kegiatan_HUT_RI_81_Padasuka.pdf');
     } catch (error) {
       console.error('Failed to generate PDF', error);
-      alert('Gagal mengunduh PDF.');
+      alert('Gagal mengunduh PDF. Silakan gunakan tombol Cetak untuk menyimpan sebagai PDF.');
     } finally {
       setIsDownloading(false);
     }
@@ -110,7 +125,7 @@ export default function Proposal() {
         </div>
 
         {/* Halaman 2: Bab I */}
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border proposal-page text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
           
           <h2 className="font-bold text-center text-lg uppercase mb-8">BAB I<br/>PENDAHULUAN</h2>
           
@@ -125,10 +140,10 @@ export default function Proposal() {
               <h3 className="font-bold mb-2">B. Maksud dan Tujuan</h3>
               <ul className="list-[lower-alpha] pl-6 space-y-1">
                 <li>Memeriahkan Peringatan HUT ke-81 Kemerdekaan Republik Indonesia.</li>
-                <li>Menumbuhkan rasa nasionalisme, cinta tanah air, dan mengenang jasa pahlawan.</li>
-                <li>Mempererat tali persaudaraan dan silaturahmi antarwarga se-Desa Padasuka.</li>
-                <li>Menyediakan wadah positif dan sportif melalui perlombaan tradisional serta kompetisi modern (eSport).</li>
-                <li>Mengembangkan semangat produktif pemuda-pemudi Karang Taruna Padasuka.</li>
+                <li>Menumbuhkan rasa nasionalisme, cinta tanah air, dan semangat sportivitas pemuda.</li>
+                <li>Mempererat tali persaudaraan dan silaturahmi antarwarga dan generasi muda se-Desa Padasuka.</li>
+                <li>Menyediakan panggung kompetisi eSport bergengsi dan terstruktur bagi bakat-bakat gaming lokal.</li>
+                <li>Mengembangkan semangat produktif dan kepemimpinan pemuda-pemudi Karang Taruna Padasuka.</li>
               </ul>
             </div>
 
@@ -137,7 +152,7 @@ export default function Proposal() {
               <ol className="list-decimal pl-6 space-y-1">
                 <li>Pancasila dan UUD 1945.</li>
                 <li>Program Kerja Tahunan Karang Taruna Desa Padasuka Tahun 2026.</li>
-                <li>Hasil Musyawarah Pemuda dan Tokoh Masyarakat Desa Padasuka.</li>
+                <li>Hasil Musyawarah Pemuda dan Pengurus Karang Taruna Desa Padasuka.</li>
               </ol>
             </div>
             
@@ -145,14 +160,14 @@ export default function Proposal() {
         </div>
 
         {/* Halaman 3: Bab II */}
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border proposal-page text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
           
            <h2 className="font-bold text-center text-lg uppercase mb-8">BAB II<br/>PELAKSANAAN KEGIATAN</h2>
            
            <div className="space-y-6">
              <div>
                <h3 className="font-bold mb-2">A. Nama dan Tema Kegiatan</h3>
-               <p>Kegiatan ini bernama <strong>"Festival Kemerdekaan Desa Padasuka - Semarak HUT RI ke-81"</strong>. Dengan tema <strong>"Merdeka Bersama, Bangkit Berkarya!"</strong>, kegiatan ini memadukan semangat perlombaan tradisional yang kental akan budaya, dengan modernitas perlombaan eSport yang menyasar kreativitas generasi masa kini.</p>
+               <p>Kegiatan ini bernama <strong>"eSport Festival Kemerdekaan HUT RI ke-81 Desa Padasuka"</strong> diselenggarakan oleh <strong>Karang Taruna Desa Padasuka</strong>. Dengan tema <strong>"Merdeka Bersama, Bangkit Berkarya di Era Digital!"</strong>, kegiatan ini menyajikan turnamen eSport bergengsi untuk menggali potensi dan kreativitas generasi muda.</p>
              </div>
 
              <div>
@@ -162,110 +177,104 @@ export default function Proposal() {
                  <tbody>
                    <tr>
                      <td className="py-1 w-40 font-semibold align-top">• Hari/Tanggal</td>
-                     <td className="py-1">: Sabtu - Senin, 15 - 17 Agustus 2026</td>
+                     <td className="py-1">: Minggu - Sabtu, 2 - 15 Agustus 2026</td>
                    </tr>
                    <tr>
                      <td className="py-1 font-semibold align-top">• Waktu</td>
-                     <td className="py-1">: 08.00 WIB s/d Selesai</td>
+                     <td className="py-1">: 09.00 WIB s/d Selesai</td>
                    </tr>
                    <tr>
                      <td className="py-1 font-semibold align-top">• Tempat</td>
-                     <td className="py-1">: Lapangan Utama Padasuka, Balai Desa & Sekitarnya</td>
+                     <td className="py-1">: Lapangan Utama Padasuka & Panggung Utama eSport Arena</td>
                    </tr>
                  </tbody>
                </table>
              </div>
 
              <div>
-               <h3 className="font-bold mb-2">C. Jenis Kegiatan / Perlombaan</h3>
-               <p>Kategori lomba dibagi menjadi unsur Tradisional & Digital (eSport):</p>
+               <h3 className="font-bold mb-2">C. Jenis Cabang Turnamen eSport</h3>
+               <p>Turnamen terdiri dari 3 cabang game utama dengan target kuota peserta: MLBB 200 Peserta (40 Tim), FF 200 Peserta (50 Squad), FC26 50 Peserta (*berlaku penyesuaian otomatis algoritma target):</p>
                <ul className="list-decimal pl-6 mt-2 space-y-2">
-                 <li><strong>Tradisional & Hiburan</strong><br/>Balap Karung Helm, Tarik Tambang, Makan Kerupuk, Panjat Pinang, Senam Massal Ibu-ibu, Lomba Memasak Nasi Liwet.</li>
-                 <li><strong>Olahraga Jasmani</strong><br/>Futsal Mini Sarung, Reuni Volly Kampung.</li>
-                 <li><strong>Kompetisi eSport (Target Min. 32 Slot/Game)</strong>
-                    <p className="mt-1 text-sm">Khusus untuk cabang eSport, diberlakukan pembagian kategori berdasarkan jenjang usia dengan biaya pendaftaran dan rincian hadiah Juara 1 & 2 (J1 & J2) sebagai berikut:</p>
-                    <table className="w-full text-xs mt-2 border-collapse border border-gray-800">
-                      <thead>
-                        <tr className="bg-gray-100">
-                          <th className="border border-gray-800 p-1 text-left">Kategori</th>
-                          <th className="border border-gray-800 p-1 text-center">Biaya/Orang</th>
-                          <th className="border border-gray-800 p-1 text-center">Mobile Legends</th>
-                          <th className="border border-gray-800 p-1 text-center">Free Fire</th>
-                          <th className="border border-gray-800 p-1 text-center">FC 26</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="border border-gray-800 p-1 font-semibold">SD</td>
-                          <td className="border border-gray-800 p-1 text-center">{getPrice("SD")}</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 150K | J2: 75K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 120K | J2: 60K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 30K | J2: 15K</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-800 p-1 font-semibold">SMP</td>
-                          <td className="border border-gray-800 p-1 text-center">{getPrice("SMP")}</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 100K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 200K | J2: 100K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 50K | J2: 25K</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-800 p-1 font-semibold">SMA</td>
-                          <td className="border border-gray-800 p-1 text-center">{getPrice("SMA")}</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 350K | J2: 150K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 125K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 75K | J2: 35K</td>
-                        </tr>
-                        <tr>
-                          <td className="border border-gray-800 p-1 font-semibold">Umum</td>
-                          <td className="border border-gray-800 p-1 text-center">{getPrice("Umum")}</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 500K | J2: 250K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 400K | J2: 200K</td>
-                          <td className="border border-gray-800 p-1 text-center">J1: 100K | J2: 50K</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                 </li>
+                 <li><strong>Mobile Legends: Bang Bang</strong> (Tim 5 Orang)</li>
+                 <li><strong>Free Fire</strong> (Squad 4 Orang)</li>
+                 <li><strong>PlayStation 4 Pro EA SPORTS FC26</strong> (Individu 1v1)</li>
                </ul>
+               <p className="mt-3 text-sm">Diberlakukan pembagian kategori berdasarkan jenjang usia dengan biaya pendaftaran dan rincian estimasi hadiah Juara 1 & 2 (J1 & J2) sebagai berikut:</p>
+               <table className="w-full text-xs mt-2 border-collapse border border-gray-800">
+                 <thead>
+                   <tr className="bg-gray-100">
+                     <th className="border border-gray-800 p-1 text-left">Kategori</th>
+                     <th className="border border-gray-800 p-1 text-center">Biaya/Orang</th>
+                     <th className="border border-gray-800 p-1 text-center">Mobile Legends</th>
+                     <th className="border border-gray-800 p-1 text-center">Free Fire</th>
+                     <th className="border border-gray-800 p-1 text-center">FC 26</th>
+                   </tr>
+                 </thead>
+                 <tbody>
+                   <tr>
+                     <td className="border border-gray-800 p-1 font-semibold">SD</td>
+                     <td className="border border-gray-800 p-1 text-center">{getPrice("SD")}</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 150K | J2: 75K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 120K | J2: 60K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 30K | J2: 15K</td>
+                   </tr>
+                   <tr>
+                     <td className="border border-gray-800 p-1 font-semibold">SMP</td>
+                     <td className="border border-gray-800 p-1 text-center">{getPrice("SMP")}</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 100K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 200K | J2: 100K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 50K | J2: 25K</td>
+                   </tr>
+                   <tr>
+                     <td className="border border-gray-800 p-1 font-semibold">SMA</td>
+                     <td className="border border-gray-800 p-1 text-center">{getPrice("SMA")}</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 350K | J2: 150K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 250K | J2: 125K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 75K | J2: 35K</td>
+                   </tr>
+                   <tr>
+                     <td className="border border-gray-800 p-1 font-semibold">Umum</td>
+                     <td className="border border-gray-800 p-1 text-center">{getPrice("Umum")}</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 500K | J2: 250K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 400K | J2: 200K</td>
+                     <td className="border border-gray-800 p-1 text-center">J1: 100K | J2: 50K</td>
+                   </tr>
+                 </tbody>
+               </table>
              </div>
 
               <div>
                <h3 className="font-bold mb-2">D. Peserta Acara</h3>
-               <p>Peserta mencakup seluruh lapisan masyarakat Desa Padasuka dari usia anak-anak, pelajar, hingga umum (maksimal usia 50 tahun untuk kategori tertentu) serta masyarakat desa tetangga dalam ruang lingkup cabang eSport.</p>
+               <p>Peserta mencakup seluruh lapisan masyarakat Desa Padasuka dari usia anak-anak, pelajar, hingga umum serta masyarakat desa tetangga dalam ruang lingkup cabang eSport.</p>
              </div>
            </div>
         </div>
 
         {/* Halaman 4: Bab III RAB dan Sponsorship */}
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border proposal-page text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
            <h2 className="font-bold text-center text-lg uppercase mb-8">BAB III<br/>PENAWARAN SPONSORSHIP</h2>
            
            <div className="space-y-6">
              <p>Kesempatan emas bagi Brand, Perusahaan, Institusi, atau Toko Anda untuk tampil dan mendukung keberlangsungan serta kemeriahan perayaan Kemerdekaan di Desa Padasuka. Kami menawarkan tiga tingkatan paket sponsorship:</p>
              
              <div>
-                <h3 className="font-bold mb-2 text-slate-700 uppercase">1. Paket Silver (Rp 20.000 / Slot)</h3>
+                <h3 className="font-bold mb-2 text-slate-700 uppercase">1. Paket Silver (Rp 50.000 / Donatur)</h3>
                 <ul className="list-disc pl-6 space-y-1">
-                    <li>Pemuatan Nama/Logo di Banner Acara (Kecil)</li>
                     <li>Disebutkan oleh MC (1x Adlips pengumuman)</li>
                 </ul>
              </div>
 
              <div>
-                <h3 className="font-bold mb-2 text-yellow-600 uppercase">2. Paket Gold (Rp 50.000 / Slot)</h3>
+                <h3 className="font-bold mb-2 text-yellow-600 uppercase">2. Paket Gold (Rp 150.000 / Donatur)</h3>
                 <ul className="list-disc pl-6 space-y-1">
-                    <li>Posisi Logo Premium di Banner Utama (Sedang)</li>
-                    <li>Promosi Produk oleh MC (2x Adlips/penyebutan)</li>
-                    <li>Diberikan spot khusus gelar Produk/Brosur di Area Acara</li>
+                    <li>Promosi Produk & Jasa oleh MC (3x Adlips/penyebutan)</li>
                 </ul>
              </div>
 
              <div>
-                <h3 className="font-bold mb-2 text-slate-900 uppercase">3. Paket Platinum (Rp 150.000+ / Slot Eksklusif)</h3>
+                <h3 className="font-bold mb-2 text-slate-900 uppercase">3. Paket Platinum (Rp 500.000+ / Donatur Eksklusif)</h3>
                 <ul className="list-disc pl-6 space-y-1">
-                    <li>Logo Terbesar di Center Banner & Kaos Panitia</li>
-                    <li>Promosi MC Tanpa Batas / Adlips eksklusif sepanjang acara</li>
-                    <li>Spanduk Khusus Brand Anda di berbagai Titik Strategis sekitar panggung</li>
+                    <li>Promosi oleh MC Tanpa Batas / Adlips eksklusif sepanjang acara</li>
                 </ul>
              </div>
 
@@ -278,7 +287,7 @@ export default function Proposal() {
         </div>
 
         {/* Halaman 5: Bab IV Penutup dan Pengesahan */}
-        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
+        <div className="bg-white w-[210mm] min-h-[297mm] shadow-lg print:shadow-none print:w-full pl-[30mm] pr-[20mm] pt-[30mm] pb-[20mm] mx-auto box-border proposal-page text-justify leading-[1.6]" style={{ pageBreakAfter: 'always' }}>
            
            <h2 className="font-bold text-center text-lg uppercase mb-8">BAB IV<br/>PENUTUP</h2>
            

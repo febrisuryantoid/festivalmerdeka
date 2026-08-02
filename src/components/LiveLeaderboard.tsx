@@ -3,10 +3,11 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import { Users, Gamepad2, ShieldCheck, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
+import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 
 export function LiveLeaderboard() {
   const [participants, setParticipants] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState("Mobile Legends (Tim)");
+  const [activeTab, setActiveTab] = useState("Mobile Legends");
 
   useEffect(() => {
     const q = query(collection(db, "registrations"), where("status", "==", "verified"));
@@ -17,7 +18,13 @@ export function LiveLeaderboard() {
     return unsub;
   }, []);
 
-  const filtered = participants.filter(p => p.lomba?.includes(activeTab));
+  const filtered = participants.filter(p => {
+    if (!p.lomba) return false;
+    if (activeTab === "Mobile Legends") return p.lomba.includes("Mobile Legends");
+    if (activeTab === "Free Fire") return p.lomba.includes("Free Fire");
+    if (activeTab === "PS 4 Pro FC26") return p.lomba.includes("FC") || p.lomba.includes("PS 4") || p.lomba.includes("EA Sports");
+    return p.lomba.includes(activeTab);
+  });
 
   return (
     <div className="w-full bg-white/95 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-[24px] shadow-2xl relative overflow-hidden">
@@ -26,23 +33,21 @@ export function LiveLeaderboard() {
            <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center justify-center gap-2"><ShieldCheck className="w-6 h-6 text-green-500" /> Peserta Terdaftar</h3>
            <p className="text-secondary text-sm font-medium mt-1">Tim yang sudah diverifikasi pembayarannya oleh admin.</p>
         </div>
-        <div className="flex justify-center mx-auto bg-gray-100 p-1.5 rounded-xl w-max gap-1">
+        <div className="flex justify-center mx-auto bg-gray-100 p-1.5 rounded-xl w-max gap-2.5 sm:gap-4">
           {[
-            { name: "Mobile Legends", logo: "https://upload.wikimedia.org/wikipedia/en/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png" },
-            { name: "Free Fire", logo: "https://upload.wikimedia.org/wikipedia/id/8/8b/Garena_Free_Fire_New_Style.png" },
-            { name: "EA Sports FC", logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/FC_26_Logo.svg/1280px-FC_26_Logo.svg.png" }
+            { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO },
+            { name: "Free Fire", key: "Free Fire", logo: FF_LOGO },
+            { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO }
           ].map(game => {
-            const isML = game.name === "Mobile Legends";
-            const filterKey = isML ? "Mobile Legends" : (game.name === "Free Fire" ? "Free Fire" : "EA Sports FC 26");
-            const isActive = activeTab.includes(filterKey);
+            const isActive = activeTab === game.key;
             return (
               <button
                 key={game.name}
-                onClick={() => setActiveTab(isML ? "Mobile Legends (Tim)" : (game.name === "Free Fire" ? "Free Fire (Squad)" : "EA Sports FC 26 (Individu)"))}
-                className={`flex items-center justify-center p-2 rounded-lg transition-all shadow-sm ${isActive ? 'bg-white ring-1 ring-gray-200/50' : 'hover:bg-gray-200/50'}`}
+                onClick={() => setActiveTab(game.key)}
+                className={`flex items-center justify-center p-2 rounded-lg transition-all shadow-sm ${isActive ? 'bg-primary' : 'hover:bg-gray-200/50'}`}
               >
                 <div className="w-20 sm:w-28 md:w-32 lg:w-40 aspect-[2/1] flex items-center justify-center">
-                  <img src={game.logo} alt={game.name} className="h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110" />
+                  <img src={game.logo} alt={game.name} className={`h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-110 ${isActive ? 'brightness-0 invert' : ''}`} />
                 </div>
               </button>
             )

@@ -4,13 +4,13 @@
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#D7001F",
+  "theme_color": "#D61216",
   "description": "Aplikasi informasi dan pendaftaran Festival Merdeka Tahun 2026 Desa Padasuka.",
   "icons": [
     {
-      "src": "https://beeimg.com/images/k22145264424.png",
+      "src": "/logo.svg",
       "sizes": "192x192 512x512 any",
-      "type": "image/png",
+      "type": "image/svg+xml",
       "purpose": "any maskable"
     }
   ]

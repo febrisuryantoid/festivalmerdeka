@@ -24,13 +24,21 @@ import {
   X,
   Copy,
   Check,
-  Menu
+  Menu,
+  Download,
+  Award,
+  AlertTriangle,
+  Flame,
+  FileText
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { RegistrationForm, SponsorForm } from "./components/RegistrationForm";
 import { LiveLeaderboard } from "./components/LiveLeaderboard";
-import { getPricingConfig } from "./lib/utils";
+import { DynamicPrizeSimulator } from "./components/DynamicPrizeSimulator";
+import { getPricingConfig, SLOT_TARGETS, calculateDynamicPrize, FC26_LOGO, MLBB_LOGO, FF_LOGO } from "./lib/utils";
 
 export default function App() {
+  const navigate = useNavigate();
   const [timeLeft, setTimeLeft] = useState({
     days: 0,
     hours: 0,
@@ -62,9 +70,14 @@ export default function App() {
           let ml = 0, ff = 0, fc = 0;
           snapshot.docs.forEach(doc => {
             const data = doc.data();
-            if (data.lomba?.includes("Mobile Legends")) ml++;
-            if (data.lomba?.includes("Free Fire")) ff++;
-            if (data.lomba?.includes("FC")) fc++;
+            const pLength = Array.isArray(data.players) && data.players.length > 0 ? data.players.length : 0;
+            if (data.lomba?.includes("Mobile Legends")) {
+              ml += pLength || 5;
+            } else if (data.lomba?.includes("Free Fire")) {
+              ff += pLength || 4;
+            } else if (data.lomba?.includes("FC")) {
+              fc += pLength || 1;
+            }
           });
           setSlotCounts({ ml, ff, fc });
         });
@@ -73,7 +86,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const targetDate = new Date("2026-08-17T00:00:00").getTime();
+    const targetDate = new Date("2026-08-15T09:00:00").getTime();
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const distance = targetDate - now;
@@ -184,11 +197,11 @@ export default function App() {
       >
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-white border border-gray-100 rounded-xl flex items-center justify-center shrink-0">
-            <img src="https://beeimg.com/images/k22145264424.png" alt="App Icon" className="w-8 h-8 drop-shadow-sm rounded-md" />
+            <img src="/logo.svg" alt="App Icon" className="w-8 h-8 drop-shadow-sm rounded-md object-contain" />
           </div>
           <div className="flex flex-col">
             <span className="font-heading font-bold text-dark text-sm">Install Aplikasi</span>
-            <span className="text-secondary text-xs">Akses informasi Festival Merdeka lebih cepat!</span>
+            <span className="text-secondary text-xs">Akses informasi Festival eSports Karang Taruna Desa Padasuka lebih cepat!</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -216,53 +229,39 @@ export default function App() {
       >
         <div className={`mx-auto px-4 sm:px-6 transition-all duration-300 max-w-7xl`}>
           <div className={`flex items-center justify-between w-full h-[65px] lg:h-[70px] transition-all duration-300 ${isScrolled ? 'bg-white/95 backdrop-blur-md shadow-md shadow-gray-200/50 rounded-full border border-gray-100 px-4 sm:px-6' : ''}`}>
-            <div className={`flex items-center gap-3 md:gap-4 ${!isScrolled ? 'pl-2 sm:pl-0' : ''}`}>
-            <div className="hidden lg:flex items-center gap-2 sm:gap-3">
-              <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
-              <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
-            </div>
-            
-            <div className="hidden lg:block h-8 md:h-10 w-px bg-gray-200"></div>
-            
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              <div 
-                className="h-7 sm:h-9 md:h-10 w-8 sm:w-10 drop-shadow-sm bg-primary"
-                style={{
-                  WebkitMaskImage: 'url(https://beeimg.com/images/k22145264424.png)',
-                  WebkitMaskSize: 'contain',
-                  WebkitMaskRepeat: 'no-repeat',
-                  WebkitMaskPosition: 'center',
-                  maskImage: 'url(https://beeimg.com/images/k22145264424.png)',
-                  maskSize: 'contain',
-                  maskRepeat: 'no-repeat',
-                  maskPosition: 'center'
-                }}
-              />
-              <div className="flex flex-col leading-tight pt-0.5 text-left ml-1">
-                <span className="font-heading font-semibold text-[10px] sm:text-[11px] text-dark uppercase tracking-widest whitespace-nowrap text-left">Dirgahayu</span>
-                <span className="font-heading font-black text-primary text-[13px] sm:text-[15px] uppercase tracking-wider whitespace-nowrap text-left">Indonesia</span>
+            <div className={`flex items-center gap-2 md:gap-4 ${!isScrolled ? 'pl-1 sm:pl-0' : ''}`}>
+              {/* Mobile View: Logo Serang, Karang Taruna, and Ikon 81 next to each other */}
+              <div className="flex lg:hidden items-center gap-2 sm:gap-3">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <img src="/logo.svg" alt="Ikon 81" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <span className="font-heading font-black text-primary text-xs sm:text-sm tracking-tight whitespace-nowrap">Festival eSports</span>
+              </div>
+
+              {/* Desktop View (lg and above) */}
+              <div className="hidden lg:flex items-center gap-2 sm:gap-3">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+              </div>
+              
+              <div className="hidden lg:block h-8 md:h-10 w-px bg-gray-200"></div>
+              
+              <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
+                <img src="/logo.svg" alt="Logo Festival eSports" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+                <div className="flex flex-col leading-tight pt-0.5 text-left ml-1">
+                  <span className="font-heading font-black text-primary text-[14px] sm:text-[16px] tracking-wide whitespace-nowrap text-left">Festival eSports</span>
+                  <span className="font-heading font-extrabold text-[9px] sm:text-[10px] text-dark uppercase tracking-widest whitespace-nowrap text-left">Karang Taruna Desa Padasuka</span>
+                </div>
               </div>
             </div>
-            <div className={`hidden lg:block w-px bg-gray-200 ml-1 transition-all duration-300 ${isScrolled ? 'h-6' : 'h-8'}`}></div>
-            <div className="hidden lg:flex flex-col leading-none pt-1">
-              <span className="font-heading font-semibold text-[8px] text-gray-500 uppercase tracking-widest">Festival</span>
-              <span className="font-heading font-black text-gray-800 text-sm uppercase tracking-wide">MERDEKA</span>
+            <div className="flex items-center gap-2 md:gap-4 text-sm font-semibold text-secondary">
+              <button
+                onClick={() => scrollTo("daftar")}
+                className="bg-primary hover:bg-primary-dark text-white px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-primary/20 transition-all whitespace-nowrap"
+              >
+                Daftar<span className="hidden sm:inline"> Sekarang</span>
+              </button>
             </div>
-          </div>
-          <div className="flex items-center gap-4 text-sm font-semibold text-secondary">
-            <button
-              onClick={() => setActiveModal("menu")}
-              className="p-2 sm:p-2.5 text-gray-700 hover:text-primary transition-colors flex items-center justify-center group"
-            >
-              <Menu className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.5} />
-            </button>
-            <button
-              onClick={() => scrollTo("daftar")}
-              className="bg-primary hover:bg-primary-dark text-white px-4 sm:px-6 py-2 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-primary/20 transition-all"
-            >
-              Daftar<span className="hidden sm:inline"> Sekarang</span>
-            </button>
-          </div>
           </div>
         </div>
       </motion.nav>
@@ -291,7 +290,7 @@ export default function App() {
           className="absolute inset-0 z-0 opacity-5 pointer-events-none"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 2px 2px, #D7001F 1px, transparent 0)",
+              "radial-gradient(circle at 2px 2px, #D61216 1px, transparent 0)",
             backgroundSize: "15px 15px",
             minHeight: "100%",
           }}
@@ -300,32 +299,29 @@ export default function App() {
           className="hidden sm:block absolute inset-0 z-0 opacity-5 pointer-events-none"
           style={{
             backgroundImage:
-              "radial-gradient(circle at 2px 2px, #D7001F 1px, transparent 0)",
+              "radial-gradient(circle at 2px 2px, #D61216 1px, transparent 0)",
             backgroundSize: "40px 40px",
           }}
         ></div>
 
         <motion.div initial="hidden" animate="visible" variants={staggerContainer} className="max-w-4xl mx-auto px-4 sm:px-6 relative z-10 text-center flex flex-col items-center w-full">
           <motion.div variants={scaleUpVariant} className="mb-4 sm:mb-6">
-            <span className="inline-block py-1 sm:py-1.5 px-3 sm:px-4 rounded-full bg-primary/10 text-primary font-bold text-[10px] sm:text-xs md:text-sm tracking-widest uppercase border border-primary/20">
-              Festival Merdeka 2026
+            <span className="inline-block py-1.5 sm:py-2 px-4 sm:px-6 rounded-full bg-primary/10 text-primary font-extrabold text-[11px] sm:text-xs md:text-sm tracking-widest uppercase border border-primary/20 shadow-sm">
+              Turnamen eSports
             </span>
           </motion.div>
 
           {/* Hero text optimized for all screens */}
           <motion.h1
             variants={fadeUpVariant}
-            className="font-heading font-extrabold text-[2.25rem] xs:text-[2.75rem] sm:text-[4rem] md:text-[5rem] lg:text-[6rem] leading-[1.05] sm:leading-[1.1] tracking-tight text-primary uppercase text-center mb-4 sm:mb-6 w-full"
+            className="font-heading font-black text-[2.25rem] xs:text-[2.75rem] sm:text-[3.75rem] md:text-[4.5rem] lg:text-[5.25rem] leading-[1.08] tracking-tight text-primary uppercase text-center mb-4 sm:mb-6 w-full"
           >
-            <span className="block drop-shadow-sm">SIAPKAN DIRIMU</span>
-            <span
-              className="block text-white"
-              style={{ WebkitTextStroke: "2px #D7001F" }}
-            >
-              UNTUK IKUT
+            <span className="block drop-shadow-sm">FESTIVAL eSPORTS</span>
+            <span className="block text-primary drop-shadow-sm">
+              KARANG TARUNA
             </span>
-            <span className="block drop-shadow-md relative inline-block z-10 px-2 sm:px-4">
-              LOMBA 17-AN
+            <span className="block text-gray-900 drop-shadow-sm mt-1 sm:mt-2">
+              DESA PADASUKA
             </span>
           </motion.h1>
 
@@ -333,7 +329,7 @@ export default function App() {
             variants={fadeUpVariant}
             className="text-secondary text-sm xs:text-base md:text-lg max-w-2xl mx-auto mb-8 sm:mb-10 px-2 sm:px-0 leading-relaxed font-medium"
           >
-            Meriahkan kemerdekaan dengan semangat kebersamaan dan sportivitas. Tunjukkan kemampuanmu dan raih total hadiah jutaan Rupiah!
+            Diselenggarakan secara resmi dalam rupa <strong>Festival eSports Karang Taruna Desa Padasuka</strong>. Adu bakat gaming bergengsi dalam Mobile Legends, Free Fire, dan EA SPORTS FC26 PS4 Pro dengan total hadiah jutaan Rupiah!
           </motion.p>
 
           <motion.div
@@ -376,7 +372,7 @@ export default function App() {
                 Menuju Puncak Acara
               </p>
               <div className="flex items-center justify-center md:justify-end gap-2 text-primary font-heading font-black text-2xl sm:text-3xl lg:text-4xl">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" /> 17 Agustus 2026
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" /> 15 Agustus 2026
               </div>
             </div>
             <div className="flex items-center gap-3 xs:gap-4 sm:gap-6 md:pl-12 w-full md:w-auto justify-center">
@@ -409,59 +405,244 @@ export default function App() {
         className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6"
       >
         <div>
-          <div className="text-center mb-10 sm:mb-16">
+          <div className="text-center mb-8 sm:mb-12">
             <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold mb-3 sm:mb-4 uppercase text-primary flex items-center justify-center gap-2 sm:gap-3 text-center mx-auto max-w-full">
               <Sparkles className="w-7 h-7 sm:w-10 sm:h-10 shrink-0 text-primary" />
-              Keseruan 17-an
+              Penyelenggara Resmi
             </motion.h2>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 sm:h-1.5 bg-gold mx-auto rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-            {[
-              {
-                icon: Trophy,
-                title: "Lomba Islami & Tradisional",
-                desc: "Melestarikan budaya bangsa dan menjunjung tinggi nilai agama untuk seluruh kalangan warga.",
-              },
-              {
-                icon: Gamepad2,
-                title: "eSport Competition",
-                desc: "Adu bakat gaming gengsi tinggi dari 14 kampung se-Padasuka. Siapkan tim terbaikmu!",
-              },
-              {
-                icon: Users,
-                title: "Malam Tirakatan",
-                desc: "Puncak kebersamaan, doa syukur kemerdekaan, pembagian hadiah, dan ramah tamah warga.",
-              },
-            ].map((item, i) => (
+          {/* Epic Conic Border Radius Animated Logo Card */}
+          <motion.div
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={scaleUpVariant}
+            className="relative p-[4px] sm:p-[6px] rounded-[32px] sm:rounded-[44px] overflow-hidden shadow-[0_20px_50px_rgba(214,18,22,0.25)] my-6 max-w-3xl mx-auto group hover:scale-[1.01] transition-all duration-500"
+          >
+            {/* Conic Gradient Animated Border */}
+            <div className="absolute top-1/2 left-1/2 w-[350%] h-[350%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,#D61216_0%,#FFD700_20%,#00E676_40%,#2979FF_60%,#FF007A_80%,#D61216_100%)] animate-[spin_4s_linear_infinite]" />
+            
+            {/* Inner Card Container */}
+            <div className="relative bg-white/95 backdrop-blur-xl p-6 sm:p-10 md:p-12 rounded-[28px] sm:rounded-[38px] flex flex-col items-center justify-center text-center z-10 border border-white/60">
+              <div className="relative mb-4 sm:mb-6 group-hover:scale-105 transition-transform duration-300">
+                <div className="absolute inset-0 bg-primary/10 rounded-full blur-2xl animate-pulse" />
+                <img 
+                  src="https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEjsJrkom2oZRhnM3OYNDrR1mM905PjVqygrNdwAj6nPj_l9ge9i-LDxIuI9AHa_hJsjGthRqTbE-HT8gAm6LzshKl4Znce_Ok8lW2ySfhqHW_WJa6_8A4bGSWyPKfk5t1ibmWkwxyDZsgbAsXAve27lUFeTXV4CFXFZsIZUMnJTz5xs4_As7ezM71pYb9k/s1600/Logo%20Karang%20Taruna%20Desa%20Padasuka.png" 
+                  alt="Logo Karang Taruna Desa Padasuka" 
+                  className="w-40 h-40 sm:w-56 sm:h-56 md:w-64 md:h-64 object-contain filter drop-shadow-[0_12px_24px_rgba(0,0,0,0.18)] relative z-10"
+                />
+              </div>
+
+              <span className="inline-block py-1.5 px-4 rounded-full bg-primary/10 text-primary font-black text-xs sm:text-sm tracking-widest uppercase mb-2">
+                Penyelenggara Resmi
+              </span>
+              <h3 className="font-heading font-black text-2xl sm:text-3xl md:text-4xl text-dark tracking-tight uppercase mb-2">
+                KARANG TARUNA DESA PADASUKA
+              </h3>
+              <p className="text-secondary text-sm sm:text-base font-semibold max-w-lg mx-auto leading-relaxed">
+                Kecamatan Baros, Kabupaten Serang — Banten
+              </p>
+              <p className="text-gray-600 text-xs sm:text-sm mt-4 max-w-xl mx-auto font-medium leading-relaxed">
+                Menghadirkan <strong>Festival eSports Karang Taruna Desa Padasuka</strong> sebagai panggung kompetisi gaming paling bergengsi bagi pemuda dan masyarakat umum.
+              </p>
+            </div>
+          </motion.div>
+
+          {/* INFORMASI CABANG LOMBA - 3 Glass Cards */}
+          <div className="mt-12 sm:mt-16">
+            <div className="text-center mb-8 sm:mb-10">
+              <motion.span initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-primary font-black tracking-widest uppercase text-xs sm:text-sm mb-2 block">
+                INFORMASI CABANG LOMBA
+              </motion.span>
+              <motion.h3 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="text-2xl sm:text-3xl md:text-4xl font-heading font-black text-dark uppercase tracking-tight">
+                3 Cabang Game Utama
+              </motion.h3>
+              <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 bg-gold mx-auto rounded-full mt-3" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+              {/* Card 1: Mobile Legends */}
               <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
                 variants={scaleUpVariant}
-                whileHover={{ y: -5 }}
-                key={i}
-                className="relative p-[2px] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
+                whileHover={{ y: -6 }}
+                className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-amber-500/60 transition-all duration-300"
               >
-                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                {/* Background Glow */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-amber-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-amber-500/20 transition-all" />
                 
-                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] sm:rounded-[30px] flex flex-col items-center text-center z-10 border border-gray-100/50">
-                  <div className="absolute top-5 right-5 w-2.5 h-2.5 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
-                  
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-primary/5 text-primary rounded-full flex items-center justify-center mb-5 sm:mb-6 relative shrink-0">
-                    <div className="absolute inset-0 border border-primary/20 rounded-full animate-[ping_3s_cubic-bezier(0,0,0.2,1)_infinite]" />
-                    <item.icon className="w-8 h-8 sm:w-10 sm:h-10" />
+                <div>
+                  {/* Logo Header */}
+                  <div className="flex justify-center items-center h-16 sm:h-20 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                    <img 
+                      src={MLBB_LOGO} 
+                      alt="Mobile Legends Logo" 
+                      className="h-full w-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300" 
+                    />
                   </div>
-                  <h3 className="text-lg sm:text-xl font-bold font-heading mb-2 sm:mb-3">
-                    {item.title}
-                  </h3>
-                  <p className="text-sm sm:text-base text-secondary leading-relaxed">
-                    {item.desc}
-                  </p>
+
+                  {/* Content Details */}
+                  <div className="space-y-3.5 my-4">
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Users className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Format Lomba</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">5 vs 5</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-amber-100/90 to-amber-50 border border-amber-300/90 p-4 rounded-2xl flex items-center gap-3">
+                      <Trophy className="w-6 h-6 text-amber-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-amber-900 font-bold uppercase tracking-wider">Total Hadiah (100% Target)</p>
+                        <p className="font-black text-amber-600 text-xl sm:text-2xl font-heading">
+                          Rp{calculateDynamicPrize('mlbb', slotCounts.ml).adjustedPrizePool.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Users className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">200 Peserta <span className="text-xs text-gray-500 font-normal">(40 Tim)</span></p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+
+                <a
+                  href="#pendaftaran"
+                  className="mt-6 w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-primary/20 text-center block"
+                >
+                  Daftar MLBB Sekarang
+                </a>
               </motion.div>
-            ))}
+
+              {/* Card 2: Free Fire */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={scaleUpVariant}
+                whileHover={{ y: -6 }}
+                className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-red-500/60 transition-all duration-300"
+              >
+                {/* Background Glow */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-red-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-red-500/20 transition-all" />
+
+                <div>
+                  {/* Logo Header */}
+                  <div className="flex justify-center items-center h-16 sm:h-20 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                    <img 
+                      src={FF_LOGO} 
+                      alt="Free Fire Logo" 
+                      className="h-full w-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300" 
+                    />
+                  </div>
+
+                  {/* Content Details */}
+                  <div className="space-y-3.5 my-4">
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Users className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Format Lomba</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">Squad</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-red-100/90 to-red-50 border border-red-300/90 p-4 rounded-2xl flex items-center gap-3">
+                      <Trophy className="w-6 h-6 text-primary shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-red-900 font-bold uppercase tracking-wider">Total Hadiah (100% Target)</p>
+                        <p className="font-black text-primary text-xl sm:text-2xl font-heading">
+                          Rp{calculateDynamicPrize('ff', slotCounts.ff).adjustedPrizePool.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Users className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">200 Peserta <span className="text-xs text-gray-500 font-normal">(50 Squad)</span></p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="#pendaftaran"
+                  className="mt-6 w-full py-3.5 px-4 bg-primary hover:bg-primary-dark text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-primary/20 text-center block"
+                >
+                  Daftar FF Sekarang
+                </a>
+              </motion.div>
+
+              {/* Card 3: EA SPORTS FC25 / FC26 */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={scaleUpVariant}
+                whileHover={{ y: -6 }}
+                className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-cyan-500/60 transition-all duration-300"
+              >
+                {/* Background Glow */}
+                <div className="absolute top-0 right-0 -mt-10 -mr-10 w-48 h-48 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none group-hover:bg-cyan-500/20 transition-all" />
+
+                <div>
+                  {/* Logo Header */}
+                  <div className="flex justify-center items-center h-16 sm:h-20 mb-6 bg-slate-50/80 p-3 rounded-2xl border border-slate-100">
+                    <img 
+                      src={FC26_LOGO} 
+                      alt="EA SPORTS FC Logo" 
+                      className="h-full w-auto object-contain filter drop-shadow-md group-hover:scale-105 transition-transform duration-300" 
+                    />
+                  </div>
+
+                  {/* Content Details */}
+                  <div className="space-y-3.5 my-4">
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Gamepad2 className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Console Platform</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">PlayStation 4 Pro</p>
+                      </div>
+                    </div>
+
+                    <div className="bg-gradient-to-r from-cyan-100/90 to-cyan-50 border border-cyan-300/90 p-4 rounded-2xl flex items-center gap-3">
+                      <Trophy className="w-6 h-6 text-cyan-700 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-cyan-900 font-bold uppercase tracking-wider">Total Hadiah (100% Target)</p>
+                        <p className="font-black text-cyan-700 text-xl sm:text-2xl font-heading">
+                          Rp{calculateDynamicPrize('fc', slotCounts.fc).adjustedPrizePool.toLocaleString('id-ID')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200 flex items-center gap-3">
+                      <Users className="w-5 h-5 text-slate-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">50 Peserta</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <a
+                  href="#pendaftaran"
+                  className="mt-6 w-full py-3.5 px-4 bg-gold hover:bg-amber-400 text-dark font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-gold/20 text-center block"
+                >
+                  Daftar FC Sekarang
+                </a>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -483,36 +664,33 @@ export default function App() {
           <div className="text-center mb-12 sm:mb-16">
             <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold mb-3 sm:mb-4 uppercase text-primary flex items-center justify-center gap-2 sm:gap-3 text-center mx-auto max-w-full">
               <CalendarClock className="w-7 h-7 sm:w-10 sm:h-10 shrink-0 text-primary" />
-              Jadwal Acara
+              Timeline Turnamen
             </motion.h2>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 sm:h-1.5 bg-gold mx-auto rounded-full" />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
             {[
               {
-                title: "Pendaftaran Perlombaan",
-                date: "Mulai Sekarang – 9 Agustus 2026",
+                title: "Pendaftaran Peserta",
+                date: "2 Agustus – 10 Agustus 2026",
                 icon: Target,
-                desc: "Pastikan tim/peserta sudah terdaftar sebelum kuota habis.",
+                badge: "Pendaftaran",
+                desc: "Pendaftaran resmi tim & individu untuk seluruh cabang game eSport (Mobile Legends, Free Fire, FC26).",
               },
               {
-                title: "Lomba Islami & Anak",
-                date: "10–13 Agustus 2026",
-                icon: Users,
-                desc: "Lomba keagamaan dan lomba anak-anak sore hari.",
+                title: "Babak Penyisihan",
+                date: "10 Agustus – 14 Agustus 2026",
+                icon: Gamepad2,
+                badge: "Penyisihan",
+                desc: "Pertandingan kualifikasi sengit antar-squad & individu memperebutkan tiket ke panggung Grand Final.",
               },
               {
-                title: "Spesial Lomba Kemerdekaan",
-                date: "14–16 Agustus 2026",
+                title: "Grand Final & Penyerahan Hadiah",
+                date: "15 Agustus 2026",
                 icon: Trophy,
-                desc: "Berbagai perlombaan tradisional utama.",
-              },
-              {
-                title: "Grand Final, eSport & Malam Tirakatan",
-                date: "17 Agustus 2026",
-                icon: Medal,
-                desc: "Acara puncak, final eSport, dan pembagian hadiah.",
+                badge: "Grand Final",
+                desc: "Puncak laga perebutan piala di panggung utama, Nobar supporter, serta penyerahan sertifikat & uang tunai.",
               },
             ].map((item, i) => (
               <motion.div
@@ -521,123 +699,110 @@ export default function App() {
                 viewport={{ once: true, margin: "-50px" }}
                 variants={fadeUpVariant}
                 key={i}
-                className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
+                className="relative p-[2px] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-sm hover:shadow-xl transition-all"
               >
                 {/* Shiny Chasing Border Layer */}
-                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#D61216_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                 
                 {/* Actual Card Content Layer */}
-                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] flex flex-col justify-between z-10 border border-gray-100/50">
+                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] sm:rounded-[30px] flex flex-col justify-between z-10 border border-gray-100">
                   {/* Decorative Red Dot */}
-                  <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                  <div className="absolute top-5 right-5 w-2.5 h-2.5 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
 
                   <div>
-                    <div className="w-12 h-12 rounded-xl bg-red-50 text-primary flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
-                      <item.icon className="w-6 h-6" />
+                    <div className="inline-block px-3 py-1 rounded-full bg-primary/10 text-primary font-black text-xs uppercase mb-4">
+                      {item.badge}
                     </div>
-                    <h4 className="font-heading font-extrabold text-lg md:text-xl text-dark mb-2 leading-tight">
+                    <div className="w-14 h-14 rounded-2xl bg-red-50 text-primary flex items-center justify-center mb-5 group-hover:scale-110 group-hover:bg-primary group-hover:text-white transition-all duration-300">
+                      <item.icon className="w-7 h-7" />
+                    </div>
+                    <h4 className="font-heading font-black text-xl sm:text-2xl text-dark mb-2 leading-tight">
                       {item.title}
                     </h4>
-                    <p className="text-secondary text-sm font-medium mb-4 leading-relaxed">
+                    <p className="text-secondary text-sm font-medium mb-6 leading-relaxed">
                       {item.desc}
                     </p>
                   </div>
                   <div className="pt-4 border-t border-gray-100 mt-auto">
-                    <span className="inline-block bg-primary/10 text-primary font-bold text-xs px-3 py-1.5 rounded-lg">
-                      {item.date}
+                    <span className="inline-flex items-center gap-1.5 bg-primary text-white font-extrabold text-xs sm:text-sm px-4 py-2 rounded-xl shadow-sm">
+                      <Calendar className="w-4 h-4 shrink-0" /> {item.date}
                     </span>
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
-        </div>
-      </section>
 
-      {/* Perlombaan Tradisional */}
-      <section
-        id="lomba"
-        className="py-16 sm:py-24 max-w-7xl mx-auto px-4 sm:px-6"
-      >
-        <div>
-          <div className="text-center mb-10 sm:mb-16">
-            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold mb-3 sm:mb-4 uppercase text-primary flex justify-center items-center gap-2 sm:gap-3 text-center mx-auto max-w-full">
-              <Trophy className="w-7 h-7 sm:w-10 sm:h-10 shrink-0 text-primary" />
-              Kategori Lomba
-            </motion.h2>
-            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="text-sm sm:text-base text-secondary font-medium">
-              Beragam perlombaan seru untuk memeriahkan hari kemerdekaan!
-            </motion.p>
-          </div>
+          {/* HADIAH TURNAMEN SECTION */}
+          <div className="mt-16 sm:mt-24 border-t border-red-100/80 pt-12 sm:pt-16">
+            <div className="text-center mb-10 sm:mb-12">
+              <motion.span initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-primary font-black tracking-widest uppercase text-xs sm:text-sm mb-2 block">
+                APRESIASI PRESTASI PEMENANG
+              </motion.span>
+              <motion.h3 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="text-2xl sm:text-3xl md:text-4xl font-heading font-black text-dark uppercase tracking-tight flex items-center justify-center gap-2 sm:gap-3">
+                <Gift className="w-8 h-8 sm:w-10 sm:h-10 text-primary shrink-0" />
+                Hadiah Turnamen
+              </motion.h3>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-8 xl:gap-10">
-            {[
-              {
-                title: "Kategori Anak",
-                items: [
-                  "Balap Karung",
-                  "Makan Kerupuk",
-                  "Lomba Kelereng",
-                  "Memasukkan Paku ke Botol",
-                  "Pecah Air",
-                ],
-              },
-              {
-                title: "Kategori Remaja",
-                items: [
-                  "Balap Karung Helm",
-                  "Tarik Tambang",
-                  "Balap Bakiak",
-                  "Futsal Sarung",
-                  "Estafet Tepung / Air",
-                ],
-              },
-              {
-                title: "Dewasa & Umum",
-                items: [
-                  "Panjat Pinang",
-                  "Tarik Tambang Akbar",
-                  "Balap Egrang",
-                  "Sepak Bola Daster",
-                  "Lomba Tumpeng",
-                ],
-              },
-            ].map((cat, i) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+              {/* Uang Tunai */}
               <motion.div
                 initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
-                variants={scaleUpVariant}
-                key={i}
-                className="relative p-[2px] rounded-[24px] sm:rounded-[32px] overflow-hidden group shadow-sm hover:shadow-lg transition-all"
+                variants={fadeUpVariant}
+                className="bg-white border-2 border-emerald-100 p-6 sm:p-8 rounded-[28px] text-center shadow-sm hover:shadow-xl transition-all relative overflow-hidden group"
               >
-                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                
-                <div className="relative bg-white h-full p-6 sm:p-8 rounded-[22px] sm:rounded-[30px] z-10 border border-gray-100/50 flex flex-col">
-                  <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)] z-20" />
-                  <div className="absolute top-0 right-0 w-20 h-20 sm:w-24 sm:h-24 bg-primary/5 rounded-bl-[80px] sm:rounded-bl-[100px] z-0 group-hover:scale-110 transition-transform"></div>
-                  
-                  <div className="relative z-10">
-                    <h3 className="text-lg sm:text-xl md:text-2xl font-extrabold text-primary font-heading mb-4 sm:mb-6 pb-3 sm:pb-4 border-b border-gray-100 flex items-center justify-between pr-8">
-                      {cat.title}
-                    </h3>
-                    <ul className="space-y-3 sm:space-y-4">
-                      {cat.items.map((item, j) => (
-                        <li
-                          key={j}
-                          className="flex items-start sm:items-center gap-3 text-sm sm:text-base text-dark font-medium leading-tight group/item"
-                        >
-                          <div className="w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0 mt-0.5 sm:mt-0 group-hover/item:scale-110 group-hover/item:bg-green-100 transition-all">
-                            <CheckCircle2 className="w-4 h-4 sm:w-5 sm:h-5" />
-                          </div>
-                          <span className="flex-1 group-hover/item:text-primary transition-colors">{item}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                  <Wallet className="w-9 h-9" />
                 </div>
+                <h4 className="font-heading font-black text-xl text-emerald-950 mb-2 flex items-center justify-center gap-2">
+                  <Wallet className="w-5 h-5 text-emerald-600 shrink-0" /> Uang Tunai
+                </h4>
+                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                  Total hadiah uang tunai jutaan Rupiah diserahkan secara langsung kepada para juara di panggung utama.
+                </p>
               </motion.div>
-            ))}
+
+              {/* Sertifikat Penghargaan */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUpVariant}
+                className="bg-white border-2 border-amber-100 p-6 sm:p-8 rounded-[28px] text-center shadow-sm hover:shadow-xl transition-all relative overflow-hidden group"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                  <Medal className="w-9 h-9" />
+                </div>
+                <h4 className="font-heading font-black text-xl text-amber-950 mb-2 flex items-center justify-center gap-2">
+                  <Award className="w-5 h-5 text-amber-600 shrink-0" /> Sertifikat Penghargaan
+                </h4>
+                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                  Piagam/sertifikat penghargaan resmi terverifikasi dari Karang Taruna Desa Padasuka untuk seluruh pemenang.
+                </p>
+              </motion.div>
+
+              {/* Juara 1 & Juara 2 di Setiap Kategori */}
+              <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, margin: "-50px" }}
+                variants={fadeUpVariant}
+                className="bg-white border-2 border-primary/20 p-6 sm:p-8 rounded-[28px] text-center shadow-sm hover:shadow-xl transition-all relative overflow-hidden group"
+              >
+                <div className="w-16 h-16 rounded-2xl bg-red-50 text-primary flex items-center justify-center mx-auto mb-5 group-hover:scale-110 transition-transform">
+                  <Trophy className="w-9 h-9" />
+                </div>
+                <h4 className="font-heading font-black text-xl text-primary mb-2 flex items-center justify-center gap-2">
+                  <Medal className="w-5 h-5 text-primary shrink-0" /> Juara 1 & Juara 2
+                </h4>
+                <p className="text-sm text-gray-600 font-medium leading-relaxed">
+                  Penghargaan juara diberikan secara adil untuk Juara 1 dan Juara 2 di setiap kategori pertandingan (SD, SMP, SMA, & UMUM).
+                </p>
+              </motion.div>
+            </div>
           </div>
         </div>
       </section>
@@ -645,7 +810,7 @@ export default function App() {
       {/* eSport */}
       <section
         id="esport"
-        className="py-16 sm:py-24 bg-gradient-to-br from-[#D7001F] to-[#990011] text-white relative overflow-hidden"
+        className="py-16 sm:py-24 bg-gradient-to-br from-[#D61216] to-[#a80c0f] text-white relative overflow-hidden"
       >
         {/* Abstract Backgrounds */}
         <div className="absolute top-0 inset-x-0 h-px bg-gradient-to-r from-transparent via-white/50 to-transparent" />
@@ -661,47 +826,50 @@ export default function App() {
               eSport Arena
             </motion.h2>
             <motion.p initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="text-white/90 text-sm sm:text-lg max-w-2xl mx-auto">
-              Perebutan Tahta Tertinggi antar Pemuda 14 Kampung Se-Desa Padasuka dengan Total Hadiah Jutaan Rupiah! <br className="hidden sm:block" /> <span className="font-bold text-gold">* Syarat batas usia maksimal 50 tahun (Kategori Umum).</span>
+              Perebutan Tahta Tertinggi antar Pemuda 14 Kampung Se-Desa Padasuka dengan Total Hadiah Jutaan Rupiah!
             </motion.p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10 mb-12 sm:mb-16">
             {[
               {
-                game: "Mobile Legends (Tim)",
-                prizes: [
-                  { level: "SD", juara1: "Rp 150.000", juara2: "Rp 75.000" },
-                  { level: "SMP", juara1: "Rp 250.000", juara2: "Rp 100.000" },
-                  { level: "SMA", juara1: "Rp 350.000", juara2: "Rp 150.000" },
-                  { level: "Umum", juara1: "Rp 500.000", juara2: "Rp 250.000" },
-                ],
-                logo: "https://upload.wikimedia.org/wikipedia/en/a/a0/Mobile_Legends_Bang_Bang_2025_logo.png",
+                key: "mlbb",
+                game: "Mobile Legends: Bang-Bang",
+                unit: "40 Tim (200 Peserta Target)",
+                target: 200,
+                unitTarget: 40,
+                unitLabel: "Tim",
+                basePrize: "Rp 1.825.000",
+                logo: MLBB_LOGO,
                 filled: slotCounts.ml,
               },
               {
+                key: "ff",
                 game: "Free Fire (Squad)",
-                prizes: [
-                  { level: "SD", juara1: "Rp 120.000", juara2: "Rp 60.000" },
-                  { level: "SMP", juara1: "Rp 200.000", juara2: "Rp 100.000" },
-                  { level: "SMA", juara1: "Rp 250.000", juara2: "Rp 125.000" },
-                  { level: "Umum", juara1: "Rp 400.000", juara2: "Rp 200.000" },
-                ],
-                logo: "https://upload.wikimedia.org/wikipedia/id/8/8b/Garena_Free_Fire_New_Style.png",
+                unit: "50 Squad (200 Peserta Target)",
+                target: 200,
+                unitTarget: 50,
+                unitLabel: "Squad",
+                basePrize: "Rp 1.455.000",
+                logo: FF_LOGO,
                 filled: slotCounts.ff,
               },
               {
-                game: "EA Sports FC 26 (Individu)",
-                prizes: [
-                  { level: "SD", juara1: "Rp 30.000", juara2: "Rp 15.000" },
-                  { level: "SMP", juara1: "Rp 50.000", juara2: "Rp 25.000" },
-                  { level: "SMA", juara1: "Rp 75.000", juara2: "Rp 35.000" },
-                  { level: "Umum", juara1: "Rp 100.000", juara2: "Rp 50.000" },
-                ],
-                logo: "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6b/FC_26_Logo.svg/1280px-FC_26_Logo.svg.png",
+                key: "fc",
+                game: "PS 4 Pro FC26 (Individu)",
+                unit: "50 Peserta Target",
+                target: 50,
+                unitTarget: 50,
+                unitLabel: "Peserta",
+                basePrize: "Rp 380.000",
+                logo: FC26_LOGO,
                 filled: slotCounts.fc,
               },
             ].map((item, i) => {
-              const progress = Math.min((item.filled / 32) * 100, 100);
+              const calculated = calculateDynamicPrize(item.key as 'mlbb' | 'ff' | 'fc', item.filled);
+              const progress = Math.min(calculated.ratioPercent, 100);
+              const formatRupiah = (val: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(val);
+
               return (
                 <motion.div
                   initial="hidden"
@@ -709,21 +877,29 @@ export default function App() {
                   viewport={{ once: true, margin: "-50px" }}
                   variants={i === 1 ? scaleUpVariant : (i === 0 ? slideInLeftVariant : slideInRightVariant)}
                   key={i}
-                  className="group flex flex-col bg-white border border-gray-100 p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] text-center hover:-translate-y-2 hover:shadow-2xl transition-all relative overflow-hidden"
+                  className="group flex flex-col bg-white border border-slate-200/90 p-6 sm:p-8 rounded-[24px] sm:rounded-[32px] text-center hover:-translate-y-2 hover:shadow-2xl transition-all relative overflow-hidden"
                 >
-                  <div className="absolute top-0 right-0 left-0 bg-gray-50 border-b border-gray-100 flex flex-col pt-3 z-20">
-                    <div className="flex justify-between items-center px-6 pb-2 text-xs font-bold text-gray-500">
-                      <span>DAFTAR SEKARANG</span>
-                      <span className="text-primary tracking-wide">TARGET: {item.filled} OF 32 SLOTS</span>
+                  {/* Top Realtime Progress Header */}
+                  <div className="absolute top-0 right-0 left-0 bg-slate-50 border-b border-slate-100 flex flex-col pt-3 z-20">
+                    <div className="flex justify-between items-center px-6 pb-2 text-[11px] font-bold text-slate-600">
+                      <span>TERDAFTAR REALTIME</span>
+                      <span className="text-primary font-mono tracking-wide">
+                        {item.filled} / {item.target} PESERTA ({calculated.ratioPercent}%)
+                      </span>
                     </div>
-                    <div className="w-full bg-gray-200 h-1.5 relative overflow-hidden">
-                      <div className="h-full bg-primary relative transition-all duration-1000 ease-out" style={{ width: `${progress}%` }}>
+                    {/* Dynamic Color Progress Bar */}
+                    <div className="w-full bg-slate-200 h-2 relative overflow-hidden">
+                      <div
+                        className={`h-full ${calculated.indicatorColor} relative transition-all duration-1000 ease-out`}
+                        style={{ width: `${progress}%` }}
+                      >
                         <div className="absolute inset-0 bg-white/30 animate-[shimmerBorder_2s_linear_infinite]" style={{ animation: 'shimmerBorder 2s linear infinite' }} />
                       </div>
                     </div>
                   </div>
                   
-                  <div className="relative mx-auto mt-10 mb-5 sm:mb-6 rounded-[20px] p-[2.5px] overflow-hidden shrink-0 shadow-sm w-32 sm:w-40 aspect-[2/1] bg-white">
+                  {/* Logo Container */}
+                  <div className="relative mx-auto mt-10 mb-4 rounded-[20px] p-[2.5px] overflow-hidden shrink-0 shadow-sm w-32 sm:w-40 aspect-[2/1] bg-white">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary via-white to-primary bg-[length:200%_auto] animate-[shimmerBorder_3s_linear_infinite]"
                       style={{ animation: 'shimmerBorder 3s linear infinite' }} />
                     <style>{`
@@ -736,71 +912,140 @@ export default function App() {
                       <img src={item.logo} alt={item.game} className="h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300 drop-shadow-sm" />
                     </div>
                   </div>
-                  <h3 className="text-xl sm:text-2xl font-bold font-heading mb-6 text-center text-dark">
+
+                  <h3 className="text-xl sm:text-2xl font-bold font-heading mb-1 text-center text-slate-900">
                     {item.game}
                   </h3>
                   
+                  {/* Status Badge */}
+                  <div className="my-2 flex justify-center">
+                    <span className={`text-[10px] sm:text-[12px] font-black uppercase px-2.5 sm:px-3 py-1 rounded-full flex items-center gap-1.5 ${
+                      calculated.badgeType === 'green'
+                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                        : calculated.badgeType === 'yellow'
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-rose-50 text-rose-700 border border-rose-200'
+                    }`}>
+                      <span className={`w-1.5 h-1.5 rounded-full ${calculated.indicatorColor}`} />
+                      {calculated.badgeText}
+                    </span>
+                  </div>
+
+                  {/* Total Prize Pool Display */}
+                  <div className="bg-slate-50 border border-slate-200 rounded-2xl p-3 sm:p-4 my-3 text-center">
+                    <span className="text-[10px] text-slate-500 font-bold uppercase tracking-wider block">Total Hadiah Saat Ini</span>
+                    <span className="text-xl sm:text-2xl font-black font-heading text-primary font-mono block">
+                      {formatRupiah(calculated.adjustedPrizePool)}
+                    </span>
+                  </div>
+
+                  {/* Table of Prizes per Category */}
                   <div className="space-y-2 relative z-10 w-full text-left mt-auto">
-                    {item.prizes.map((prize, idx) => (
-                      <div key={idx} className="bg-slate-50 border border-slate-100 p-3 rounded-xl hover:border-slate-300 transition-colors">
-                        <div className="text-[10px] sm:text-xs font-bold text-slate-500 bg-slate-200/60 inline-flex items-center px-2 py-0.5 rounded-md mb-2">{prize.level}</div>
-                        <div className="flex justify-between items-center text-[11px] sm:text-xs">
+                    {calculated.categoryPrizes.map((prize, idx) => (
+                      <div key={idx} className="bg-slate-50/80 border border-slate-100 p-2.5 sm:p-3 rounded-xl hover:border-slate-300 transition-colors">
+                        <div className="text-[10px] font-bold text-slate-500 bg-slate-200/80 inline-flex items-center px-2 py-0.5 rounded-md mb-1.5">{prize.level}</div>
+                        <div className="flex justify-between items-center text-[11px] sm:text-xs font-mono">
                            <div className="flex flex-col">
-                             <span className="text-yellow-600 font-bold flex items-center gap-1"><Trophy className="w-3.5 h-3.5"/> Juara 1</span>
-                             <span className="font-black text-slate-800 text-sm">{prize.juara1}</span>
+                             <span className="text-amber-600 font-bold flex items-center gap-1 text-[10px] font-sans"><Trophy className="w-3 h-3"/> Juara 1</span>
+                             <span className="font-black text-slate-900 text-xs sm:text-sm">{prize.juara1Formatted}</span>
                            </div>
                            <div className="flex flex-col text-right">
-                             <span className="text-slate-500 font-bold flex items-center justify-end gap-1"><Medal className="w-3.5 h-3.5"/> Juara 2</span>
-                             <span className="font-black text-slate-800 text-sm">{prize.juara2}</span>
+                             <span className="text-slate-500 font-bold flex items-center justify-end gap-1 text-[10px] font-sans"><Medal className="w-3 h-3"/> Juara 2</span>
+                             <span className="font-black text-slate-800 text-xs sm:text-sm">{prize.juara2Formatted}</span>
                            </div>
                         </div>
                       </div>
                     ))}
                   </div>
-                  <p className="text-[10px] sm:text-xs mt-6 text-gray-400 text-center font-medium">*Estimasi Nominal Berdasarkan Kuota</p>
+
+                  <p className="text-[10px] sm:text-xs mt-4 text-slate-500 text-center font-semibold">
+                    *Baseline Target 100%: {item.basePrize} (Algoritma Realtime)
+                  </p>
                 </motion.div>
               );
             })}
           </div>
 
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="max-w-2xl mx-auto mt-6 bg-white border border-gray-100 rounded-2xl p-4 sm:p-5 text-center shadow-sm lg:max-w-4xl xl:max-w-5xl">
-            <span className="text-secondary text-sm sm:text-base font-medium leading-relaxed block">
-              <strong className="text-dark">Catatan Penting:</strong> Nominal hadiah di atas merupakan estimasi awal. Hadiah <span className="underline decoration-gold decoration-2 underline-offset-2 font-semibold">bisa bertambah</span> jika pendaftar melampaui target, dan dapat disesuaikan jika slot tidak terpenuhi penuh. Yuk ajak teman kalian untuk mendaftar!
-            </span>
-          </motion.div>
-
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="max-w-4xl mx-auto rounded-[24px] sm:rounded-[32px] overflow-hidden text-dark relative w-full shadow-xl bg-white border border-gray-100 mt-16 lg:mt-24 group">
+          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="max-w-4xl lg:max-w-5xl mx-auto rounded-[24px] sm:rounded-[32px] overflow-hidden text-dark relative w-full shadow-xl bg-white border border-gray-100 mt-12 lg:mt-16 group">
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-primary via-gold to-primary" />
-            <div className="absolute top-6 right-6 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)] z-20" />
-            <div className="p-6 sm:p-10 md:p-12 w-full relative z-10">
-              <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-heading mb-2 text-center text-primary uppercase tracking-tight">
-                Tarif Pendaftaran eSport
-              </h3>
-              <p className="text-center text-secondary text-sm sm:text-base mb-6 sm:mb-8 font-medium">Semua perlombaan tradisional dijamin 100% GRATIS.</p>
+            <div className="p-6 sm:p-10 md:p-12 w-full relative z-10 space-y-8 sm:space-y-10">
               
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
-                {getPricingConfig().map((item, i) => (
-                  <div
-                    key={i}
-                    className={`flex justify-between items-center bg-gray-50 p-4 rounded-xl border border-gray-100 hover:bg-gray-100 transition-colors ${item.label.includes('Umum') ? 'sm:col-span-2' : ''}`}
-                  >
-                    <span className="text-sm sm:text-base font-semibold text-secondary">
-                      {item.label}
-                    </span>
-                    <span className="font-bold font-heading text-base sm:text-lg text-primary flex items-center gap-2">
-                      {!item.isLate && (
-                        <span className="line-through text-gray-400 text-xs sm:text-sm font-normal">
-                          Rp {item.latePrice.toLocaleString('id-ID')}
-                        </span>
-                      )}
-                      Rp {item.price.toLocaleString('id-ID')}
-                    </span>
+              {/* BIAYA PENDAFTARAN */}
+              <div>
+                <h3 className="text-xl sm:text-2xl md:text-3xl font-extrabold font-heading mb-2 text-center text-primary uppercase tracking-tight">
+                  BIAYA PENDAFTARAN
+                </h3>
+                
+                {/* 4 Kotak Horizontal */}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mt-6">
+                  <div className="bg-emerald-50/80 border border-emerald-200 p-4 sm:p-5 rounded-2xl text-center flex flex-col items-center justify-center hover:shadow-md transition-all">
+                    <CheckCircle2 className="w-6 h-6 text-emerald-600 mb-1" />
+                    <span className="font-extrabold font-heading text-emerald-950 text-sm sm:text-base">SD</span>
+                    <span className="font-black text-emerald-600 text-lg sm:text-xl mt-1">Rp5.000</span>
                   </div>
-                ))}
+
+                  <div className="bg-amber-50/80 border border-amber-200 p-4 sm:p-5 rounded-2xl text-center flex flex-col items-center justify-center hover:shadow-md transition-all">
+                    <CheckCircle2 className="w-6 h-6 text-amber-600 mb-1" />
+                    <span className="font-extrabold font-heading text-amber-950 text-sm sm:text-base">SMP</span>
+                    <span className="font-black text-amber-600 text-lg sm:text-xl mt-1">Rp8.000</span>
+                  </div>
+
+                  <div className="bg-orange-50/80 border border-orange-200 p-4 sm:p-5 rounded-2xl text-center flex flex-col items-center justify-center hover:shadow-md transition-all">
+                    <CheckCircle2 className="w-6 h-6 text-orange-600 mb-1" />
+                    <span className="font-extrabold font-heading text-orange-950 text-sm sm:text-base">SMA / SMK</span>
+                    <span className="font-black text-orange-600 text-lg sm:text-xl mt-1">Rp10.000</span>
+                  </div>
+
+                  <div className="bg-rose-50/80 border border-rose-200 p-4 sm:p-5 rounded-2xl text-center flex flex-col items-center justify-center hover:shadow-md transition-all">
+                    <CheckCircle2 className="w-6 h-6 text-rose-600 mb-1" />
+                    <span className="font-extrabold font-heading text-rose-950 text-sm sm:text-base">UMUM</span>
+                    <span className="font-black text-rose-600 text-lg sm:text-xl mt-1">Rp15.000</span>
+                  </div>
+                </div>
+
+                <p className="text-center text-gray-600 text-xs sm:text-sm mt-4 font-semibold">
+                  Biaya pendaftaran berlaku per peserta.
+                </p>
               </div>
-              <div className="text-secondary text-xs sm:text-sm mt-4 font-medium px-2">* Tarif Pendaftaran berlaku untuk Per-Orang (Individu), silahkan dikali dengan jumlah orang di tim.</div>
+
+              {/* KETENTUAN */}
+              <div className="border-t border-gray-100 pt-8 sm:pt-10">
+                <h4 className="text-lg sm:text-xl font-bold font-heading mb-4 text-gray-900 flex items-center gap-2 uppercase tracking-wide">
+                  <CheckCircle2 className="w-5 h-5 text-emerald-600" /> KETENTUAN
+                </h4>
+                <ul className="space-y-3 text-sm sm:text-base text-gray-700">
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 font-bold" />
+                    <span>SD, SMP, SMA/SMK & Umum</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 font-bold" />
+                    <span>Mobile Legends & Free Fire menggunakan HP dan kuota internet masing-masing.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 font-bold" />
+                    <span>EA SPORTS FC menggunakan PlayStation 4 Pro dari panitia.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 font-bold" />
+                    <span>Kuota terbatas.</span>
+                  </li>
+                  <li className="flex items-start gap-3">
+                    <Check className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5 font-bold" />
+                    <span>Pendaftaran ditutup apabila kuota terpenuhi.</span>
+                  </li>
+                </ul>
+              </div>
+
+
+
             </div>
           </motion.div>
+
+          {/* SIMULATOR HADIAH DYNAMIC */}
+          <div className="max-w-4xl lg:max-w-5xl mx-auto">
+            <DynamicPrizeSimulator realTimeCounts={slotCounts} />
+          </div>
         </div>
       </section>
 
@@ -898,14 +1143,13 @@ export default function App() {
               <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#94a3b8_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
-                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
                 <h3 className="font-heading font-bold text-xl text-slate-600 mb-2">Paket Silver</h3>
-                <div className="text-3xl font-black text-slate-800 font-heading mb-6">Rp 20.000<span className="text-sm text-secondary font-normal block mt-1">/ Slot Minimal</span></div>
+                <div className="text-3xl font-black text-slate-800 font-heading mb-6">Rp 50.000<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Minimal</span></div>
                 <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Pemuatan Nama/Logo di Banner Acara (Kecil)</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Disebutkan oleh MC (1x)</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Disebutkan oleh MC (1x Adlips Pengumuman)</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 20.000)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors relative overflow-hidden group/btn">
+                <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 50.000)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors relative overflow-hidden group/btn">
                   <span className="relative z-10">Pilih Paket Silver</span>
                 </button>
               </div>
@@ -919,13 +1163,11 @@ export default function App() {
               <div className="bg-white h-full w-full rounded-[21px] p-6 sm:p-8 flex flex-col relative z-20">
                 <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-bold text-xs uppercase tracking-widest py-1 px-4 rounded-full shadow-md z-30 whitespace-nowrap">Paling Diminati</div>
                 <h3 className="font-heading font-bold text-xl text-yellow-600 mb-2 mt-2">Paket Gold</h3>
-                <div className="text-3xl font-black text-yellow-700 font-heading mb-6">Rp 50.000<span className="text-sm text-secondary font-normal block mt-1">/ Slot Menengah</span></div>
+                <div className="text-3xl font-black text-yellow-700 font-heading mb-6">Rp 150.000<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Menengah</span></div>
                 <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Posisi Logo Premium di Banner Utama (Sedang)</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi Produk oleh MC (2x)</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Spot gelar Produk/Brosur di Area Acara</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi Produk & Jasa oleh MC (3x Adlips)</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Gold (Rp 50.000)'); setActiveModal('sponsor'); }} className="w-full bg-gold text-white font-bold py-3 rounded-xl hover:bg-yellow-600 transition-colors shadow-lg shadow-gold/20">Pilih Paket Gold</button>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Gold (Rp 150.000)'); setActiveModal('sponsor'); }} className="w-full bg-gold text-white font-bold py-3 rounded-xl hover:bg-yellow-600 transition-colors shadow-lg shadow-gold/20">Pilih Paket Gold</button>
               </div>
             </motion.div>
 
@@ -934,15 +1176,13 @@ export default function App() {
               <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#1e293b_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
               
               <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
-                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
                 <h3 className="font-heading font-bold text-xl text-dark mb-2">Paket Platinum</h3>
-                <div className="text-3xl font-black text-dark font-heading mb-6 text-balance">Rp 150.000+<span className="text-sm text-secondary font-normal block mt-1">/ Slot Eksklusif</span></div>
+                <div className="text-3xl font-black text-dark font-heading mb-6 text-balance">Rp 500.000+<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Eksklusif</span></div>
                 <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo Terbesar di Center Banner & Kaos Panitia</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi MC Tanpa Batas / Adlips</li>
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Spanduk Khusus Brand di Titik Strategis</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi oleh MC Tanpa Batas / Adlips Eksklusif</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 150.000+)'); setActiveModal('sponsor'); }} className="w-full bg-dark text-white font-bold py-3 rounded-xl hover:bg-slate-800 transition-colors relative overflow-hidden group/btn">
+                <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 500.000+)'); setActiveModal('sponsor'); }} className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-colors relative overflow-hidden group/btn shadow-lg shadow-primary/20">
                   <span className="relative z-10">Pilih Paket Platinum</span>
                 </button>
               </div>
@@ -985,10 +1225,10 @@ export default function App() {
                     key={i}
                     className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-md hover:shadow-xl transition-all duration-300"
                   >
-                    <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#d7001f_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#D61216_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                     
                     <div className="relative flex flex-col justify-between h-full bg-white p-6 rounded-[22px] z-10 border border-gray-100/50 gap-6">
-                      <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(215,0,31,0.5)]" />
+                      <div className="absolute top-5 right-5 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
                       
                       <div className={`p-4 rounded-[16px] inline-flex items-center gap-3 w-fit ${item.bg}`}>
                         {item.logo && <img src={item.logo} alt={item.name} className="h-8 w-auto object-contain rounded-md" />}
@@ -1080,60 +1320,213 @@ export default function App() {
         </div>
       </section>
 
-      {/* FAQ */}
+      {/* Map Lokasi */}
+      <section id="lokasi" className="py-16 sm:py-24 bg-white border-t border-gray-100 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="text-center mb-10 sm:mb-14">
+            <motion.span initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-primary/80 font-bold tracking-widest uppercase text-[10px] xs:text-xs sm:text-sm mb-2 block">
+              <span className="inline-flex items-center gap-1.5"><MapPin className="w-4 h-4 text-primary inline" /> NAVIGASI VENUE PERTANDINGAN</span>
+            </motion.span>
+            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold mb-3 sm:mb-4 uppercase text-primary tracking-tight">
+              Lokasi Turnamen eSport
+            </motion.h2>
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 sm:h-1.5 bg-gold mx-auto rounded-full mb-6" />
+            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="text-sm sm:text-base text-secondary font-medium max-w-2xl mx-auto">
+              Silakan klik petunjuk arah Google Maps di bawah ini sesuai dengan cabang perlombaan eSport yang kamu ikuti!
+            </motion.p>
+          </div>
+
+          {/* Dedicated Venue Cards with Embedded Google Maps */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-4">
+            {/* Venue 1: Mobile Legends & Free Fire */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={fadeUpVariant}
+              className="bg-white text-dark p-6 sm:p-8 rounded-[28px] sm:rounded-[36px] border border-slate-200 shadow-xl flex flex-col justify-between relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                <Gamepad2 className="w-36 h-36 text-primary" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-red-100 text-red-700 border border-red-200 rounded-full text-xs font-black uppercase mb-4">
+                  <Flame className="w-3.5 h-3.5 text-red-600 inline shrink-0" /> MLBB & FREE FIRE
+                </div>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-black font-heading mb-2 text-dark">
+                  Lokasi Mobile Legends & Free Fire
+                </h3>
+                <p className="text-xs sm:text-sm text-secondary mb-4 leading-relaxed font-medium">
+                  Venue resmi pertandingan babak kualifikasi dan penyisihan Mobile Legends: Bang Bang & Free Fire.
+                </p>
+
+                {/* Embedded Map Venue 1: MLBB & FF */}
+                <div className="w-full h-52 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 mb-6 relative z-10 shadow-inner">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m13!1m8!1m3!1d991.5893031748755!2d106.1371775!3d-6.2165348!3m2!1i1024!2i768!4f13.1!3m2!1m1!2zNsKwMTInNTkuMiJTIDEwNsKwMDgnMTQuMyJF!5e0!3m2!1sid!2sid!4v1785610660666!5m2!1sid!2sid"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen={true}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Lokasi MLBB & Free Fire"
+                    className="w-full h-full grayscale-[15%] hover:grayscale-0 transition-all duration-300"
+                  ></iframe>
+                </div>
+              </div>
+              <a
+                href="https://maps.app.goo.gl/dHXj2Wd5GGQG77B59"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-primary/30 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group-hover:scale-[1.02]"
+              >
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-gold animate-bounce" /> Buka Google Maps ML & FF
+              </a>
+            </motion.div>
+
+            {/* Venue 2: PS4 Pro FC25/26 */}
+            <motion.div
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={fadeUpVariant}
+              className="bg-white text-dark p-6 sm:p-8 rounded-[28px] sm:rounded-[36px] border border-slate-200 shadow-xl flex flex-col justify-between relative overflow-hidden group"
+            >
+              <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity pointer-events-none">
+                <Trophy className="w-36 h-36 text-gold" />
+              </div>
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-3.5 py-1 bg-amber-100 text-amber-800 border border-amber-200 rounded-full text-xs font-black uppercase mb-4">
+                  <Gamepad2 className="w-3.5 h-3.5 text-amber-700 inline shrink-0" /> PS4 PRO EA SPORTS FC
+                </div>
+                <h3 className="text-xl sm:text-2xl lg:text-3xl font-black font-heading mb-2 text-dark">
+                  Lokasi PS4 Pro EA SPORTS FC25/26
+                </h3>
+                <p className="text-xs sm:text-sm text-secondary mb-4 leading-relaxed font-medium">
+                  Venue resmi turnamen konsol PlayStation 4 Pro EA SPORTS FC25 / FC26 kategori Individu (1v1).
+                </p>
+
+                {/* Embedded Map Venue 2: FC25/FC26 (Ziezan Store) */}
+                <div className="w-full h-52 sm:h-64 rounded-2xl overflow-hidden border border-slate-200 mb-6 relative z-10 shadow-inner">
+                  <iframe
+                    src="https://www.google.com/maps/embed?pb=!1m14!1m8!1m3!1d495.78645136109657!2d106.1383497!3d-6.2252286!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e4221001af43537%3A0xb3927ce369b81f4c!2sZiezan%20Store!5e0!3m2!1sid!2sid!4v1785610631092!5m2!1sid!2sid"
+                    width="100%"
+                    height="100%"
+                    style={{ border: 0 }}
+                    allowFullScreen={true}
+                    loading="lazy"
+                    referrerPolicy="no-referrer-when-downgrade"
+                    title="Lokasi PS4 Pro FC25/26 (Ziezan Store)"
+                    className="w-full h-full grayscale-[15%] hover:grayscale-0 transition-all duration-300"
+                  ></iframe>
+                </div>
+              </div>
+              <a
+                href="https://maps.app.goo.gl/pXJMi9Ho1UCQCqZG7"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full bg-gold text-dark font-extrabold py-4 px-6 rounded-2xl hover:bg-amber-400 transition-all shadow-lg shadow-gold/20 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider group-hover:scale-[1.02]"
+              >
+                <MapPin className="w-4 h-4 sm:w-5 sm:h-5 text-primary animate-bounce" /> Buka Google Maps PS4 FC
+              </a>
+            </motion.div>
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION DOWNLOAD PROPOSAL */}
+      <section className="py-16 sm:py-20 px-4 sm:px-6 w-full max-w-7xl mx-auto">
+        <motion.div
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-50px" }}
+          variants={fadeUpVariant}
+          className="bg-gradient-to-br from-red-600 via-red-700 to-red-800 text-white rounded-[24px] sm:rounded-[32px] p-8 sm:p-12 md:p-16 relative overflow-hidden shadow-xl border border-red-500/20 flex flex-col md:flex-row items-center justify-between gap-8 group"
+        >
+          {/* Subtle Background Pattern */}
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_30%,rgba(255,255,255,0.15),transparent_50%)] pointer-events-none" />
+          <div className="absolute -right-24 -bottom-24 w-96 h-96 bg-white/10 rounded-full blur-3xl pointer-events-none group-hover:scale-110 transition-transform duration-700" />
+          
+          <div className="relative z-10 max-w-2xl text-center md:text-left space-y-4">
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/20 text-white font-bold text-xs uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5" />
+              Kerja Sama & Proposal Resmi
+            </span>
+            <h2 className="font-heading font-black text-2xl sm:text-3xl md:text-4xl leading-tight">
+              Tertarik Menjadi Sponsor Festival eSports Karang Taruna Desa Padasuka?
+            </h2>
+            <p className="text-sm sm:text-base text-red-100 leading-relaxed font-medium">
+              Unduh proposal resmi dan pelajari kesempatan kolaborasi strategis untuk mendukung kesuksesan perayaan HUT RI ke-81 di Desa Padasuka.
+            </p>
+          </div>
+
+          <div className="relative z-10 shrink-0">
+            <button
+              onClick={() => navigate("/proposal")}
+              className="inline-flex items-center gap-3 bg-white hover:bg-red-50 text-red-700 px-6 sm:px-8 py-3.5 sm:py-4 rounded-full text-sm sm:text-base font-bold shadow-lg shadow-black/20 hover:shadow-xl transition-all group/btn"
+            >
+              <Download className="w-5 h-5 text-red-600 group-hover/btn:translate-y-0.5 transition-transform" />
+              <span>Unduh Proposal</span>
+            </button>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* FAQ di Paling Bawah Setelah Maps */}
       <section
         id="faq"
-        className="py-16 sm:py-24 bg-gray-50 border-t border-gray-100"
+        className="py-16 sm:py-24 bg-slate-50/80 border-t border-gray-100"
       >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 w-full">
           <div className="text-center mb-10 sm:mb-16">
             <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold uppercase text-primary tracking-tight flex justify-center items-center gap-2 sm:gap-3 text-center mx-auto max-w-full">
               <MessageCircleQuestion className="w-7 h-7 sm:w-10 sm:h-10 shrink-0 text-primary" />
-              Tanya Jawab
+              Tanya Jawab (FAQ)
             </motion.h2>
           </div>
 
           <div className="space-y-4 w-full">
             {[
               {
-                q: "Bagaimana cara mendaftar lomba eSport?",
-                a: "Cukup isi formulir 'Pendaftaran Khusus eSport' dan klik 'Kirim Data'. Anda akan diarahkan ke WhatsApp panitia untuk konfirmasi bukti transfer.",
+                q: "Siapa penyelenggara Festival eSports Karang Taruna Desa Padasuka ini?",
+                a: "Acara ini diselenggarakan secara resmi oleh Karang Taruna Desa Padasuka, Kecamatan Baros, Kabupaten Serang — Banten dalam rangka memeriahkan HUT RI ke-81.",
               },
               {
-                q: "Apakah warga bukan Desa Padasuka boleh ikut lomba?",
-                a: "Boleh! Kategori eSport (Pelajar/Umum) terbuka untuk peserta dari luar Desa Padasuka sesuai syarat batas usia. Lomba tradisional difokuskan untuk memeriahkan warga lokal.",
+                q: "Bagaimana cara mendaftar turnamen eSport?",
+                a: "Cukup pilih cabang game (Mobile Legends, Free Fire, atau PS4 Pro EA SPORTS FC26) pada formulir pendaftaran, isi data tim/peserta, dan klik 'Kirim Data'. Anda akan diarahkan ke WhatsApp panitia untuk konfirmasi bukti pendaftaran.",
               },
               {
-                q: "Kapan lomba tradisional diadakan dan apakah berbayar?",
-                a: "Semua perlombaan tradisional 100% GRATIS dan diadakan secara on the spot pada Hari H (17 Agustus 2026). Langsung datang ke lokasi untuk mendaftar!",
+                q: "Apakah peserta di luar Desa Padasuka diperbolehkan mendaftar?",
+                a: "Boleh! Seluruh cabang eSport terbuka untuk umum dan pelajar se-Kabupaten Serang dan sekitarnya sesuai kategori tingkatan (SD, SMP, SMA, & UMUM).",
               },
               {
-                q: "Bagaimana sistem hadiah dibagikan?",
-                a: "Hadiah diserahkan secara langsung atau pada acara puncak/Malam Tirakatan. Nominal hadiah eSport bersifat estimasi dan dan berpotensi bertambah (menyesuaikan jumlah peserta tim).",
+                q: "Berapa biaya pendaftaran eSport?",
+                a: "Biaya pendaftaran per peserta menyesuaikan tingkatan: SD (Rp5.000), SMP (Rp8.000), SMA/SMK (Rp10.000), dan UMUM (Rp15.000). Total biaya tim otomatis dikalikan jumlah anggota.",
               },
               {
-                q: "Apa saja lomba tradisional yang tersedia?",
-                a: "Sangat beragam! Mulai dari Balap Karung Pakai Helm, Makan Kerupuk, Tarik Tambang, hingga hiburan puncak Panjat Pinang. Semuanya meriah untuk keluarga.",
+                q: "Bagaimana sistem pembagian piala & total hadiah?",
+                a: "Piala bergilir, sertifikat penghargaan, dan total uang tunai jutaan Rupiah akan diserahkan secara langsung pada panggung utama Grand Final tanggal 15 Agustus 2026.",
               },
               {
                 q: "Apakah boleh mendaftar lebih dari satu cabang eSport?",
-                a: "Tentu boleh, selama jadwal pertandingan (Match) Anda tidak berbenturan. Satu tim atau individu dapat berkompetisi di beberapa cabang.",
+                a: "Boleh, selama jadwal pertandingan (Match) Anda tidak berbenturan. Satu pemain dapat berkompetisi di Mobile Legends, Free Fire, maupun EA SPORTS FC26.",
               },
               {
-                q: "Di mana lokasi rangkaian acara dilangsungkan?",
-                a: "Seluruh rangkaian acara utama perayaan (termasuk panggung dan perlombaan tradisional) akan dipusatkan di Lapangan Utama Desa Padasuka, Kec. Baros, Serang.",
+                q: "Di mana lokasi babak kualifikasi dan Grand Final dilangsungkan?",
+                a: "Lokasi Mobile Legends & Free Fire serta PS4 Pro FC25/26 dilangsungkan di arena khusus yang telah ditentukan panitia (klik tombol Google Maps pada bagian 'Lokasi Turnamen'). Puncak Grand Final dan Nonton Bareng (Nobar) dipusatkan di Lapangan Utama Desa Padasuka.",
               },
               {
-                q: "Apakah penonton diperbolehkan hadir untuk Final eSport?",
-                a: "Sangat diperbolehkan! Kami menyediakan area khusus Nonton Bareng (Nobar) agar suasana kompetisi semakin meriah dengan dukungan supporter dari masing-masing tim.",
+                q: "Apakah penonton diperbolehkan hadir menyaksikan Final eSport?",
+                a: "Sangat diperbolehkan! Panitia menyediakan layar panggung Nobar khusus agar pendukung dan warga dapat bersorak mendukung tim jagoannya.",
               },
               {
-                q: "Bagaimana jika saya ingin menjadi sponsor / donatur?",
-                a: "Dukungan Anda sangat berarti! Silakan pilih salah satu opsi pada 'Paket Sponsor' (Silver, Gold, Platinum). Anda akan diarahkan ke WhatsApp untuk proses MoU lebih lanjut.",
+                q: "Bagaimana jika kami berminat menjadi Sponsor / Donatur?",
+                a: "Dukungan sponsor sangat kami harapkan! Silakan hubungi Panitia Karang Taruna Desa Padasuka secara langsung untuk berdiskusi mengenai bentuk kerja sama terbaik atau klik tombol Sponsor di bagian bawah halaman.",
               },
               {
-                q: "Kapan batas akhir pendaftaran eSport?",
-                a: "Pendaftaran akan ditutup H-3 sebelum tanggal dimulainya Match atau apabila kuota slot peserta sudah terpenuhi penuh. Jangan sampai kehabisan!",
+                q: "Kapan batas akhir pendaftaran turnamen eSport?",
+                a: "Pendaftaran akan ditutup pada 10 Agustus 2026 atau jika kuota peserta telah terpenuhi penuh. Segera amankan tempat tim kamu!",
               },
             ].map((faq, i) => (
               <motion.details
@@ -1142,17 +1535,17 @@ export default function App() {
                 viewport={{ once: true, margin: "-50px" }}
                 variants={fadeUpVariant}
                 key={i}
-                className="group bg-white rounded-[20px] sm:rounded-[24px] border border-gray-100 shadow-sm overflow-hidden w-full"
+                className="group bg-white rounded-[20px] sm:rounded-[24px] border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow overflow-hidden w-full"
               >
-                <summary className="flex cursor-pointer items-start sm:items-center justify-between p-5 sm:p-6 md:p-8 font-bold text-sm sm:text-lg text-dark font-heading hover:text-primary transition-colors gap-4 w-full select-none outline-none">
+                <summary className="flex cursor-pointer items-start sm:items-center justify-between p-5 sm:p-6 md:p-8 font-extrabold text-sm sm:text-lg text-slate-800 font-heading hover:text-primary transition-colors gap-4 w-full select-none outline-none">
                   <span className="flex-1 mt-0.5 sm:mt-0 leading-snug">
                     {faq.q}
                   </span>
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-50 rounded-full flex items-center justify-center shrink-0 group-open:bg-primary group-open:text-white transition-colors">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-100 text-slate-600 rounded-full flex items-center justify-center shrink-0 group-open:bg-primary group-open:text-white transition-colors">
                     <ChevronDown className="w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 group-open:rotate-180" />
                   </div>
                 </summary>
-                <div className="px-5 sm:px-6 md:px-8 pb-6 sm:pb-8 text-sm sm:text-base md:text-lg text-secondary leading-relaxed bg-gray-50/50 pt-3 sm:pt-4 border-t border-gray-50 w-full">
+                <div className="px-5 sm:px-6 md:px-8 pb-6 sm:pb-8 text-sm sm:text-base md:text-lg text-slate-600 leading-relaxed bg-slate-50/50 pt-3 sm:pt-4 border-t border-slate-100 w-full font-medium">
                   {faq.a}
                 </div>
               </motion.details>
@@ -1161,103 +1554,39 @@ export default function App() {
         </div>
       </section>
 
-      {/* Map Lokasi */}
-      <section id="lokasi" className="py-16 sm:py-24 bg-white border-t border-gray-100 relative">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="text-center mb-10 sm:mb-14">
-            <motion.span initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-primary/80 font-bold tracking-widest uppercase text-[10px] xs:text-xs sm:text-sm mb-2 block">
-              Titik Kumpul
-            </motion.span>
-            <motion.h2 initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-xl xs:text-2xl sm:text-3xl md:text-4xl font-heading font-extrabold mb-3 sm:mb-4 uppercase text-primary tracking-tight">
-              Lokasi Acara
-            </motion.h2>
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 sm:h-1.5 bg-gold mx-auto rounded-full mb-6" />
-            <motion.p initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant} className="text-sm sm:text-base text-secondary font-medium max-w-2xl mx-auto">
-              Seluruh rangkaian kegiatan perayaan dipusatkan di Lapangan Utama Desa Padasuka. Mari bergabung dan meriahkan acara bersama keluarga!
-            </motion.p>
-          </div>
-
-          <motion.div 
-            initial="hidden" 
-            whileInView="visible" 
-            viewport={{ once: true, margin: "-50px" }} 
-            variants={scaleUpVariant}
-            className="w-full h-[300px] sm:h-[400px] lg:h-[450px] rounded-[20px] sm:rounded-[32px] overflow-hidden shadow-lg border border-gray-100 relative group"
-          >
-            <iframe 
-              src="https://maps.google.com/maps?q=Kantor+Desa+Padasuka,+Baros,+Serang,+Banten&t=&z=15&ie=UTF8&iwloc=&output=embed" 
-              width="100%" 
-              height="100%" 
-              style={{ border: 0 }} 
-              allowFullScreen={true} 
-              loading="lazy" 
-              className="absolute inset-0 z-0 grayscale-[20%] group-hover:grayscale-0 transition-all duration-500"
-              title="Lokasi Festival Merdeka"
-            ></iframe>
-            
-            <div className="absolute top-4 sm:top-6 right-4 sm:right-6 md:right-8 z-10">
-              <a 
-                href="https://share.google/DvRivd6ll2rfWzat1" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="bg-white/90 backdrop-blur-md text-primary hover:bg-primary hover:text-white px-4 sm:px-6 py-2.5 sm:py-3 rounded-xl font-bold text-xs sm:text-sm shadow-xl flex items-center gap-2 transition-all transform hover:-translate-y-1 border border-primary/20 hover:border-primary/0"
-              >
-                <MapPin className="w-4 h-4 sm:w-5 sm:h-5" /> Buka Google Maps
-              </a>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <footer className="bg-transparent w-full mt-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 flex flex-col gap-8 w-full">
-          <div className="flex flex-col lg:flex-row lg:justify-between items-center lg:items-start gap-8">
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 md:gap-6">
-              <div className="hidden lg:flex items-center gap-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-8 md:h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
-                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-8 md:h-10 w-auto object-contain grayscale opacity-60 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+      <footer className="bg-primary text-white w-full mt-16 border-t border-red-700">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-14 flex flex-col gap-8 w-full">
+          <div className="flex flex-col lg:flex-row lg:justify-between items-center gap-8">
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 md:gap-6 text-center sm:text-left">
+              <div className="flex items-center gap-3 bg-white/95 px-3 py-1.5 rounded-xl shadow-sm">
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-8 w-auto object-contain" />
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-8 w-auto object-contain" />
               </div>
               
-              <div className="hidden lg:block h-8 w-px bg-gray-200"></div>
+              <div className="hidden sm:block h-8 w-px bg-white/25"></div>
 
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <div 
-                  className="h-7 sm:h-9 md:h-10 w-8 sm:w-10 drop-shadow-sm bg-primary"
-                  style={{
-                    WebkitMaskImage: 'url(https://beeimg.com/images/k22145264424.png)',
-                    WebkitMaskSize: 'contain',
-                    WebkitMaskRepeat: 'no-repeat',
-                    WebkitMaskPosition: 'center',
-                    maskImage: 'url(https://beeimg.com/images/k22145264424.png)',
-                    maskSize: 'contain',
-                    maskRepeat: 'no-repeat',
-                    maskPosition: 'center'
-                  }}
-                />
+              <div className="flex items-center gap-2">
+                <img src="/logo.svg" alt="Ikon 81" className="h-8 sm:h-10 w-auto object-contain brightness-0 invert drop-shadow-sm" />
                 <div className="flex flex-col leading-tight pt-0.5 text-left ml-1">
-                  <span className="font-heading font-semibold text-[10px] sm:text-[11px] text-dark uppercase tracking-widest whitespace-nowrap text-left">Dirgahayu</span>
-                  <span className="font-heading font-black text-primary text-[13px] sm:text-[15px] uppercase tracking-wider whitespace-nowrap text-left">Indonesia</span>
+                  <span className="font-heading font-semibold text-[10px] sm:text-[11px] text-white/80 uppercase tracking-widest whitespace-nowrap">Dirgahayu</span>
+                  <span className="font-heading font-black text-white text-[13px] sm:text-[15px] uppercase tracking-wider whitespace-nowrap">Indonesia</span>
                 </div>
               </div>
-              <div className="hidden sm:block h-6 w-px bg-gray-300"></div>
-              <span className="font-heading font-bold text-xs sm:text-sm text-dark tracking-wide text-center">
-                FESTIVAL MERDEKA 2026
-              </span>
             </div>
 
-            <div className="flex flex-wrap justify-center lg:justify-end gap-x-4 sm:gap-x-6 gap-y-3 px-4 w-full sm:w-auto">
-              <button onClick={() => setActiveModal('tentang')} className="text-secondary hover:text-primary font-medium text-[11px] xs:text-xs sm:text-sm transition-colors text-center w-[45%] sm:w-auto">Tentang Kami</button>
-              <button onClick={() => setActiveModal('sk')} className="text-secondary hover:text-primary font-medium text-[11px] xs:text-xs sm:text-sm transition-colors text-center w-[45%] sm:w-auto">Syarat & Ketentuan</button>
-              <button onClick={() => setActiveModal('privasi')} className="text-secondary hover:text-primary font-medium text-[11px] xs:text-xs sm:text-sm transition-colors text-center w-[45%] sm:w-auto">Kebijakan Privasi</button>
-              <button onClick={() => setActiveModal('disclaimer')} className="text-secondary hover:text-primary font-medium text-[11px] xs:text-xs sm:text-sm transition-colors text-center w-[45%] sm:w-auto">Disclaimer</button>
+            <div className="flex flex-wrap justify-center lg:justify-end gap-x-6 gap-y-3 px-4 w-full sm:w-auto">
+              <button onClick={() => setActiveModal('tentang')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Tentang</button>
+              <button onClick={() => setActiveModal('sk')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Syarat</button>
+              <button onClick={() => setActiveModal('privasi')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Privasi</button>
+              <button onClick={() => setActiveModal('disclaimer')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Disclaimer</button>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-gray-100">
-            <p className="text-xs font-medium text-gray-400 text-center sm:text-left">
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-white/20 text-xs text-white/80 font-medium">
+            <p className="text-center sm:text-left">
               Dirgahayu Republik Indonesia. Jayalah Negeriku!
             </p>
-            <p className="text-xs font-semibold text-gray-400 text-center">
+            <p className="text-center font-semibold text-white/90">
               &copy; 2026 Karang Taruna Desa Padasuka
             </p>
           </div>
@@ -1282,7 +1611,6 @@ export default function App() {
             >
               <div className="flex items-center justify-between p-6 border-b border-gray-100 shrink-0">
                 <h3 className="font-heading font-extrabold text-xl text-dark">
-                  {activeModal === 'menu' && 'Menu Navigasi'}
                   {activeModal === 'tentang' && 'Tentang Karang Taruna Padasuka'}
                   {activeModal === 'sk' && 'Syarat & Ketentuan'}
                   {activeModal === 'privasi' && 'Kebijakan Privasi'}
@@ -1297,31 +1625,6 @@ export default function App() {
                 </button>
               </div>
               <div className="p-6 md:p-8 overflow-y-auto font-medium text-secondary text-sm md:text-base leading-relaxed space-y-4">
-                {activeModal === 'menu' && (
-                  <div className="flex flex-col gap-3">
-                     <button onClick={() => { setActiveModal(null); scrollTo("tentang"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       Tentang <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <button onClick={() => { setActiveModal(null); scrollTo("lomba"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       Kategori Lomba <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <button onClick={() => { setActiveModal(null); scrollTo("jadwal"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       Jadwal <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <button onClick={() => { setActiveModal(null); scrollTo("esport"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       eSport <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <button onClick={() => { setActiveModal(null); scrollTo("lokasi"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       Lokasi <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <button onClick={() => { setActiveModal(null); scrollTo("faq"); }} className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-dark transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group">
-                       FAQ <ArrowRight className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
-                     </button>
-                     <a href="/proposal" className="w-full text-left px-5 py-4 hover:bg-primary/5 rounded-2xl font-bold text-primary transition-colors border border-transparent hover:border-primary/20 flex items-center justify-between group bg-primary/5">
-                       Proposal Kegiatan <ArrowRight className="w-4 h-4 text-primary transition-colors" />
-                     </a>
-                  </div>
-                )}
                 {activeModal === 'tentang' && (
                   <>
                     <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-16 w-auto mb-6 drop-shadow-sm block" />
@@ -1348,7 +1651,7 @@ export default function App() {
                       <li>Keputusan dewan juri/panitia pada saat perlombaan bersifat mutlak dan tidak dapat diganggu gugat.</li>
                     </ul>
                     <h4 className="font-bold text-dark mt-6 mb-2">2. Pendaftaran</h4>
-                    <p>Pendaftaran dianggap sah apabila peserta telah mengisi formulir dari Panitia (atau melalui aplikasi ini) dan membayar biaya pendaftaran yang ditetapkan (jika kategori tersebut berbayar). Untuk Lomba eSport, batas usia maksimal kategori umum adalah 50 tahun.</p>
+                    <p>Pendaftaran dianggap sah apabila peserta telah mengisi formulir dari Panitia (atau melalui aplikasi ini) dan membayar biaya pendaftaran yang ditetapkan (jika kategori tersebut berbayar).</p>
                     <h4 className="font-bold text-dark mt-6 mb-2">3. Kedisiplinan & Tata Tertib</h4>
                     <p>Peserta dan penonton wajib menjaga ketertiban, keamanan, kebersihan (tidak membuang sampah sembarangan), serta menjunjung tinggi asas objektivitas dan sportivitas/Fair Play.</p>
                   </>
@@ -1359,14 +1662,14 @@ export default function App() {
                     <h4 className="font-bold text-dark mt-6 mb-2">Penggunaan Informasi</h4>
                     <p>Setiap data yang Anda masukkan dalam formulir seperti nama dan nomor kontak hanya akan digunakan untuk keperluan verifikasi pendaftaran lomba, konfirmasi kehadiran, dan penyampaian informasi mengenai kompetisi terkait. Kami tidak akan menjual atau menyebarkan data tersebut ke pihak ketiga.</p>
                     <h4 className="font-bold text-dark mt-6 mb-2">Media & Dokumentasi</h4>
-                    <p>Selama rangkaian kegiatan Festival Merdeka 2026, panitia akan mendokumentasikan acara berupa foto dan video. Dokumentasi tersebut akan digunakan sebagai media pelaporan, publikasi, dan materi promosi di media sosial atau lingkungan internal panitia.</p>
+                    <p>Selama rangkaian kegiatan Festival eSports Karang Taruna Desa Padasuka, panitia akan mendokumentasikan acara berupa foto dan video. Dokumentasi tersebut akan digunakan sebagai media pelaporan, publikasi, dan materi promosi di media sosial atau lingkungan internal panitia.</p>
                   </>
                 )}
                 {activeModal === 'disclaimer' && (
                   <>
-                    <p>Situs ini merupakan media pendukung untuk keperluan informasi, dokumentasi, dan pendaftaran <strong>Festival Lomba 17-an Tahun 2026 yang dikelola oleh Karang Taruna dan Panitia Desa Padasuka</strong> (Kec. Baros, Kab. Serang, Banten).</p>
+                    <p>Situs ini merupakan media pendukung untuk keperluan informasi, dokumentasi, dan pendaftaran <strong>Festival eSports Karang Taruna Desa Padasuka</strong> (Kec. Baros, Kab. Serang, Banten).</p>
                     <p className="mt-4">Panitia tidak bertanggung jawab atas segala kerugian yang terjadi akibat kelalaian peserta maupun kegagalan koneksi ketika melakukan transfer atau konfirmasi. Seluruh transaksi resmi hanya dilakukan melalui nomor-nomor rekening atau e-Wallet yang dicantumkan pada situs/halaman resmi panitia. Peserta diimbau untuk selalu waspada terhadap segala bentuk penipuan yang mengatasnamakan panitia penyelenggara.</p>
-                    <p className="mt-4">Keseluruhan hadiah, jumlah perlombaan, dan detail jadwal dapat berubah sewaktu-waktu sesuai dengan kebijakan panitia penyelenggara terkait faktor cuaca, jumlah perwakilan slot, dan kelayakan lokasi tanpa pemberitahuan mutlak terlebih dahulu.</p>
+                    <p className="mt-4">Keseluruhan hadiah, jumlah perlombaan, dan detail jadwal dapat berubah sewaktu-waktu sesuai dengan kebijakan panitia penyelenggara terkait faktor cuaca, jumlah perwakilan peserta, dan kelayakan lokasi tanpa pemberitahuan mutlak terlebih dahulu.</p>
                   </>
                 )}
                 {activeModal === 'sponsor' && (

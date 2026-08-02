@@ -1,6 +1,6 @@
 {
-  "name": "Festival Merdeka",
-  "description": "Aplikasi untuk memeriahkan kemerdekaan Republik Indonesia dengan semangat kebersamaan dan sportivitas. Informasi jadwal dan pendaftaran lomba 17-an.",
+  "name": "Festival eSports Karang Taruna Desa Padasuka",
+  "description": "Pendaftaran Resmi Festival eSports Karang Taruna Desa Padasuka, Baros, Kab. Serang. Turnamen Mobile Legends, Free Fire, dan EA SPORTS FC26 PS4 Pro.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

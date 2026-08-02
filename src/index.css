@@ -1,15 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
 @theme {
-  --color-primary: #d7001f;
-  --color-primary-dark: #b10019;
+  --color-primary: #D61216;
+  --color-primary-dark: #a80c0f;
   --color-gold: #d4af37;
   --color-dark: #111827;
   --color-secondary: #6b7280;
   --color-soft: #f8f9fb;
 
-  --font-heading: "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
 
   --breakpoint-xs: 375px;
@@ -30,6 +30,7 @@
   h5,
   h6 {
     font-family: var(--font-heading);
+    font-weight: 900;
   }
 }
 
@@ -53,13 +54,13 @@
 
   .WebkitTextStroke-mobile {
     @media (max-width: 639px) {
-      -webkit-text-stroke: 1.5px #d7001f;
+      -webkit-text-stroke: 1.5px #D61216;
     }
   }
 
   .sm\\:WebkitTextStroke-desktop {
     @media (min-width: 640px) {
-      -webkit-text-stroke: 2px #d7001f;
+      -webkit-text-stroke: 2px #D61216;
     }
   }
 }
