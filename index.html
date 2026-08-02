@@ -5,6 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Festival eSports Karang Taruna Desa Padasuka | Baros, Kab. Serang</title>
     
+    <!-- Speed & Performance Resource Hints -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="dns-prefetch" href="https://upload.wikimedia.org" />
+    <link rel="dns-prefetch" href="https://blogger.googleusercontent.com" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" />
+    <link rel="preload" as="image" href="/logo.svg" type="image/svg+xml" />
+
     <!-- Primary Meta Tags -->
     <meta name="title" content="Festival eSports Karang Taruna Desa Padasuka | Baros, Kab. Serang" />
     <meta name="description" content="Pendaftaran Resmi Festival eSports Karang Taruna Desa Padasuka, Kecamatan Baros, Kabupaten Serang. Turnamen Mobile Legends, Free Fire, dan EA SPORTS FC26 PS4 Pro HUT RI ke-81. Total Hadiah Jutaan Rupiah!" />
@@ -46,11 +54,47 @@
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#D61216" />
 
-    <!-- Schema.org JSON-LD for AI Engine Optimization (AIE), Answer Engine Optimization (AEO), & GEO Optimization -->
+    <!-- Schema.org JSON-LD for AI Engine Optimization (AIE), Answer Engine Optimization (AEO), Agentic Browsing & GEO Optimization -->
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
       "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://festival.baros.my.id/#website",
+          "url": "https://festival.baros.my.id",
+          "name": "Festival eSports Karang Taruna Desa Padasuka",
+          "description": "Portal Resmi Pendaftaran & Informasi Festival eSports Karang Taruna Desa Padasuka Baros Serang.",
+          "inLanguage": "id-ID",
+          "publisher": {
+            "@id": "https://festival.baros.my.id/#organization"
+          }
+        },
+        {
+          "@type": "WebPage",
+          "@id": "https://festival.baros.my.id/#webpage",
+          "url": "https://festival.baros.my.id",
+          "name": "Pendaftaran Festival eSports Karang Taruna Desa Padasuka 2026",
+          "isPartOf": {
+            "@id": "https://festival.baros.my.id/#website"
+          },
+          "about": {
+            "@id": "https://festival.baros.my.id/#event"
+          },
+          "description": "Formulir pendaftaran resmi turnamen Mobile Legends, Free Fire, dan FC26 PS4 Pro Karang Taruna Desa Padasuka.",
+          "potentialAction": {
+            "@type": "RegisterAction",
+            "target": {
+              "@type": "EntryPoint",
+              "urlTemplate": "https://festival.baros.my.id/#daftar",
+              "actionPlatform": [
+                "http://schema.org/DesktopWebPlatform",
+                "http://schema.org/MobileWebPlatform"
+              ]
+            },
+            "name": "Daftar Turnamen Esports Padasuka"
+          }
+        },
         {
           "@type": "SportsEvent",
           "@id": "https://festival.baros.my.id/#event",

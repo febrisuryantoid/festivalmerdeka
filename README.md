@@ -1,100 +1,80 @@
-# 🇮🇩 Festival Merdeka 2026 - HUT RI ke-81
+# Festival eSports Karang Taruna Desa Padasuka 2026
 
-<div align="center">
-  <img src="https://beeimg.com/images/k22145264424.png" alt="81 TH" width="120" style="filter: drop-shadow(0px 0px 4px rgba(215, 0, 31, 0.4));">
-  <h3>Merdeka dan Berkarya!</h3>
-</div>
+![Festival eSports Padasuka](https://festival.baros.my.id/logo.svg)
 
-<br />
-
-Aplikasi untuk memeriahkan kemerdekaan Republik Indonesia dengan semangat kebersamaan dan sportivitas. Informasi jadwal dan pendaftaran lomba 17-an di Desa Padasuka.
+> **Official Web Platform & Registration System** untuk Festival eSports Karang Taruna Desa Padasuka, Kecamatan Baros, Kabupaten Serang, Banten dalam rangka Peringatan HUT Kemerdekaan Republik Indonesia ke-81.
 
 ---
 
-## 📑 Daftar Isi
+## 🚀 Fitur Utama Landing Page & Web App
 
-- [Fitur Utama](#-fitur-utama)
-- [Teknologi yang Digunakan](#-teknologi-yang-digunakan)
-- [Instalasi dan Konfigurasi](#-instalasi-dan-konfigurasi)
-- [Struktur Folder](#-struktur-folder)
-- [Pengembang](#-pengembang)
+### 1. 🏆 Pendaftaran Online Multi-Game & Lomba Tradisional
+- **eSports Tournament**:
+  - Mobile Legends: Bang Bang (Tim 5v5 + Cadangan)
+  - Free Fire (Squad 4 Player)
+  - EA SPORTS FC26 (1v1 PS4 Pro Single Elimination)
+- **Lomba Tradisional & Kemerdekaan**:
+  - Panjat Pinang Kolosal
+  - Tarik Tambang Antar RT
+  - Lomba Anak-anak & Balap Karung Helm
+- **Form Pendaftaran Pintar**: Validasi nomor WhatsApp, data tim, upload bukti transfer / QRIS, serta hitung otomatis biaya pendaftaran.
 
----
+### 2. 📊 Live Tournament Bracket & Visualizer
+- Bagan pertandingan interaktif (Single/Double Elimination) yang diupdate secara real-time.
+- Memudahkan peserta dan penonton memantau jalannya kompetisi dari babak kualifikasi hingga grand final.
 
-## ✨ Fitur Utama
+### 3. 📄 Sponsor Package & Automated Proposal Generator (`/proposal`)
+- Katalog paket sponsorship interaktif (Platinum, Gold, Silver, Bronze).
+- Form pengajuan sponsor online langsung tersambung ke panitia.
+- **Generator Proposal PDF Otomatis**: Generate proposal penawaran sponsor resmi berformat PDF yang siap diunduh dan dicetak.
 
-1. 📱 **Responsif & PWA-Ready**: Aplikasi dapat diakses di berbagai perangkat (Mobile, Tablet, Desktop) dan dapat diinstall layaknya aplikasi native (Progressive Web App).
-2. 🎮 **Pendaftaran eSport**: Sistem formulir pendaftaran khusus lomba eSport (Mobile Legends, Free Fire, EA FC).
-3. 🏅 **Pendaftaran Tradisional**: Sistem informasi untuk pendaftaran lomba-lomba tradisional.
-4. 🤝 **Sistem Sponsorship**: Menu penawaran dan formulir kemitraan / donatur untuk brand / usaha lokal.
-5. 📊 **Sinkronisasi Data**: Terintegrasi langsung dengan database / spreadsheet untuk rekap pendaftaran panitia.
+### 4. 📅 Jadwal & Lokasi Acara Integritas Maps
+- Rincian lini masa kegiatan lengkap mulai dari pembukaan pendaftaran, *technical meeting*, babak penyisihan, hingga puncak perayaan.
+- Petunjuk lokasi via Google Maps menuju Desa Padasuka, Baros, Kab. Serang.
 
----
+### 5. 🔐 Panel Admin Khusus (`/melbu`)
+- Manajemen status pendaftaran peserta (Pending, Terverifikasi, Ditolak).
+- Verifikasi bukti pembayaran rekapitulasi data.
+- Ekspor data peserta ke CSV/Excel untuk kemudahan panitia di lapangan.
 
-## 💻 Teknologi yang Digunakan
-
-- **Frontend**: React 18, TypeScript, Vite
-- **Styling**: Tailwind CSS, Framer Motion (Animasi)
-- **Icons**: Lucide React
-- **Hosting**: Google Cloud Run (via Google AI Studio)
-
----
-
-## 🚀 Instalasi dan Konfigurasi
-
-Jika Anda ingin menjalankan atau mengembangkan situs ini di lokal:
-
-1. Clone repositori ini ke lokal mesin Anda:
-   ```bash
-   git clone https://github.com/febrisuryantoid/festivalmerdeka.git
-   ```
-
-2. Masuk ke direktori proyek:
-   ```bash
-   cd festivalmerdeka
-   ```
-
-3. Install dependensi NPM:
-   ```bash
-   npm install
-   ```
-
-4. Jalankan server pengembangan lokal:
-   ```bash
-   npm run dev
-   ```
-
-5. Buka `http://localhost:3000` di browser Anda.
+### 6. ⚡ Performa Ultra-Cepat & SEO/AI Optimised
+- **Load Time Super Cepat**: Target waktu pemuatan kurang dari 1 detik (TTFB ~13ms).
+- **SEO & AI Search Optimization**: Dilengkapi Schema.org JSON-LD lengkap (SportsEvent, Organization, WebSite, RegisterAction) untuk mendukung **Agentic Browsing (4/4)**, Answer Engine Optimization (AEO), dan Search Engine Optimization.
 
 ---
 
-## 📂 Struktur Folder
+## 💻 Teknologi & Stack
 
-```
-/
-├── public/                 # Aset statis & manifest file
-├── src/
-│   ├── components/         # Komponen UI React
-│   ├── lib/                # Fungsi utilitas 
-│   ├── App.tsx             # Entry point komponen utama
-│   ├── index.css           # Styling global dengan Tailwind
-│   └── main.tsx            # Entry point React
-├── package.json            # Konfigurasi dependensi project
-├── vite.config.ts          # Konfigurasi Vite bundler
-└── README.md
-```
+- **Frontend**: React 18, TypeScript, Vite 5
+- **Styling**: Tailwind CSS
+- **Animations**: Motion (`motion/react`), Lucide Icons
+- **PDF Engine**: `dom-to-image-more`, `jspdf`
+- **Routing**: React Router DOM v6
+- **Build & Optimization**: Vite Code Splitting, Dynamic Import / Suspense, Font & Asset Preloading
 
 ---
 
-## 👨‍💻 Pengembang
+## 👨‍💻 Informasi Pengembang & Kredit
 
-Dikembangkan dengan bangga oleh **Febri Suryanto**.
+Aplikasi web ini dirancang, dikembangkan, dan dioptimasi penuh oleh:
 
-- 🌐 Website: [febrisuryanto.com](https://febrisuryanto.com)
-- ✉️ Email: [hello@febrisuryanto.com](mailto:hello@febrisuryanto.com)
+- **Lead Developer**: [Febri Suryanto](https://febrisuryanto.com)  
+  *Website*: [https://febrisuryanto.com](https://febrisuryanto.com)
+- **Development Agency**: [Ziezan Solutions](https://ziezan.id)  
+  *Website*: [https://ziezan.id](https://ziezan.id)
 
-Ikut berkontribusi dalam membangun ekosistem desa digital yang modern dan bermanfaat!
+---
 
-<div align="center">
-  <p>© 2026 Karang Taruna Desa Padasuka. All rights reserved.</p>
-</div>
+## 🔗 Link Penting & Eksternal SEO
+
+- **Portal Utama**: [https://festival.baros.my.id](https://festival.baros.my.id)
+- **Halaman Proposal Sponsor**: [https://festival.baros.my.id/proposal](https://festival.baros.my.id/proposal)
+- **Profil Febri Suryanto**: [https://febrisuryanto.com](https://febrisuryanto.com)
+- **Ziezan Solutions**: [https://ziezan.id](https://ziezan.id)
+
+---
+
+## 📄 Lisensi & Hak Cipta
+
+&copy; 2026 **Karang Taruna Desa Padasuka**, Baros, Kabupaten Serang.  
+All rights reserved. Developed by [Ziezan Solutions](https://ziezan.id) ([Febri Suryanto](https://febrisuryanto.com)).

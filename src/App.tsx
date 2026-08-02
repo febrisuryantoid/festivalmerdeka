@@ -232,22 +232,22 @@ export default function App() {
             <div className={`flex items-center gap-2 md:gap-4 ${!isScrolled ? 'pl-1 sm:pl-0' : ''}`}>
               {/* Mobile View: Logo Serang, Karang Taruna, and Ikon 81 next to each other */}
               <div className="flex lg:hidden items-center gap-2 sm:gap-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
-                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
-                <img src="/logo.svg" alt="Ikon 81" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" fetchPriority="high" decoding="async" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" fetchPriority="high" decoding="async" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
+                <img src="/logo.svg" alt="Ikon 81" fetchPriority="high" decoding="async" className="h-7 sm:h-8 w-auto object-contain drop-shadow-sm" />
                 <span className="font-heading font-black text-primary text-xs sm:text-sm tracking-tight whitespace-nowrap">Festival eSports</span>
               </div>
 
               {/* Desktop View (lg and above) */}
               <div className="hidden lg:flex items-center gap-2 sm:gap-3">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
-                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Logo_kabupaten_serang.png" alt="Kabupaten Serang" fetchPriority="high" decoding="async" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+                <img src="https://upload.wikimedia.org/wikipedia/id/f/f8/Logo_Karang_Taruna_New.png" alt="Karang Taruna" fetchPriority="high" decoding="async" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
               </div>
               
               <div className="hidden lg:block h-8 md:h-10 w-px bg-gray-200"></div>
               
               <div className="hidden lg:flex items-center gap-1.5 sm:gap-2">
-                <img src="/logo.svg" alt="Logo Festival eSports" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
+                <img src="/logo.svg" alt="Logo Festival eSports" fetchPriority="high" decoding="async" className="h-7 sm:h-9 md:h-10 w-auto object-contain drop-shadow-sm" />
                 <div className="flex flex-col leading-tight pt-0.5 text-left ml-1">
                   <span className="font-heading font-black text-primary text-[14px] sm:text-[16px] tracking-wide whitespace-nowrap text-left">Festival eSports</span>
                   <span className="font-heading font-extrabold text-[9px] sm:text-[10px] text-dark uppercase tracking-widest whitespace-nowrap text-left">Karang Taruna Desa Padasuka</span>
@@ -1101,22 +1101,22 @@ export default function App() {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="col-span-2 row-span-2 rounded-2xl overflow-hidden aspect-square relative group bg-gray-100 flex items-center justify-center">
-            <img src="https://asset.kompas.com/crop/0x1:1000x668/750x500/data/photo/2017/08/17/185151615029705195b2-lomba-panjat-pinang-kolosal-pantai-carnaval-taman-impian-jaya-an.jpg" alt="Panjat Pinang Kolosal" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src="https://asset.kompas.com/crop/0x1:1000x668/750x500/data/photo/2017/08/17/185151615029705195b2-lomba-panjat-pinang-kolosal-pantai-carnaval-taman-impian-jaya-an.jpg" alt="Panjat Pinang Kolosal" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end p-6">
               <span className="text-white font-bold font-heading text-xl">Panjat Pinang Akbar</span>
             </div>
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="rounded-2xl overflow-hidden aspect-square relative group bg-gray-100 flex items-center justify-center">
-            <img src="https://i.pinimg.com/236x/f1/66/25/f1662572ff7939db253147049d1a64ee.jpg" alt="Lomba Kemerdekaan" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src="https://i.pinimg.com/236x/f1/66/25/f1662572ff7939db253147049d1a64ee.jpg" alt="Lomba Kemerdekaan" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="rounded-2xl overflow-hidden aspect-square relative group bg-gray-100 flex items-center justify-center">
-            <img src="https://asset.kompas.com/crops/giiAH1xCXZdcsTnF7lfwhzsHXeI=/0x35:1000x702/1200x800/data/photo/2017/08/17/1918607778.jpg" alt="Tarik Tambang" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src="https://asset.kompas.com/crops/giiAH1xCXZdcsTnF7lfwhzsHXeI=/0x35:1000x702/1200x800/data/photo/2017/08/17/1918607778.jpg" alt="Tarik Tambang" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="rounded-2xl overflow-hidden aspect-square relative group bg-gray-100 flex items-center justify-center">
-            <img src="https://media.suara.com/pictures/653x366/2023/07/22/21517-ilustrasi-lomba-tujuhbelasan-lomba-tujuhbelasan-kreatif-unsplash.jpg" alt="Lomba Seru" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src="https://media.suara.com/pictures/653x366/2023/07/22/21517-ilustrasi-lomba-tujuhbelasan-lomba-tujuhbelasan-kreatif-unsplash.jpg" alt="Lomba Seru" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           </motion.div>
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="rounded-2xl overflow-hidden aspect-square relative group bg-gray-100 flex items-center justify-center">
-            <img src="https://assets.pikiran-rakyat.com/crop/0x0:0x0/x/photo/2021/08/12/1576305531.jpg" alt="Lomba Balap Karung Helm" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <img src="https://assets.pikiran-rakyat.com/crop/0x0:0x0/x/photo/2021/08/12/1576305531.jpg" alt="Lomba Balap Karung Helm" loading="lazy" decoding="async" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
           </motion.div>
         </div>
       </section>
@@ -1579,16 +1579,23 @@ export default function App() {
               <button onClick={() => setActiveModal('sk')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Syarat</button>
               <button onClick={() => setActiveModal('privasi')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Privasi</button>
               <button onClick={() => setActiveModal('disclaimer')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Disclaimer</button>
+              <button onClick={() => setActiveModal('pengembang')} className="text-white/85 hover:text-white hover:underline font-semibold text-xs sm:text-sm transition-colors text-center">Pengembang</button>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-white/20 text-xs text-white/80 font-medium">
-            <p className="text-center sm:text-left">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-3 sm:gap-4 pt-6 sm:pt-8 border-t border-white/20 text-xs text-white/80 font-medium">
+            <p className="text-center md:text-left">
               Dirgahayu Republik Indonesia. Jayalah Negeriku!
             </p>
-            <p className="text-center font-semibold text-white/90">
-              &copy; 2026 Karang Taruna Desa Padasuka
-            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-1.5 sm:gap-3 text-center md:text-right">
+              <p className="font-semibold text-white/90">
+                &copy; 2026 Karang Taruna Desa Padasuka
+              </p>
+              <span className="hidden sm:inline text-white/40">•</span>
+              <p className="text-white/90">
+                Dikembangkan oleh <a href="https://febrisuryanto.com" target="_blank" rel="noopener noreferrer" className="text-white underline font-bold hover:text-amber-300 transition-colors">Febri Suryanto</a> dari <a href="https://ziezan.id" target="_blank" rel="noopener noreferrer" className="text-white underline font-bold hover:text-amber-300 transition-colors">Ziezan Solutions</a>
+              </p>
+            </div>
           </div>
         </div>
       </footer>
@@ -1615,6 +1622,7 @@ export default function App() {
                   {activeModal === 'sk' && 'Syarat & Ketentuan'}
                   {activeModal === 'privasi' && 'Kebijakan Privasi'}
                   {activeModal === 'disclaimer' && 'Disclaimer'}
+                  {activeModal === 'pengembang' && 'Informasi Pengembang Aplikasi'}
                   {activeModal === 'sponsor' && 'Pendaftaran Sponsor'}
                 </h3>
                 <button
@@ -1640,6 +1648,9 @@ export default function App() {
                     </ul>
                     <h4 className="font-bold text-dark mt-6 mb-2">Tujuan:</h4>
                     <p>Menciptakan lingkungan masyarakat yang harmonis dan solid di mana para pemudanya mampu menjadi pionir atau motor penggerak setiap kemajuan di tingkat kampung maupun desa.</p>
+                    <div className="mt-6 pt-4 border-t border-gray-100 text-xs text-gray-500">
+                      Pengembangan Aplikasi Platform Web & Sistem Pendaftaran Digital bekerja sama dengan <a href="https://ziezan.id" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline">Ziezan Solutions</a> (<a href="https://febrisuryanto.com" target="_blank" rel="noopener noreferrer" className="text-primary font-bold hover:underline">Febri Suryanto</a>).
+                    </div>
                   </>
                 )}
                 {activeModal === 'sk' && (
@@ -1670,6 +1681,40 @@ export default function App() {
                     <p>Situs ini merupakan media pendukung untuk keperluan informasi, dokumentasi, dan pendaftaran <strong>Festival eSports Karang Taruna Desa Padasuka</strong> (Kec. Baros, Kab. Serang, Banten).</p>
                     <p className="mt-4">Panitia tidak bertanggung jawab atas segala kerugian yang terjadi akibat kelalaian peserta maupun kegagalan koneksi ketika melakukan transfer atau konfirmasi. Seluruh transaksi resmi hanya dilakukan melalui nomor-nomor rekening atau e-Wallet yang dicantumkan pada situs/halaman resmi panitia. Peserta diimbau untuk selalu waspada terhadap segala bentuk penipuan yang mengatasnamakan panitia penyelenggara.</p>
                     <p className="mt-4">Keseluruhan hadiah, jumlah perlombaan, dan detail jadwal dapat berubah sewaktu-waktu sesuai dengan kebijakan panitia penyelenggara terkait faktor cuaca, jumlah perwakilan peserta, dan kelayakan lokasi tanpa pemberitahuan mutlak terlebih dahulu.</p>
+                  </>
+                )}
+                {activeModal === 'pengembang' && (
+                  <>
+                    <div className="flex items-center gap-4 mb-2 p-4 bg-slate-900 rounded-2xl text-white">
+                      <div className="w-12 h-12 rounded-xl bg-primary flex items-center justify-center font-black text-xl text-white shrink-0">
+                        ZS
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-base sm:text-lg">Ziezan Solutions & Development Team</h4>
+                        <p className="text-xs text-slate-300">Technology Architecture & Digital Engineering</p>
+                      </div>
+                    </div>
+                    <p>Aplikasi web dan sistem pendaftaran digital <strong>Festival eSports Karang Taruna Desa Padasuka 2026</strong> dirancang, dikembangkan, dan dioptimasi penuh oleh:</p>
+                    <div className="bg-slate-50 border border-slate-200 p-5 rounded-2xl space-y-4 my-4">
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider block font-bold mb-1">Lead Developer & Technology Architect</span>
+                        <a href="https://febrisuryanto.com" target="_blank" rel="noopener noreferrer" className="font-black text-primary hover:underline text-lg inline-flex items-center gap-1.5">
+                          Febri Suryanto <span className="text-xs font-normal">↗</span>
+                        </a>
+                        <p className="text-xs text-gray-600 mt-1">Situs Resmi Developer: <a href="https://febrisuryanto.com" target="_blank" rel="noopener noreferrer" className="text-primary font-bold underline">https://febrisuryanto.com</a></p>
+                      </div>
+                      <hr className="border-gray-200" />
+                      <div>
+                        <span className="text-xs text-gray-500 uppercase tracking-wider block font-bold mb-1">Software & Digital Agency Partner</span>
+                        <a href="https://ziezan.id" target="_blank" rel="noopener noreferrer" className="font-black text-dark hover:text-primary hover:underline text-lg inline-flex items-center gap-1.5">
+                          Ziezan Solutions <span className="text-xs font-normal">↗</span>
+                        </a>
+                        <p className="text-xs text-gray-600 mt-1">Situs Resmi Agency: <a href="https://ziezan.id" target="_blank" rel="noopener noreferrer" className="text-primary font-bold underline">https://ziezan.id</a></p>
+                      </div>
+                    </div>
+                    <p className="text-xs text-gray-500 leading-normal">
+                      Aplikasi ini dikembangkan dengan standar performa tinggi (&lt;1s load time), arsitektur modern, serta optimasi kecerdasan buatan (Agentic Browsing &amp; AEO) untuk mendukung kesuksesan Peringatan HUT RI ke-81 Karang Taruna Desa Padasuka, Kecamatan Baros, Kabupaten Serang.
+                    </p>
                   </>
                 )}
                 {activeModal === 'sponsor' && (
