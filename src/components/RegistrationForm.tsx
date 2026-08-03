@@ -107,7 +107,7 @@ export function RegistrationForm() {
       return "Mohon masukkan nomor WhatsApp yang valid (contoh: 08123456789).";
     }
     if (!kategoriVal) {
-      return "Mohon pilih Kategori Usia (SD, SMP, SMA/SMK, atau UMUM).";
+      return "Mohon pilih Kategori Pendaftar (Karang Taruna Desa Padasuka, Umum, SD, SMP, atau SMA/SMK).";
     }
     return null;
   };
@@ -673,7 +673,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-semibold text-dark">Kategori Usia <span className="text-red-500">*</span></label>
+                <label className="text-xs sm:text-sm font-semibold text-dark">Kategori Pendaftar <span className="text-red-500">*</span></label>
                 <select 
                   required 
                   name="kategori" 
@@ -681,10 +681,12 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   onChange={(e) => setSelectedKategori(e.target.value)} 
                   className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none font-medium"
                 >
-                  <option value="">Pilih Kategori Usia</option>
-                  {getPricingConfig().map(p => (
-                    <option key={p.label} value={p.label}>{p.label} - Rp {(p.price / 1000)}K/org</option>
-                  ))}
+                  <option value="">Pilih Kategori Pendaftar</option>
+                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka - Rp 10K/org</option>
+                  <option value="Kategori Umum">Kategori Umum - Rp 15K/org</option>
+                  <option value="SD">Kategori SD - Rp 5K/org</option>
+                  <option value="SMP">Kategori SMP - Rp 8K/org</option>
+                  <option value="SMA / SMK">Kategori SMA / SMK - Rp 10K/org</option>
                 </select>
               </div>
               

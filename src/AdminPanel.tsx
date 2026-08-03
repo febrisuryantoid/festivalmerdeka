@@ -53,6 +53,7 @@ export default function AdminPanel() {
   
   const [searchTerm, setSearchTerm] = useState("");
   const [gameFilter, setGameFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState("all");
   const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   // CRUD & Auto Spreadsheet Sync States
@@ -626,7 +627,8 @@ export default function AdminPanel() {
       (r.alamat && r.alamat.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (r.wa && r.wa.includes(searchTerm));
     const matchesGame = gameFilter === "all" || (r.lomba && r.lomba.toLowerCase().includes(gameFilter.toLowerCase()));
-    return matchesSearch && matchesGame;
+    const matchesCategory = categoryFilter === "all" || (r.kategori && r.kategori.toLowerCase().includes(categoryFilter.toLowerCase()));
+    return matchesSearch && matchesGame && matchesCategory;
   });
 
   const pendingCount = mergedRegistrations.filter((r) => r.status === "pending").length;
@@ -896,6 +898,23 @@ export default function AdminPanel() {
                   <option value="fc">EA SPORTS FC26</option>
                 </select>
               </div>
+
+              {/* Category filter */}
+              <div className="flex items-center gap-1.5 bg-white border border-slate-200 rounded-xl px-3 py-1.5">
+                <Filter className="w-3.5 h-3.5 text-slate-400" />
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="text-xs font-medium bg-transparent focus:outline-none text-slate-700"
+                >
+                  <option value="all">Semua Kategori</option>
+                  <option value="karang taruna">Karang Taruna Desa Padasuka</option>
+                  <option value="umum">Kategori Umum</option>
+                  <option value="sd">Kategori SD</option>
+                  <option value="smp">Kategori SMP</option>
+                  <option value="sma">Kategori SMA / SMK</option>
+                </select>
+              </div>
             </div>
           </div>
 
@@ -1088,6 +1107,9 @@ export default function AdminPanel() {
                 >
                   <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka</option>
                   <option value="Kategori Umum">Kategori Umum</option>
+                  <option value="Kategori SD">Kategori SD</option>
+                  <option value="Kategori SMP">Kategori SMP</option>
+                  <option value="Kategori SMA / SMK">Kategori SMA / SMK</option>
                 </select>
               </div>
 
