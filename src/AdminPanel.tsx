@@ -5,7 +5,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { 
   ShieldAlert, LogOut, CheckCircle, Clock, Trash2, Users, Trophy, 
   Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw, FileSpreadsheet, ExternalLink, Mail,
-  Plus, Pencil, UserPlus, X, Save
+  Plus, Pencil, UserPlus, X, Save, Copy, Check, Globe
 } from "lucide-react";
 import { WhatsAppIcon } from "./components/WhatsAppIcon";
 import { calculateDynamicPrize } from "./lib/utils";
@@ -58,6 +58,12 @@ export default function AdminPanel() {
   // CRUD & Auto Spreadsheet Sync States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingReg, setEditingReg] = useState<RegistrationData | null>(null);
+  const [isUnauthorizedModalOpen, setIsUnauthorizedModalOpen] = useState(false);
+  const [isCopiedDomain, setIsCopiedDomain] = useState(false);
+  const [isSheetSettingsOpen, setIsSheetSettingsOpen] = useState(false);
+  const [sheetIdInput, setSheetIdInput] = useState(
+    localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID
+  );
 
   const [formNama, setFormNama] = useState("");
   const [formUsia, setFormUsia] = useState("");
@@ -235,6 +241,8 @@ export default function AdminPanel() {
           } catch (cErr) {
             console.error("Firebase auth creation fallback:", cErr);
           }
+        } else if (err.code === "auth/unauthorized-domain") {
+          console.warn("Domain festival.baros.my.id is not yet in Firebase Authorized Domains. Using local encrypted session.");
         }
       }
 
@@ -395,45 +403,75 @@ export default function AdminPanel() {
   };
 
   const exportToCSV = () => {
-    if (mergedRegistrations.length === 0) return;
-    const headers = ["Nama/Tim", "Anggota Pemain", "Usia", "Kategori", "Lomba / Cabang Game", "Alamat", "Nomor WA", "Status Verifikasi", "Waktu Pendaftaran"];
-    const rows = mergedRegistrations.map((r) => [
-      `"${r.nama || ''}"`,
-      `"${Array.isArray(r.players) ? r.players.filter(Boolean).join('; ') : (r.anggotaTim || '')}"`,
+    if (mergedRegistrations.length === 0) {
+      showToast("Belum ada data pendaftaran untuk di-export.");
+      return;
+    }
+    const headers = [
+      "No",
+      "Nama / Nama Tim",
+      "Anggota Pemain",
+      "Usia",
+      "Kategori Pendaftar",
+      "Lomba / Cabang Game",
+      "Alamat / Asal",
+      "Nomor WhatsApp",
+      "Status Verifikasi",
+      "Waktu Pendaftaran"
+    ];
+
+    const rows = mergedRegistrations.map((r, idx) => [
+      idx + 1,
+      `"${(r.nama || '').replace(/"/g, '""')}"`,
+      `"${(Array.isArray(r.players) && r.players.length > 0 ? r.players.filter(Boolean).join('; ') : (r.anggotaTim || '')).replace(/"/g, '""')}"`,
       `"${r.usia || ''}"`,
-      `"${r.kategori || ''}"`,
-      `"${r.lomba || ''}"`,
-      `"${r.alamat || ''}"`,
-      `"${r.wa || ''}"`,
+      `"${(r.kategori || '').replace(/"/g, '""')}"`,
+      `"${(r.lomba || '').replace(/"/g, '""')}"`,
+      `"${(r.alamat || '').replace(/"/g, '""')}"`,
+      `"${(r.wa || '').replace(/"/g, '""')}"`,
       `"${(r.status || 'pending').toUpperCase()}"`,
       `"${formatRegistrationDate(r.createdAt)}"`
     ]);
-    const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-    const encodedUri = encodeURI(csvContent);
+
+    // UTF-8 BOM \uFEFF for seamless Excel & Google Sheets compatibility
+    const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `Data_Peserta_eSport_Padasuka_${new Date().toISOString().slice(0,10)}.csv`);
+    link.href = url;
+    link.setAttribute("download", `Data_Peserta_eSport_Padasuka_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    showToast(`Export CSV Berhasil! (${mergedRegistrations.length} data pendaftar terunduh)`);
   };
 
   const handleSyncToSpreadsheet = async () => {
+    if (mergedRegistrations.length === 0) {
+      showToast("Belum ada data pendaftaran untuk disinkronkan.");
+      return;
+    }
     try {
       showToast("Menyinkronkan data ke Google Spreadsheet...");
       const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
       await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
-      showToast("Berhasil menyinkronkan seluruh data ke Google Spreadsheet!");
+      showToast(`Berhasil menyinkronkan ${mergedRegistrations.length} data ke Google Spreadsheet!`);
     } catch (err: any) {
-      console.warn("Spreadsheet sync error, asking for Google Auth:", err);
-      if (err.message?.includes("Akses token") || err.message?.includes("login")) {
+      console.warn("Spreadsheet sync error, checking Google Auth:", err);
+      if (err.message?.includes("Akses token") || err.message?.includes("login") || err.code === "auth/unauthorized-domain") {
         try {
           await googleSignIn();
           const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
           await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
-          showToast("Berhasil terhubung & menyinkronkan data ke Google Spreadsheet!");
+          showToast(`Berhasil terhubung & menyinkronkan ${mergedRegistrations.length} data ke Google Spreadsheet!`);
         } catch (authErr: any) {
-          showToast("Otentikasi Google dibatalkan atau gagal: " + (authErr?.message || "Error"));
+          if (authErr?.code === "auth/unauthorized-domain" || authErr?.message?.includes("unauthorized-domain")) {
+            setIsUnauthorizedModalOpen(true);
+            showToast("Perhatian: Domain festival.baros.my.id belum diotorisasi di Firebase Console.");
+          } else {
+            showToast("Otentikasi Google dibatalkan atau gagal: " + (authErr?.message || "Error"));
+          }
         }
       } else {
         showToast("Gagal sync ke Sheet: " + (err?.message || "Terjadi kesalahan"));
@@ -441,9 +479,37 @@ export default function AdminPanel() {
     }
   };
 
+  const handleSyncCloud = async () => {
+    try {
+      showToast("Menyinkronkan data lokal ke Cloud Firestore...");
+      await syncLocalRegistrationsToFirestore();
+      const local = getLocalRegistrations();
+      const updated = mergeRegistrations(firestoreDocs, local);
+      setMergedRegistrations(updated);
+      showToast(`Sync Cloud Selesai! ${updated.length} data pendaftaran aktif di database.`);
+    } catch (err: any) {
+      console.error("Sync Cloud error:", err);
+      showToast("Gagal sync Cloud: " + (err?.message || "Terjadi kesalahan"));
+    }
+  };
+
   const openSpreadsheet = () => {
     const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
-    window.open(`https://docs.google.com/spreadsheets/d/${sheetId}/edit`, "_blank");
+    const url = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
+    window.open(url, "_blank");
+    showToast("Membuka Google Spreadsheet di tab baru...");
+  };
+
+  const handleSaveSheetId = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanId = sheetIdInput.trim();
+    if (!cleanId) {
+      alert("Spreadsheet ID tidak boleh kosong!");
+      return;
+    }
+    localStorage.setItem("padasuka_spreadsheet_id", cleanId);
+    setIsSheetSettingsOpen(false);
+    showToast("ID Google Spreadsheet berhasil diperbarui!");
   };
 
   if (loading) {
@@ -597,34 +663,43 @@ export default function AdminPanel() {
         <div className="flex items-center gap-2.5 sm:gap-3 mt-3 sm:mt-0 flex-wrap">
           <button
             onClick={handleSyncToSpreadsheet}
-            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg transition-colors shadow-sm"
+            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2 rounded-xl transition-all shadow-sm hover:shadow-md cursor-pointer"
             title="Kirim & Sinkronkan Seluruh Data ke Google Sheet"
           >
             <RefreshCw className="w-3.5 h-3.5 text-white" /> Sync ke Sheet
           </button>
           <button
             onClick={openSpreadsheet}
-            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-3 py-2 rounded-lg transition-colors border border-emerald-800/60"
+            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-3.5 py-2 rounded-xl transition-all border border-emerald-800/60 shadow-sm hover:shadow-md cursor-pointer"
             title="Buka Google Spreadsheet Data"
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> Buka Spreadsheet
           </button>
           <button
-            onClick={() => syncLocalRegistrationsToFirestore().then(() => showToast("Sinkronisasi data lokal ke Firestore selesai."))}
-            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg transition-colors border border-slate-700"
-            title="Sinkronisasi Data Lokal ke Cloud"
+            onClick={handleSyncCloud}
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3.5 py-2 rounded-xl transition-all border border-slate-700 shadow-sm hover:shadow-md cursor-pointer"
+            title="Sinkronisasi Data Lokal ke Firestore Cloud"
           >
             <RefreshCw className="w-3.5 h-3.5 text-blue-400" /> Sync Cloud
           </button>
           <button
             onClick={exportToCSV}
-            className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-lg transition-colors border border-slate-700"
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-xl transition-all border border-slate-700 shadow-sm hover:shadow-md cursor-pointer"
+            title="Download CSV File untuk Microsoft Excel & Google Sheets"
           >
-            <Download className="w-3.5 h-3.5 text-green-400" /> Export CSV
+            <Download className="w-3.5 h-3.5 text-emerald-400" /> Export CSV
+          </button>
+          <button
+            onClick={() => setIsSheetSettingsOpen(true)}
+            className="p-2 text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors border border-slate-700 cursor-pointer"
+            title="Pengaturan Google Spreadsheet ID"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
           </button>
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-xs font-bold bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3.5 py-2 rounded-lg transition-colors border border-red-500/30"
+            className="flex items-center gap-1.5 text-xs font-bold bg-red-600/20 hover:bg-red-600/30 text-red-400 px-3.5 py-2 rounded-xl transition-colors border border-red-500/30 cursor-pointer"
+            title="Keluar dari Admin Panel"
           >
             <LogOut className="w-3.5 h-3.5" /> Keluar
           </button>
@@ -1079,6 +1154,182 @@ export default function AdminPanel() {
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
                   <Save className="w-4 h-4" /> Simpan & Sync Spreadsheet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+      {/* Modal Petunjuk Otorisasi Domain Firebase Auth */}
+      {isUnauthorizedModalOpen && (
+        <div className="fixed inset-0 z-[130] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-xl shadow-2xl relative border border-slate-200 my-8">
+            <button
+              onClick={() => setIsUnauthorizedModalOpen(false)}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-800 rounded-full transition-colors"
+              title="Tutup Modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center font-bold shrink-0">
+                <Globe className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 font-heading">
+                  Otorisasi Domain Firebase Auth
+                </h3>
+                <p className="text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full inline-block mt-0.5 border border-amber-200">
+                  Firebase Error: auth/unauthorized-domain
+                </p>
+              </div>
+            </div>
+
+            <div className="space-y-4 text-xs font-medium text-slate-700 leading-relaxed">
+              <p className="text-slate-600 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                Otentikasi Google membutuhkan pendaftaran domain <strong className="text-slate-900 font-mono">festival.baros.my.id</strong> di dalam menu <span className="font-bold text-slate-800">Authorized Domains Firebase Console</span> agar popup Google OAuth diizinkan.
+              </p>
+
+              <div className="bg-slate-900 text-white p-4 sm:p-5 rounded-2xl space-y-3 font-mono text-[11px]">
+                <div className="flex items-center justify-between text-slate-400 text-[10px] font-sans font-bold uppercase tracking-wider">
+                  <span>Langkah Otorisasi Firebase Console (1 Menit)</span>
+                  <span className="text-emerald-400">Instan</span>
+                </div>
+                <ol className="list-decimal pl-4 space-y-1.5 text-slate-200 font-sans">
+                  <li>Buka <a href="https://console.firebase.google.com" target="_blank" rel="noopener noreferrer" className="text-blue-400 underline font-bold">Firebase Console</a> lalu pilih proyek eSport Padasuka.</li>
+                  <li>Pilih menu <strong>Authentication</strong> di sebelah kiri.</li>
+                  <li>Buka tab <strong>Settings</strong> &rarr; klik <strong>Authorized Domains</strong>.</li>
+                  <li>Klik <strong>Add Domain</strong> lalu masukkan domain berikut:</li>
+                </ol>
+
+                <div className="flex items-center justify-between bg-slate-950 p-2.5 rounded-xl border border-slate-800 gap-2 mt-2">
+                  <span className="font-mono text-emerald-400 font-bold text-xs truncate">festival.baros.my.id</span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      navigator.clipboard.writeText("festival.baros.my.id");
+                      setIsCopiedDomain(true);
+                      setTimeout(() => setIsCopiedDomain(false), 2500);
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-primary hover:bg-primary-dark text-white rounded-lg transition-colors shrink-0 font-sans font-bold text-[11px] cursor-pointer"
+                  >
+                    {isCopiedDomain ? (
+                      <>
+                        <Check className="w-3.5 h-3.5 text-emerald-300" /> Tersalin!
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3.5 h-3.5" /> Salin Domain
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              <div className="bg-emerald-50 border border-emerald-200 p-3.5 rounded-2xl text-emerald-900 flex items-start gap-2.5">
+                <CheckCircle className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                <div className="text-xs">
+                  <p className="font-bold text-emerald-950">Akses Admin & Data Pendaftaran Tetap Bekerja 100%!</p>
+                  <p className="text-[11px] text-emerald-800 mt-0.5">
+                    Data pendaftaran Anda tersimpan aman di Firestore & Local Storage. Anda juga dapat langsung mengeksport data dalam format CSV untuk langsung diimpor ke Google Sheets.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    exportToCSV();
+                    showToast("File CSV berhasil diunduh!");
+                  }}
+                  className="px-4 py-2.5 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <Download className="w-4 h-4 text-emerald-400" /> Export CSV Langsung
+                </button>
+                <button
+                  type="button"
+                  onClick={openSpreadsheet}
+                  className="px-4 py-2.5 bg-emerald-900 hover:bg-emerald-800 text-emerald-200 font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-400" /> Buka Spreadsheet
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsUnauthorizedModalOpen(false);
+                    handleSyncToSpreadsheet();
+                  }}
+                  className="px-5 py-2.5 bg-primary hover:bg-primary-dark text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 cursor-pointer"
+                >
+                  <RefreshCw className="w-4 h-4" /> Coba Sync Lagi
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Modal Settings Spreadsheet ID */}
+      {isSheetSettingsOpen && (
+        <div className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative border border-slate-200">
+            <button
+              onClick={() => setIsSheetSettingsOpen(false)}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-800 rounded-full transition-colors"
+              title="Tutup Modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center font-bold shrink-0">
+                <FileSpreadsheet className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 font-heading">
+                  Pengaturan Google Sheet
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Konfigurasi Spreadsheet ID Tujuan
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveSheetId} className="space-y-4 text-xs font-medium text-slate-700">
+              <div>
+                <label className="block text-slate-800 font-bold mb-1.5">
+                  Spreadsheet ID *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={sheetIdInput}
+                  onChange={(e) => setSheetIdInput(e.target.value)}
+                  placeholder="Contoh: 1XmIC9_glnSfin0xj4uunmKhUM6CAIObHsIoPTxvYQuk"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 text-slate-900 font-mono text-xs"
+                />
+                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+                  Dapatkan ID ini dari URL spreadsheet Google Anda: <br />
+                  <span className="font-mono text-slate-700 text-[10px]">
+                    docs.google.com/spreadsheets/d/<strong>[SPREADSHEET_ID]</strong>/edit
+                  </span>
+                </p>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsSheetSettingsOpen(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Save className="w-4 h-4" /> Simpan Konfigurasi
                 </button>
               </div>
             </form>

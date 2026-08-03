@@ -52,6 +52,11 @@ export const googleSignIn = async (): Promise<{
     return { user: result.user, accessToken: cachedAccessToken };
   } catch (error: any) {
     console.error("Sign in error:", error);
+    if (error?.code === "auth/unauthorized-domain" || error?.message?.includes("unauthorized-domain")) {
+      const customErr: any = new Error("Domain belum terdaftar di Authorized Domains Firebase Console.");
+      customErr.code = "auth/unauthorized-domain";
+      throw customErr;
+    }
     throw error;
   } finally {
     isSigningIn = false;
