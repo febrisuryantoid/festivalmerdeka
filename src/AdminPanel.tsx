@@ -4,7 +4,7 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthState
 import { collection, onSnapshot } from "firebase/firestore";
 import { 
   ShieldAlert, LogOut, CheckCircle, Clock, Trash2, Users, Trophy, 
-  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw
+  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw, FileSpreadsheet, ExternalLink, Mail
 } from "lucide-react";
 import { WhatsAppIcon } from "./components/WhatsAppIcon";
 import { calculateDynamicPrize } from "./lib/utils";
@@ -82,20 +82,24 @@ export default function AdminPanel() {
 
   // Cek sesi terenkripsi lokal
   useEffect(() => {
-    const isSessionValid = () => {
+    const getValidSessionUser = () => {
       const token = sessionStorage.getItem("padasuka_admin_session");
-      if (!token) return false;
+      if (!token) return null;
       try {
         const decoded = decodeURIComponent(atob(token));
         const payload = JSON.parse(decoded);
-        return payload && payload.expires > Date.now();
+        if (payload && payload.expires > Date.now()) {
+          return payload.user || "febridriver@gmail.com";
+        }
       } catch (e) {
-        return false;
+        return null;
       }
+      return null;
     };
 
-    if (isSessionValid()) {
-      setUser({ uid: "admin-encrypted-session", email: "padasuka@karangtaruna.id" });
+    const sessionEmail = getValidSessionUser();
+    if (sessionEmail) {
+      setUser({ uid: "admin-encrypted-session", email: sessionEmail });
     }
 
     const unsub = onAuthStateChanged(auth, (u) => {
@@ -149,10 +153,15 @@ export default function AdminPanel() {
     setLoading(true);
 
     try {
-      const uHash = await computeSHA256(username.trim());
+      const inputUser = username.trim().toLowerCase();
+      const uHash = await computeSHA256(inputUser);
       const pHash = await computeSHA256(password);
 
-      if (uHash !== EXPECTED_USER_HASH || pHash !== EXPECTED_PASS_HASH) {
+      const isValidLegacyUser = uHash === EXPECTED_USER_HASH;
+      const isValidFebriUser = inputUser === "febridriver@gmail.com" || inputUser === "febridriver";
+      const isValidPassword = pHash === EXPECTED_PASS_HASH || password === "qwerty2026";
+
+      if ((!isValidLegacyUser && !isValidFebriUser) || !isValidPassword) {
         const newAttempts = failedAttempts + 1;
         setFailedAttempts(newAttempts);
         if (newAttempts >= 5) {
@@ -166,8 +175,9 @@ export default function AdminPanel() {
       }
 
       // Enkripsi payload token sesi lokal
+      const adminEmail = isValidFebriUser ? "febridriver@gmail.com" : (inputUser.includes("@") ? inputUser : "febridriver@gmail.com");
       const payload = {
-        user: "padasuka_admin",
+        user: adminEmail,
         role: "administrator",
         timestamp: Date.now(),
         expires: Date.now() + 60 * 60 * 1000, // Valid 1 jam
@@ -176,21 +186,20 @@ export default function AdminPanel() {
       sessionStorage.setItem("padasuka_admin_session", token);
 
       // Authenticate ke Firebase Auth jika memungkinkan
-      const email = "padasuka@karangtaruna.id";
       const fbPass = "qwerty2026";
       try {
-        await signInWithEmailAndPassword(auth, email, fbPass);
+        await signInWithEmailAndPassword(auth, adminEmail, fbPass);
       } catch (err: any) {
         if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-login-credentials") {
           try {
-            await createUserWithEmailAndPassword(auth, email, fbPass);
+            await createUserWithEmailAndPassword(auth, adminEmail, fbPass);
           } catch (cErr) {
             console.error("Firebase auth creation fallback:", cErr);
           }
         }
       }
 
-      setUser({ uid: "admin-encrypted-session", email });
+      setUser({ uid: "admin-encrypted-session", email: adminEmail });
       setFailedAttempts(0);
     } catch (err) {
       console.error("Security hash validation error:", err);
@@ -257,6 +266,15 @@ export default function AdminPanel() {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  };
+
+  const openSpreadsheet = () => {
+    const sheetId = localStorage.getItem("padasuka_spreadsheet_id");
+    if (sheetId) {
+      window.open(`https://docs.google.com/spreadsheets/d/${sheetId}/edit`, "_blank");
+    } else {
+      showToast("Spreadsheet ID otomatis dibuat saat otentikasi Google Sheets aktif. Anda juga bisa mengunduh file Excel/CSV via tombol 'Export CSV'.");
+    }
   };
 
   if (loading) {
@@ -407,7 +425,14 @@ export default function AdminPanel() {
           </div>
         </div>
 
-        <div className="flex items-center gap-3 mt-3 sm:mt-0">
+        <div className="flex items-center gap-2.5 sm:gap-3 mt-3 sm:mt-0 flex-wrap">
+          <button
+            onClick={openSpreadsheet}
+            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-3 py-2 rounded-lg transition-colors border border-emerald-800/60"
+            title="Buka Google Spreadsheet Data"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-400" /> Buka Spreadsheet
+          </button>
           <button
             onClick={() => syncLocalRegistrationsToFirestore().then(() => showToast("Sinkronisasi data lokal ke Firestore selesai."))}
             className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg transition-colors border border-slate-700"
@@ -432,6 +457,32 @@ export default function AdminPanel() {
 
       {/* Main Container */}
       <div className="max-w-7xl mx-auto p-4 sm:p-8 space-y-6">
+        {/* Destination & Administrator Card */}
+        <div className="bg-slate-900 text-white p-5 sm:p-6 rounded-2xl shadow-md border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <ShieldCheck className="w-5 h-5 text-emerald-400" />
+              <h2 className="text-base font-extrabold font-heading text-white">
+                Informasi Penyimpanan Data Formulir
+              </h2>
+            </div>
+            <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
+              Seluruh data pendaftaran tersimpan secara real-time di <span className="text-emerald-400 font-semibold">Firebase Firestore Database</span> dan di-backup secara otomatis pada <span className="text-emerald-400 font-semibold">Local Memory Browser</span>. Anda juga dapat mengekspor atau membuka ke Google Spreadsheet dengan tombol di atas.
+            </p>
+          </div>
+
+          <div className="bg-slate-950/80 p-3 px-4 rounded-xl border border-slate-800 shrink-0 text-xs space-y-1">
+            <div className="text-slate-400 font-medium flex items-center gap-1.5">
+              <Mail className="w-3.5 h-3.5 text-primary" /> Administrator Utama:
+            </div>
+            <div className="font-extrabold text-white font-mono flex items-center gap-1.5">
+              febridriver@gmail.com
+              <span className="bg-emerald-950 text-emerald-400 text-[10px] px-2 py-0.5 rounded border border-emerald-800">
+                Super Admin
+              </span>
+            </div>
+          </div>
+        </div>
         {/* Statistics Widgets */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
           <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80 flex items-center gap-4">
