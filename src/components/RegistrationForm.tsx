@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Loader2, X, Phone, Gamepad2, Users, AlertCircle, CheckCircle2, ArrowRight, ShieldCheck, Copy, Check } from "lucide-react";
 import { getPricingConfig, formatParticipantName, formatTeamName } from "../lib/utils";
-import { submitRegistration, RegistrationData } from "../lib/registrationsStore";
+import { submitRegistration, RegistrationData, checkForDuplicateRegistration, formatRegistrationDate } from "../lib/registrationsStore";
 import { motion, AnimatePresence } from "motion/react";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
@@ -15,6 +15,13 @@ export function RegistrationForm() {
   const [playerInputs, setPlayerInputs] = useState<string[]>(["", "", "", "", ""]);
   const [cadanganInput, setCadanganInput] = useState<string>("");
   
+  // Duplicate Notice state
+  const [duplicateNotice, setDuplicateNotice] = useState<{
+    existing: RegistrationData;
+    attemptedNama: string;
+    attemptedLomba: string;
+  } | null>(null);
+
   // Success Modal state
   const [successData, setSuccessData] = useState<{
     registration: RegistrationData;
@@ -109,7 +116,8 @@ export function RegistrationForm() {
     e.preventDefault();
     setErrorText("");
 
-    const formData = new FormData(e.currentTarget);
+    const formElement = e.currentTarget;
+    const formData = new FormData(formElement);
     
     const rawNama = (formData.get("nama") as string) || namaInput;
     const isTeam = playerCount > 1;
@@ -152,7 +160,31 @@ export function RegistrationForm() {
       return;
     }
 
+    setDuplicateNotice(null);
     setIsSubmitting(true);
+
+    // Auto Database Sync & Duplicate Check
+    try {
+      const duplicateRecord = await checkForDuplicateRegistration({
+        nama,
+        usia,
+        alamat,
+        wa,
+        lomba
+      });
+
+      if (duplicateRecord) {
+        setIsSubmitting(false);
+        setDuplicateNotice({
+          existing: duplicateRecord,
+          attemptedNama: nama,
+          attemptedLomba: lomba
+        });
+        return;
+      }
+    } catch (dupErr) {
+      console.warn("Duplicate check error, proceeding with submission:", dupErr);
+    }
 
     const daftarPemainMsg = playerCount > 1
       ? `\n*Daftar Nama Anggota Pemain (${squadPlayers.length} Orang):*\n${squadPlayers.map((p, i) => `  ${i + 1}. ${p}`).join("\n")}\n`
@@ -185,23 +217,22 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
         lomba
       });
 
-      // Try Google Sheets optionally
-      try {
-        const { getOrCreateSpreadsheetId, appendRowToSheet } = await import('../sheets');
-        const sheetId = await getOrCreateSpreadsheetId();
-        await appendRowToSheet(sheetId, [
-          new Date().toLocaleString('id-ID'),
-          nama,
-          usia,
-          kategori,
-          alamat,
-          wa,
-          squadPlayers.join(", "),
-          lomba
-        ]);
-      } catch (sheetError) {
-        // Optional integration
-      }
+      // Non-blocking Google Sheets append in background
+      import('../sheets').then(({ getOrCreateSpreadsheetId, appendRowToSheet }) => {
+        getOrCreateSpreadsheetId().then(sheetId => {
+          appendRowToSheet(sheetId, [
+            nama,
+            squadPlayers.join(", "),
+            usia,
+            kategori,
+            lomba,
+            alamat,
+            wa,
+            "PENDING",
+            new Date().toLocaleString('id-ID')
+          ]).catch(() => {});
+        }).catch(() => {});
+      }).catch(() => {});
 
       const encodedMessage = encodeURIComponent(message);
       const isMLorFF = lomba.includes("Mobile Legends") || lomba.includes("Free Fire");
@@ -209,7 +240,9 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
 
       // Reset form controls
-      e.currentTarget.reset();
+      if (formElement) {
+        formElement.reset();
+      }
       setNamaInput("");
       setPlayerInputs(["", "", "", "", ""]);
       setCadanganInput("");
@@ -275,6 +308,94 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
               Data Anda sedang dimasukkan ke sistem & dashboard panitia secara aman.
             </motion.p>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Duplicate Registration Warning Modal */}
+      <AnimatePresence>
+        {duplicateNotice && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/85 backdrop-blur-md p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative border border-amber-200/90 my-8 text-left"
+            >
+              <button
+                type="button"
+                onClick={() => setDuplicateNotice(null)}
+                className="absolute top-4 right-4 p-2 text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-dark rounded-full transition-colors"
+                title="Tutup Modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-700 flex items-center justify-center shrink-0">
+                  <AlertCircle className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-lg sm:text-xl font-black text-slate-900 font-heading">
+                    Data Sudah Terdaftar!
+                  </h3>
+                  <p className="text-xs text-amber-700 font-semibold">
+                    Auto Database Sync: Terdeteksi Pendaftaran Ganda
+                  </p>
+                </div>
+              </div>
+
+              <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 text-xs sm:text-sm space-y-3 mb-6 text-slate-800">
+                <p className="text-slate-700 leading-relaxed font-medium">
+                  Data pendaftaran untuk <span className="font-extrabold text-slate-900">{duplicateNotice.existing.nama}</span> (No. WA: <span className="font-mono font-bold text-slate-900">{duplicateNotice.existing.wa}</span>) <span className="text-amber-900 font-bold">sudah tercatat sebelumnya</span> dalam database panitia. Anda tidak perlu mendaftar ulang.
+                </p>
+
+                <div className="border-t border-amber-200/80 pt-3 space-y-2 font-mono text-xs">
+                  <div className="flex justify-between items-center text-slate-700">
+                    <span className="text-slate-500 font-sans">Lomba Pilihan:</span>
+                    <span className="font-bold text-slate-900">{duplicateNotice.existing.lomba}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-700">
+                    <span className="text-slate-500 font-sans">Waktu Terdaftar Akurat:</span>
+                    <span className="font-bold text-amber-950 bg-amber-100/80 px-2 py-0.5 rounded border border-amber-300">
+                      {formatRegistrationDate(duplicateNotice.existing.createdAt)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center text-slate-700 pt-1">
+                    <span className="text-slate-500 font-sans">Status Pendaftaran:</span>
+                    {duplicateNotice.existing.status === "verified" ? (
+                      <span className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full font-sans font-bold text-xs border border-emerald-300 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" /> Lunas / Terverifikasi
+                      </span>
+                    ) : (
+                      <span className="bg-amber-100 text-amber-900 px-3 py-1 rounded-full font-sans font-bold text-xs border border-amber-300 flex items-center gap-1">
+                        <ShieldCheck className="w-3.5 h-3.5 text-amber-600" /> Terdaftar (Menunggu Pembayaran)
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <a
+                  href={`https://wa.me/${duplicateNotice.existing.lomba.includes("Mobile Legends") || duplicateNotice.existing.lomba.includes("Free Fire") ? "6283875393428" : "6282312907731"}?text=${encodeURIComponent(`Halo Panitia Festival Padasuka 2026, saya ingin menanyakan status pendaftaran saya:\n\n• Nama/Tim: ${duplicateNotice.existing.nama}\n• Lomba: ${duplicateNotice.existing.lomba}\n• Waktu Daftar: ${formatRegistrationDate(duplicateNotice.existing.createdAt)}\n• Status: ${duplicateNotice.existing.status === 'verified' ? 'Lunas / Terverifikasi' : 'Terdaftar (Pending)'}\n\nTerima kasih!`)}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold py-3.5 px-4 rounded-xl shadow-lg transition-colors text-sm"
+                >
+                  <WhatsAppIcon className="w-5 h-5 fill-current" />
+                  Hubungi Panitia & Konfirmasi Status WA
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setDuplicateNotice(null)}
+                  className="w-full py-3 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors"
+                >
+                  Tutup & Edit Data Form
+                </button>
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
 

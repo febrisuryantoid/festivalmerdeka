@@ -1,5 +1,5 @@
 import { db } from "../firebase";
-import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, onSnapshot, query } from "firebase/firestore";
+import { collection, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, onSnapshot, query, getDocs } from "firebase/firestore";
 
 export interface RegistrationData {
   id: string;
@@ -18,6 +18,18 @@ export interface RegistrationData {
 }
 
 const LOCAL_STORAGE_KEY = "padasuka_registrations_v1";
+
+export function normalizeStr(str: string): string {
+  return (str || "").trim().toLowerCase().replace(/\s+/g, " ");
+}
+
+export function normalizePhone(phone: string): string {
+  let digits = (phone || "").replace(/\D/g, "");
+  if (digits.startsWith("62")) {
+    digits = "0" + digits.slice(2);
+  }
+  return digits;
+}
 
 /**
  * Safe helper to parse various Firestore / JS timestamp formats to Unix milliseconds.
@@ -101,56 +113,63 @@ export async function submitRegistration(data: Omit<RegistrationData, "id" | "st
     firestoreSynced: false
   };
 
-  // 1. ALWAYS save to localStorage first (guarantees 100% data persistence)
+  // 1. ALWAYS save to localStorage first (guarantees 100% data persistence & INSTANT speed)
   const existingLocal = getLocalRegistrations();
   existingLocal.unshift(newReg);
   saveLocalRegistrations(existingLocal);
 
   let docId = localId;
-  let isLocalOnly = false;
-  let errorDetail: string | undefined = undefined;
+  let isLocalOnly = true;
 
-  // 2. Attempt Firestore write
-  try {
-    const docRef = await addDoc(collection(db, "registrations"), {
-      nama: data.nama,
-      players: data.players,
-      anggotaTim: data.anggotaTim,
-      usia: data.usia,
-      kategori: data.kategori,
-      alamat: data.alamat,
-      wa: data.wa,
-      lomba: data.lomba,
-      status: "pending",
-      createdAt: serverTimestamp(),
-      localId
-    });
+  // 2. Background Firestore write with rapid timeout
+  const firestorePromise = (async () => {
+    try {
+      const docRef = await addDoc(collection(db, "registrations"), {
+        nama: data.nama,
+        players: data.players,
+        anggotaTim: data.anggotaTim,
+        usia: data.usia,
+        kategori: data.kategori,
+        alamat: data.alamat,
+        wa: data.wa,
+        lomba: data.lomba,
+        status: "pending",
+        createdAt: serverTimestamp(),
+        localId
+      });
 
-    docId = docRef.id;
+      // Update local copy with Firestore doc ID and mark synced
+      const currentLocal = getLocalRegistrations();
+      const updatedLocal = currentLocal.map(item => {
+        if (item.localId === localId) {
+          return { ...item, id: docRef.id, firestoreSynced: true };
+        }
+        return item;
+      });
+      saveLocalRegistrations(updatedLocal);
+      return docRef.id;
+    } catch (firestoreErr: any) {
+      console.warn("Firestore write fallback to local storage:", firestoreErr);
+      return null;
+    }
+  })();
 
-    // Update local copy with Firestore doc ID and mark synced
-    const currentLocal = getLocalRegistrations();
-    const updatedLocal = currentLocal.map(item => {
-      if (item.localId === localId) {
-        return { ...item, id: docId, firestoreSynced: true };
-      }
-      return item;
-    });
-    saveLocalRegistrations(updatedLocal);
+  // Race with 800ms timeout for lightning-fast UI response
+  const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 800));
+  const resultDocId = await Promise.race([firestorePromise, timeoutPromise]);
+
+  if (resultDocId) {
+    docId = resultDocId;
+    isLocalOnly = false;
     newReg.id = docId;
     newReg.firestoreSynced = true;
-  } catch (firestoreErr: any) {
-    console.warn("Firestore write fallback to local storage:", firestoreErr);
-    isLocalOnly = true;
-    errorDetail = firestoreErr?.message || "Mode Offline / Tersimpan di Perangkat";
   }
 
   return {
     success: true,
     docId,
     isLocalOnly,
-    registration: newReg,
-    errorDetail
+    registration: newReg
   };
 }
 
@@ -239,6 +258,34 @@ export function mergeRegistrations(firestoreItems: any[], localItems: Registrati
 }
 
 /**
+ * Update complete registration data in both Firestore and LocalStorage
+ */
+export async function editRegistrationInStore(
+  id: string,
+  updatedFields: Partial<Omit<RegistrationData, "id" | "localId" | "createdAt">>
+): Promise<{ success: boolean; message?: string }> {
+  // 1. Update LocalStorage
+  const localItems = getLocalRegistrations();
+  const updatedLocal = localItems.map(item => {
+    if (item.id === id || item.localId === id) {
+      return { ...item, ...updatedFields };
+    }
+    return item;
+  });
+  saveLocalRegistrations(updatedLocal);
+
+  // 2. Update Firestore
+  try {
+    const docRef = doc(db, "registrations", id);
+    await updateDoc(docRef, updatedFields);
+    return { success: true };
+  } catch (err: any) {
+    console.warn("Firestore updateDoc error (local fallback updated):", err);
+    return { success: true, message: "Data diperbarui secara lokal." };
+  }
+}
+
+/**
  * Update registration status in both Firestore and LocalStorage
  */
 export async function updateRegistrationStatusInStore(id: string, newStatus: "pending" | "verified"): Promise<{ success: boolean; message?: string }> {
@@ -299,3 +346,72 @@ export async function deleteRegistrationFromStore(id: string): Promise<{ success
   }
   return { success: true };
 }
+
+/**
+  * Check database and local storage for duplicate registration.
+  * Rules:
+  * - Returns matching record if same Nama AND same WA AND same Lomba.
+  * - Returns matching record if ALL 4 identity fields match: Nama, Usia, Alamat, WA.
+  * - If Nama is identical but other fields (Usia/Alamat/WA) differ, it is NOT considered duplicate.
+  */
+export async function checkForDuplicateRegistration(data: {
+  nama: string;
+  usia: string;
+  alamat: string;
+  wa: string;
+  lomba: string;
+}): Promise<RegistrationData | null> {
+  const targetNama = normalizeStr(data.nama);
+  const targetUsia = (data.usia || "").trim();
+  const targetAlamat = normalizeStr(data.alamat);
+  const targetWa = normalizePhone(data.wa);
+  const targetLomba = normalizeStr(data.lomba);
+
+  // 1. Local registrations
+  const localItems = getLocalRegistrations();
+
+  // 2. Fetch latest registrations from Firestore with 2s timeout
+  let firestoreItems: any[] = [];
+  try {
+    const fetchPromise = getDocs(collection(db, "registrations"));
+    const timeoutPromise = new Promise<null>((resolve) => setTimeout(() => resolve(null), 2500));
+    const qSnap = await Promise.race([fetchPromise, timeoutPromise]) as any;
+
+    if (qSnap && typeof qSnap.forEach === "function") {
+      qSnap.forEach((d: any) => {
+        firestoreItems.push({ id: d.id, ...d.data() });
+      });
+    }
+  } catch (err) {
+    console.warn("Firestore check duplicate fetch failed, fallback to local:", err);
+  }
+
+  const all = mergeRegistrations(firestoreItems, localItems);
+
+  for (const item of all) {
+    const itemNama = normalizeStr(item.nama);
+    const itemUsia = (item.usia || "").trim();
+    const itemAlamat = normalizeStr(item.alamat);
+    const itemWa = normalizePhone(item.wa);
+    const itemLomba = normalizeStr(item.lomba);
+
+    const sameNama = targetNama === itemNama;
+    const sameWa = targetWa.length >= 8 && itemWa.length >= 8 && targetWa === itemWa;
+    const sameLomba = targetLomba === itemLomba;
+    const sameUsia = targetUsia === itemUsia;
+    const sameAlamat = targetAlamat === itemAlamat;
+
+    // Rule 1: Same Nama + Same WA + Same Lomba
+    if (sameNama && sameWa && sameLomba) {
+      return item;
+    }
+
+    // Rule 2: Same Nama + Same Usia + Same Alamat + Same WA (exact double entry)
+    if (sameNama && sameUsia && sameAlamat && sameWa) {
+      return item;
+    }
+  }
+
+  return null;
+}
+

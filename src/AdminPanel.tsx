@@ -4,7 +4,8 @@ import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthState
 import { collection, onSnapshot } from "firebase/firestore";
 import { 
   ShieldAlert, LogOut, CheckCircle, Clock, Trash2, Users, Trophy, 
-  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw, FileSpreadsheet, ExternalLink, Mail
+  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw, FileSpreadsheet, ExternalLink, Mail,
+  Plus, Pencil, UserPlus, X, Save
 } from "lucide-react";
 import { WhatsAppIcon } from "./components/WhatsAppIcon";
 import { calculateDynamicPrize } from "./lib/utils";
@@ -12,11 +13,15 @@ import {
   RegistrationData, 
   getLocalRegistrations, 
   mergeRegistrations, 
+  submitRegistration,
+  editRegistrationInStore,
   updateRegistrationStatusInStore, 
   deleteRegistrationFromStore, 
   syncLocalRegistrationsToFirestore, 
   formatRegistrationDate 
 } from "./lib/registrationsStore";
+import { syncAllRegistrationsToSheet, DEFAULT_SPREADSHEET_ID } from "./sheets";
+import { googleSignIn } from "./auth";
 
 // Security Salt & SHA-256 Hashes for credentials verification
 const SECURITY_SALT = "padasuka_esport_2026_salt_99";
@@ -49,6 +54,40 @@ export default function AdminPanel() {
   const [searchTerm, setSearchTerm] = useState("");
   const [gameFilter, setGameFilter] = useState("all");
   const [actionNotice, setActionNotice] = useState<string | null>(null);
+
+  // CRUD & Auto Spreadsheet Sync States
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingReg, setEditingReg] = useState<RegistrationData | null>(null);
+
+  const [formNama, setFormNama] = useState("");
+  const [formUsia, setFormUsia] = useState("");
+  const [formKategori, setFormKategori] = useState("Kategori Pemuda Karang Taruna Desa Padasuka");
+  const [formLomba, setFormLomba] = useState("Mobile Legends: Bang Bang (5v5 Squad)");
+  const [formAlamat, setFormAlamat] = useState("");
+  const [formWa, setFormWa] = useState("");
+  const [formPlayers, setFormPlayers] = useState("");
+  const [formStatus, setFormStatus] = useState<"pending" | "verified">("pending");
+
+  const resetForm = () => {
+    setFormNama("");
+    setFormUsia("");
+    setFormKategori("Kategori Pemuda Karang Taruna Desa Padasuka");
+    setFormLomba("Mobile Legends: Bang Bang (5v5 Squad)");
+    setFormAlamat("");
+    setFormWa("");
+    setFormPlayers("");
+    setFormStatus("pending");
+  };
+
+  const autoSyncToSpreadsheet = async (latestData: RegistrationData[]) => {
+    try {
+      const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
+      await syncAllRegistrationsToSheet(sheetId, latestData);
+      console.log("Auto sync to Google Sheet succeeded");
+    } catch (err: any) {
+      console.warn("Auto sync to Google Sheet skipped or unauthenticated:", err?.message || err);
+    }
+  };
 
   // Injeksi meta tag robots noindex untuk URL /melbu
   useEffect(() => {
@@ -219,12 +258,11 @@ export default function AdminPanel() {
     try {
       await updateRegistrationStatusInStore(id, status);
       
-      // Update state locally for immediate UI response
-      setMergedRegistrations(prev => 
-        prev.map(r => r.id === id ? { ...r, status } : r)
-      );
+      const updated = mergedRegistrations.map(r => r.id === id ? { ...r, status } : r);
+      setMergedRegistrations(updated);
 
-      showToast(`Status pendaftaran berhasil diperbarui menjadi: ${status.toUpperCase()}`);
+      showToast(`Status diperbarui ke: ${status.toUpperCase()} & disinkronkan ke Sheet.`);
+      autoSyncToSpreadsheet(updated);
     } catch (err) {
       console.error("Failed to update status:", err);
       showToast("Gagal memperbarui status.");
@@ -236,8 +274,10 @@ export default function AdminPanel() {
       try {
         await deleteRegistrationFromStore(id);
         
-        setMergedRegistrations(prev => prev.filter(r => r.id !== id));
-        showToast("Data pendaftaran berhasil dihapus.");
+        const updated = mergedRegistrations.filter(r => r.id !== id);
+        setMergedRegistrations(updated);
+        showToast("Data pendaftaran berhasil dihapus & Spreadsheet disinkronkan.");
+        autoSyncToSpreadsheet(updated);
       } catch (err) {
         console.error("Failed to delete registration:", err);
         showToast("Gagal menghapus data.");
@@ -245,17 +285,127 @@ export default function AdminPanel() {
     }
   };
 
+  const handleOpenEdit = (reg: RegistrationData) => {
+    setEditingReg(reg);
+    setFormNama(reg.nama || "");
+    setFormUsia(reg.usia || "");
+    setFormKategori(reg.kategori || "Kategori Pemuda Karang Taruna Desa Padasuka");
+    setFormLomba(reg.lomba || "Mobile Legends: Bang Bang (5v5 Squad)");
+    setFormAlamat(reg.alamat || "");
+    setFormWa(reg.wa || "");
+    setFormPlayers(
+      Array.isArray(reg.players) && reg.players.length > 0
+        ? reg.players.join("\n")
+        : (reg.anggotaTim || "")
+    );
+    setFormStatus(reg.status || "pending");
+  };
+
+  const handleSaveNew = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formNama.trim() || !formWa.trim()) {
+      alert("Nama Pendaftar/Tim dan Nomor WhatsApp wajib diisi!");
+      return;
+    }
+
+    const playerArray = formPlayers
+      ? formPlayers.split("\n").map(s => s.trim()).filter(Boolean)
+      : [];
+
+    try {
+      const res = await submitRegistration({
+        nama: formNama.trim(),
+        players: playerArray,
+        anggotaTim: playerArray.join(", "),
+        usia: formUsia.trim() || "17",
+        kategori: formKategori,
+        alamat: formAlamat.trim() || "Desa Padasuka",
+        wa: formWa.trim(),
+        lomba: formLomba
+      });
+
+      if (formStatus === "verified") {
+        await updateRegistrationStatusInStore(res.docId, "verified");
+      }
+
+      const local = getLocalRegistrations();
+      const updated = mergeRegistrations(firestoreDocs, local);
+      setMergedRegistrations(updated);
+
+      autoSyncToSpreadsheet(updated);
+      setIsAddModalOpen(false);
+      resetForm();
+      showToast("Pendaftaran baru berhasil ditambahkan & disinkronkan ke Spreadsheet!");
+    } catch (err: any) {
+      alert("Gagal menambahkan data: " + (err.message || "Terjadi kesalahan"));
+    }
+  };
+
+  const handleSaveEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingReg) return;
+    if (!formNama.trim() || !formWa.trim()) {
+      alert("Nama Pendaftar/Tim dan Nomor WhatsApp wajib diisi!");
+      return;
+    }
+
+    const playerArray = formPlayers
+      ? formPlayers.split("\n").map(s => s.trim()).filter(Boolean)
+      : [];
+
+    try {
+      await editRegistrationInStore(editingReg.id, {
+        nama: formNama.trim(),
+        players: playerArray,
+        anggotaTim: playerArray.join(", "),
+        usia: formUsia.trim() || "-",
+        kategori: formKategori,
+        alamat: formAlamat.trim() || "-",
+        wa: formWa.trim(),
+        lomba: formLomba,
+        status: formStatus
+      });
+
+      const updated = mergedRegistrations.map(r => {
+        if (r.id === editingReg.id || r.localId === editingReg.id) {
+          return {
+            ...r,
+            nama: formNama.trim(),
+            players: playerArray,
+            anggotaTim: playerArray.join(", "),
+            usia: formUsia.trim() || "-",
+            kategori: formKategori,
+            alamat: formAlamat.trim() || "-",
+            wa: formWa.trim(),
+            lomba: formLomba,
+            status: formStatus
+          };
+        }
+        return r;
+      });
+
+      setMergedRegistrations(updated);
+      autoSyncToSpreadsheet(updated);
+      setEditingReg(null);
+      resetForm();
+      showToast("Data pendaftaran berhasil diperbarui & disinkronkan ke Spreadsheet!");
+    } catch (err: any) {
+      alert("Gagal menyimpan perubahan: " + (err.message || "Terjadi kesalahan"));
+    }
+  };
+
   const exportToCSV = () => {
     if (mergedRegistrations.length === 0) return;
-    const headers = ["Nama/Tim", "Kategori", "Lomba", "Alamat", "Nomor WA", "Pemain", "Status", "Tanggal"];
+    const headers = ["Nama/Tim", "Anggota Pemain", "Usia", "Kategori", "Lomba / Cabang Game", "Alamat", "Nomor WA", "Status Verifikasi", "Waktu Pendaftaran"];
     const rows = mergedRegistrations.map((r) => [
       `"${r.nama || ''}"`,
+      `"${Array.isArray(r.players) ? r.players.filter(Boolean).join('; ') : (r.anggotaTim || '')}"`,
+      `"${r.usia || ''}"`,
       `"${r.kategori || ''}"`,
       `"${r.lomba || ''}"`,
       `"${r.alamat || ''}"`,
       `"${r.wa || ''}"`,
-      `"${Array.isArray(r.players) ? r.players.join('; ') : ''}"`,
-      `"${r.status || ''}"`,
+      `"${(r.status || 'pending').toUpperCase()}"`,
       `"${formatRegistrationDate(r.createdAt)}"`
     ]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -268,13 +418,32 @@ export default function AdminPanel() {
     document.body.removeChild(link);
   };
 
-  const openSpreadsheet = () => {
-    const sheetId = localStorage.getItem("padasuka_spreadsheet_id");
-    if (sheetId) {
-      window.open(`https://docs.google.com/spreadsheets/d/${sheetId}/edit`, "_blank");
-    } else {
-      showToast("Spreadsheet ID otomatis dibuat saat otentikasi Google Sheets aktif. Anda juga bisa mengunduh file Excel/CSV via tombol 'Export CSV'.");
+  const handleSyncToSpreadsheet = async () => {
+    try {
+      showToast("Menyinkronkan data ke Google Spreadsheet...");
+      const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
+      await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
+      showToast("Berhasil menyinkronkan seluruh data ke Google Spreadsheet!");
+    } catch (err: any) {
+      console.warn("Spreadsheet sync error, asking for Google Auth:", err);
+      if (err.message?.includes("Akses token") || err.message?.includes("login")) {
+        try {
+          await googleSignIn();
+          const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
+          await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
+          showToast("Berhasil terhubung & menyinkronkan data ke Google Spreadsheet!");
+        } catch (authErr: any) {
+          showToast("Otentikasi Google dibatalkan atau gagal: " + (authErr?.message || "Error"));
+        }
+      } else {
+        showToast("Gagal sync ke Sheet: " + (err?.message || "Terjadi kesalahan"));
+      }
     }
+  };
+
+  const openSpreadsheet = () => {
+    const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
+    window.open(`https://docs.google.com/spreadsheets/d/${sheetId}/edit`, "_blank");
   };
 
   if (loading) {
@@ -427,6 +596,13 @@ export default function AdminPanel() {
 
         <div className="flex items-center gap-2.5 sm:gap-3 mt-3 sm:mt-0 flex-wrap">
           <button
+            onClick={handleSyncToSpreadsheet}
+            className="flex items-center gap-1.5 text-xs font-bold bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-2 rounded-lg transition-colors shadow-sm"
+            title="Kirim & Sinkronkan Seluruh Data ke Google Sheet"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-white" /> Sync ke Sheet
+          </button>
+          <button
             onClick={openSpreadsheet}
             className="flex items-center gap-1.5 text-xs font-bold bg-emerald-950/80 hover:bg-emerald-900 text-emerald-300 px-3 py-2 rounded-lg transition-colors border border-emerald-800/60"
             title="Buka Google Spreadsheet Data"
@@ -467,7 +643,7 @@ export default function AdminPanel() {
               </h2>
             </div>
             <p className="text-xs text-slate-300 leading-relaxed max-w-3xl">
-              Seluruh data pendaftaran tersimpan secara real-time di <span className="text-emerald-400 font-semibold">Firebase Firestore Database</span> dan di-backup secara otomatis pada <span className="text-emerald-400 font-semibold">Local Memory Browser</span>. Anda juga dapat mengekspor atau membuka ke Google Spreadsheet dengan tombol di atas.
+              Seluruh data pendaftaran tersimpan secara real-time di <span className="text-emerald-400 font-semibold">Firebase Firestore Database</span>, di-backup pada <span className="text-emerald-400 font-semibold">Local Memory Browser</span>, serta terintegrasi dengan Google Spreadsheet: <a href="https://docs.google.com/spreadsheets/d/1XmIC9_glnSfin0xj4uunmKhUM6CAIObHsIoPTxvYQuk/edit" target="_blank" rel="noopener noreferrer" className="text-blue-400 hover:underline font-mono">1XmIC9_glnSfin0xj4uunmKhUM6CAIObHsIoPTxvYQuk</a>.
             </p>
           </div>
 
@@ -608,6 +784,17 @@ export default function AdminPanel() {
             </div>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+              {/* Add Registration Button */}
+              <button
+                onClick={() => {
+                  resetForm();
+                  setIsAddModalOpen(true);
+                }}
+                className="flex items-center justify-center gap-1.5 text-xs font-extrabold bg-primary hover:bg-primary/90 text-slate-950 px-4 py-2 rounded-xl transition-all shadow-md hover:shadow-lg cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4 stroke-[3]" /> Tambah Pendaftar
+              </button>
+
               {/* Search input */}
               <div className="relative">
                 <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -728,6 +915,13 @@ export default function AdminPanel() {
                           </button>
                         )}
                         <button
+                          onClick={() => handleOpenEdit(reg)}
+                          className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-600 rounded-lg transition-colors cursor-pointer"
+                          title="Edit data pendaftaran"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+                        <button
                           onClick={() => deleteRegistration(reg.id)}
                           className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer"
                           title="Hapus pendaftaran"
@@ -743,6 +937,154 @@ export default function AdminPanel() {
           </div>
         </div>
       </div>
+
+      {/* Modal Add / Edit Data Pendaftaran */}
+      {(isAddModalOpen || editingReg) && (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative border border-slate-200 my-8">
+            <button
+              onClick={() => {
+                setIsAddModalOpen(false);
+                setEditingReg(null);
+              }}
+              className="absolute top-5 right-5 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-800 rounded-full transition-colors"
+              title="Tutup Modal"
+            >
+              <X className="w-5 h-5" />
+            </button>
+
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 rounded-xl bg-primary/20 text-slate-900 flex items-center justify-center font-bold shrink-0">
+                {editingReg ? <Pencil className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
+              </div>
+              <div>
+                <h3 className="text-lg font-black text-slate-900 font-heading">
+                  {editingReg ? "Edit Data Pendaftaran" : "Tambah Pendaftar Baru"}
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Tersimpan di Firestore & ter-sync otomatis ke Google Sheet
+                </p>
+              </div>
+            </div>
+
+            <form onSubmit={editingReg ? handleSaveEdit : handleSaveNew} className="space-y-4 text-xs font-medium text-slate-700">
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Nama Lengkap / Nama Tim *</label>
+                <input
+                  type="text"
+                  required
+                  value={formNama}
+                  onChange={(e) => setFormNama(e.target.value)}
+                  placeholder="Contoh: Tim RRQ Padasuka / Ahmad Fauzi"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-800 font-bold mb-1">Usia (Tahun)</label>
+                  <input
+                    type="text"
+                    value={formUsia}
+                    onChange={(e) => setFormUsia(e.target.value)}
+                    placeholder="Contoh: 18"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-800 font-bold mb-1">Nomor WhatsApp *</label>
+                  <input
+                    type="text"
+                    required
+                    value={formWa}
+                    onChange={(e) => setFormWa(e.target.value)}
+                    placeholder="Contoh: 08123456789"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Kategori Pendaftar</label>
+                <select
+                  value={formKategori}
+                  onChange={(e) => setFormKategori(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900 bg-white"
+                >
+                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka</option>
+                  <option value="Kategori Umum">Kategori Umum</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Lomba / Cabang Game</label>
+                <select
+                  value={formLomba}
+                  onChange={(e) => setFormLomba(e.target.value)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900 bg-white"
+                >
+                  <option value="Mobile Legends: Bang Bang (5v5 Squad)">Mobile Legends: Bang Bang (5v5 Squad)</option>
+                  <option value="Free Fire (Squad 4 Player)">Free Fire (Squad 4 Player)</option>
+                  <option value="EA SPORTS FC26 (1v1 Solo)">EA SPORTS FC26 (1v1 Solo)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Alamat / Asal Kampung</label>
+                <input
+                  type="text"
+                  value={formAlamat}
+                  onChange={(e) => setFormAlamat(e.target.value)}
+                  placeholder="Contoh: Kp. Padasuka RT 02/05"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Daftar Anggota Pemain (1 baris 1 nama)</label>
+                <textarea
+                  rows={3}
+                  value={formPlayers}
+                  onChange={(e) => setFormPlayers(e.target.value)}
+                  placeholder="Pemain 1&#10;Pemain 2&#10;Pemain 3..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900"
+                />
+              </div>
+
+              <div>
+                <label className="block text-slate-800 font-bold mb-1">Status Verifikasi</label>
+                <select
+                  value={formStatus}
+                  onChange={(e) => setFormStatus(e.target.value as "pending" | "verified")}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-primary text-slate-900 bg-white"
+                >
+                  <option value="pending">PENDING (Terdaftar / Belum Bayar)</option>
+                  <option value="verified">VERIFIED (Lunas / Terverifikasi)</option>
+                </select>
+              </div>
+
+              <div className="pt-3 flex items-center justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsAddModalOpen(false);
+                    setEditingReg(null);
+                  }}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs transition-colors cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
+                >
+                  <Save className="w-4 h-4" /> Simpan & Sync Spreadsheet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
