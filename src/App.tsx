@@ -63,23 +63,30 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    import("firebase/firestore").then(({ collection, query, where, onSnapshot }) => {
+    import("firebase/firestore").then(({ collection, onSnapshot }) => {
       import("./firebase").then(({ db }) => {
-        const q = query(collection(db, "registrations"), where("status", "==", "verified"));
-        onSnapshot(q, (snapshot) => {
-          let ml = 0, ff = 0, fc = 0;
-          snapshot.docs.forEach(doc => {
-            const data = doc.data();
-            const pLength = Array.isArray(data.players) && data.players.length > 0 ? data.players.length : 0;
-            if (data.lomba?.includes("Mobile Legends")) {
-              ml += pLength || 5;
-            } else if (data.lomba?.includes("Free Fire")) {
-              ff += pLength || 4;
-            } else if (data.lomba?.includes("FC")) {
-              fc += pLength || 1;
-            }
+        import("./lib/registrationsStore").then(({ getLocalRegistrations, mergeRegistrations }) => {
+          onSnapshot(collection(db, "registrations"), (snapshot) => {
+            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const local = getLocalRegistrations();
+            const merged = mergeRegistrations(docs, local);
+
+            let ml = 0, ff = 0, fc = 0;
+            merged.forEach(data => {
+              if (data.status !== "verified") return;
+              const pLength = Array.isArray(data.players) && data.players.length > 0 ? data.players.length : 0;
+              if (data.lomba?.includes("Mobile Legends")) {
+                ml += pLength || 5;
+              } else if (data.lomba?.includes("Free Fire")) {
+                ff += pLength || 4;
+              } else if (data.lomba?.includes("FC")) {
+                fc += pLength || 1;
+              }
+            });
+            setSlotCounts({ ml, ff, fc });
+          }, (err) => {
+            console.warn("Slot counts snapshot error:", err);
           });
-          setSlotCounts({ ml, ff, fc });
         });
       });
     });

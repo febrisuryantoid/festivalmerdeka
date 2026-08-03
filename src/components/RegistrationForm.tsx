@@ -1,8 +1,7 @@
 import React, { useState } from "react";
-import { Loader2, X, Phone, Gamepad2, Users, AlertCircle } from "lucide-react";
-import { db } from "../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { Loader2, X, Phone, Gamepad2, Users, AlertCircle, CheckCircle2, ArrowRight, ShieldCheck, Copy, Check } from "lucide-react";
 import { getPricingConfig, formatParticipantName, formatTeamName } from "../lib/utils";
+import { submitRegistration, RegistrationData } from "../lib/registrationsStore";
 import { motion, AnimatePresence } from "motion/react";
 import { WhatsAppIcon } from "./WhatsAppIcon";
 
@@ -15,6 +14,16 @@ export function RegistrationForm() {
   const [namaInput, setNamaInput] = useState("");
   const [playerInputs, setPlayerInputs] = useState<string[]>(["", "", "", "", ""]);
   const [cadanganInput, setCadanganInput] = useState<string>("");
+  
+  // Success Modal state
+  const [successData, setSuccessData] = useState<{
+    registration: RegistrationData;
+    totalFee: number;
+    whatsappUrl: string;
+    whatsappNumber: string;
+  } | null>(null);
+
+  const [copiedAccount, setCopiedAccount] = useState(false);
 
   const getPlayerCount = (game: string) => {
     if (game.includes("Mobile Legends")) return 5;
@@ -52,9 +61,52 @@ export function RegistrationForm() {
     setCadanganInput(formatParticipantName(val));
   };
 
+  const validateForm = (
+    lombaVal: string,
+    namaVal: string,
+    usiaVal: string,
+    alamatVal: string,
+    waVal: string,
+    kategoriVal: string,
+    isTeam: boolean,
+    playersList: string[]
+  ): string | null => {
+    if (!lombaVal) {
+      return "Mohon pilih Cabang Lomba eSport terlebih dahulu.";
+    }
+    if (!namaVal || namaVal.trim().length < 2) {
+      return isTeam 
+        ? "Mohon isi Nama Tim/Squad dengan benar (minimal 2 karakter)." 
+        : "Mohon isi Nama Lengkap Peserta dengan benar (minimal 2 karakter).";
+    }
+    if (!usiaVal || isNaN(Number(usiaVal)) || Number(usiaVal) < 5 || Number(usiaVal) > 70) {
+      return "Mohon masukkan Usia / Rata-rata usia tim yang valid (antara 5-70 tahun).";
+    }
+    if (isTeam) {
+      if (playersList.length < playerCount) {
+        return `Mohon lengkapi seluruh ${playerCount} nama anggota pemain wajib untuk kategori kelompok.`;
+      }
+      for (let i = 0; i < playerCount; i++) {
+        if (!playersList[i] || playersList[i].trim().length < 2) {
+          return `Mohon lengkapi nama Pemain ${i + 1} dengan benar.`;
+        }
+      }
+    }
+    if (!alamatVal || alamatVal.trim().length < 3) {
+      return "Mohon isi Alamat / Asal Kampung dengan jelas (contoh: Kp. Padasuka RT 02/01).";
+    }
+    const cleanWa = waVal.replace(/[^0-9]/g, "");
+    if (!cleanWa || cleanWa.length < 9 || cleanWa.length > 15) {
+      return "Mohon masukkan nomor WhatsApp yang valid (contoh: 08123456789).";
+    }
+    if (!kategoriVal) {
+      return "Mohon pilih Kategori Usia (SD, SMP, SMA/SMK, atau UMUM).";
+    }
+    return null;
+  };
+
   const handleFormSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    setIsSubmitting(true);
     setErrorText("");
 
     const formData = new FormData(e.currentTarget);
@@ -63,11 +115,11 @@ export function RegistrationForm() {
     const isTeam = playerCount > 1;
     const nama = isTeam ? formatTeamName(rawNama) : formatParticipantName(rawNama);
 
-    const usia = formData.get("usia") as string;
-    const kategori = formData.get("kategori") as string;
-    const alamat = formData.get("alamat") as string;
-    const wa = formData.get("wa") as string;
-    const lomba = formData.get("lomba") as string;
+    const usia = (formData.get("usia") as string) || "";
+    const kategori = (formData.get("kategori") as string) || selectedKategori;
+    const alamat = (formData.get("alamat") as string) || "";
+    const wa = (formData.get("wa") as string) || "";
+    const lomba = (formData.get("lomba") as string) || selectedGame;
 
     let squadPlayers: string[] = [];
     if (isTeam) {
@@ -76,17 +128,31 @@ export function RegistrationForm() {
         .map(p => formatParticipantName(p.trim()))
         .filter(Boolean);
 
-      if (squadPlayers.length < playerCount) {
-        setErrorText(`Mohon lengkapi seluruh ${playerCount} nama anggota pemain untuk kategori kelompok/squad.`);
-        setIsSubmitting(false);
-        return;
-      }
       if (cadanganInput.trim()) {
         squadPlayers.push(`${formatParticipantName(cadanganInput.trim())} (Cadangan)`);
       }
     } else {
       squadPlayers = [nama];
     }
+
+    // Comprehensive Client Validation
+    const validationError = validateForm(
+      lomba,
+      nama,
+      usia,
+      alamat,
+      wa,
+      kategori,
+      isTeam,
+      squadPlayers.slice(0, playerCount)
+    );
+
+    if (validationError) {
+      setErrorText(validationError);
+      return;
+    }
+
+    setIsSubmitting(true);
 
     const daftarPemainMsg = playerCount > 1
       ? `\n*Daftar Nama Anggota Pemain (${squadPlayers.length} Orang):*\n${squadPlayers.map((p, i) => `  ${i + 1}. ${p}`).join("\n")}\n`
@@ -107,8 +173,8 @@ ${daftarPemainMsg}*Usia Rata-rata:* ${usia} Tahun
 Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
     try {
-      // Save to Firebase
-      await addDoc(collection(db, "registrations"), {
+      // Dual-layer storage submit (localStorage first, then Firestore)
+      const res = await submitRegistration({
         nama,
         players: squadPlayers,
         anggotaTim: squadPlayers.join(", "),
@@ -116,12 +182,10 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
         kategori,
         alamat,
         wa,
-        lomba,
-        status: "pending",
-        createdAt: serverTimestamp()
+        lomba
       });
 
-      // Try saving to Google Sheets if authenticated
+      // Try Google Sheets optionally
       try {
         const { getOrCreateSpreadsheetId, appendRowToSheet } = await import('../sheets');
         const sheetId = await getOrCreateSpreadsheetId();
@@ -136,26 +200,42 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
           lomba
         ]);
       } catch (sheetError) {
-        console.log("Google Sheets integration requires OAuth login or is not fully configured.", sheetError);
+        // Optional integration
       }
 
       const encodedMessage = encodeURIComponent(message);
-      // Contact routing: MLBB & FF -> +62 838-7539-3428, EA SPORTS FC -> +62 823-1290-7731
       const isMLorFF = lomba.includes("Mobile Legends") || lomba.includes("Free Fire");
       const whatsappNumber = isMLorFF ? "6283875393428" : "6282312907731";
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
-      
+
+      // Reset form controls
       e.currentTarget.reset();
       setNamaInput("");
       setPlayerInputs(["", "", "", "", ""]);
       setCadanganInput("");
-      
-      await new Promise(resolve => setTimeout(resolve, 800));
-      window.open(whatsappUrl, "_blank");
-      
+
+      // Trigger Website Success Modal!
+      setSuccessData({
+        registration: res.registration,
+        totalFee,
+        whatsappUrl,
+        whatsappNumber
+      });
+
+      // Also attempt opening WhatsApp popup automatically
+      try {
+        window.open(whatsappUrl, "_blank");
+      } catch (e) {
+        // Popups might be blocked by browser; user can still click the modal button!
+      }
+
     } catch (err: any) {
-      console.error(err);
-      setErrorText("Terjadi kesalahan sistem. Silakan coba lagi.");
+      console.error("Submission error:", err);
+      setErrorText(
+        err?.message 
+          ? `Gagal mengirim data: ${err.message}` 
+          : "Terjadi kesalahan koneksi sistem. Silakan periksa jaringan internet Anda dan coba lagi."
+      );
     } finally {
       setIsSubmitting(false);
     }
@@ -169,11 +249,11 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 z-50 bg-white/80 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center"
+            className="absolute inset-0 z-50 bg-white/90 backdrop-blur-md flex flex-col items-center justify-center p-6 text-center"
           >
             <motion.div
               animate={{ rotate: 360 }}
-              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              transition={{ repeat: Infinity, duration: 1.2, ease: "linear" }}
               className="w-16 h-16 border-4 border-primary/20 border-t-primary rounded-full mb-6 relative"
             >
                <div className="absolute inset-0 bg-primary/10 rounded-full animate-pulse" />
@@ -184,24 +264,137 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
               transition={{ delay: 0.2 }}
               className="text-xl sm:text-2xl font-bold font-heading text-dark mb-2"
             >
-              Memproses Pendaftaran...
+              Menyimpan Data Pendaftaran...
             </motion.h3>
             <motion.p 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
+              transition={{ delay: 0.3 }}
               className="text-secondary text-sm sm:text-base font-medium max-w-xs mx-auto"
             >
-              Mohon tunggu sebentar, kami sedang menyiapkan lembar pendaftaran Anda ke sistem.
+              Data Anda sedang dimasukkan ke sistem & dashboard panitia secara aman.
             </motion.p>
           </motion.div>
         )}
       </AnimatePresence>
 
+      {/* Website Success Modal */}
+      <AnimatePresence>
+        {successData && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/80 backdrop-blur-md p-4 overflow-y-auto">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-lg shadow-2xl relative border border-slate-100 my-8"
+            >
+              <button
+                type="button"
+                onClick={() => setSuccessData(null)}
+                className="absolute top-4 right-4 p-2 text-gray-400 bg-gray-100 hover:bg-gray-200 hover:text-dark rounded-full transition-colors"
+                title="Tutup Modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              <div className="flex flex-col items-center text-center mb-6">
+                <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mb-3 shadow-inner">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-black tracking-wider uppercase mb-2">
+                  Status: Pending Verifikasi
+                </span>
+                <h3 className="text-2xl sm:text-3xl font-black font-heading text-slate-900 leading-tight">
+                  Pendaftaran Berhasil!
+                </h3>
+                <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
+                  Data pendaftaran Anda telah berhasil tersimpan di sistem & masuk ke Admin Dashboard Panitia.
+                </p>
+              </div>
+
+              {/* Detail Ringkasan pendaftaran */}
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 sm:p-5 space-y-3 mb-6 text-xs sm:text-sm">
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="text-slate-500 font-medium">Nama / Tim:</span>
+                  <span className="font-extrabold text-slate-900">{successData.registration.nama}</span>
+                </div>
+
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="text-slate-500 font-medium">Lomba eSport:</span>
+                  <span className="font-bold text-primary">{successData.registration.lomba}</span>
+                </div>
+
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="text-slate-500 font-medium">Kategori Usia:</span>
+                  <span className="font-bold text-slate-800">{successData.registration.kategori} ({successData.registration.usia} Thn)</span>
+                </div>
+
+                <div className="flex justify-between items-center border-b border-slate-200 pb-2">
+                  <span className="text-slate-500 font-medium">Asal Kampung / No. WA:</span>
+                  <span className="font-medium text-slate-800">{successData.registration.alamat} • {successData.registration.wa}</span>
+                </div>
+
+                {successData.registration.players && successData.registration.players.length > 0 && (
+                  <div className="border-b border-slate-200 pb-2">
+                    <span className="text-slate-500 font-medium block mb-1">Anggota Tim Terdaftar:</span>
+                    <span className="font-semibold text-slate-800 bg-white p-2 rounded border border-slate-200 block leading-relaxed">
+                      {successData.registration.players.join(", ")}
+                    </span>
+                  </div>
+                )}
+
+                <div className="flex justify-between items-center pt-1">
+                  <span className="text-slate-900 font-bold">Total Biaya Pendaftaran:</span>
+                  <span className="font-black text-emerald-600 text-base sm:text-lg">
+                    Rp {successData.totalFee.toLocaleString('id-ID')}
+                  </span>
+                </div>
+              </div>
+
+              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 font-medium space-y-2 mb-6">
+                <div className="flex items-center gap-1.5 font-bold text-amber-950">
+                  <ShieldCheck className="w-4 h-4 text-amber-700 shrink-0" />
+                  <span>Langkah Terakhir (Konfirmasi Pembayaran):</span>
+                </div>
+                <p className="leading-relaxed">
+                  Silakan klik tombol di bawah untuk membuka chat WhatsApp panitia, kirim pesan konfirmasi, dan melampirkan screenshot bukti transfer biaya pendaftaran.
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <a
+                  href={successData.whatsappUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => setSuccessData(null)}
+                  className="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold py-4 px-6 rounded-2xl transition-all shadow-lg shadow-emerald-600/30 flex items-center justify-center gap-2 text-sm sm:text-base uppercase tracking-wider group"
+                >
+                  <WhatsAppIcon className="w-5 h-5 text-white" />
+                  <span>Konfirmasi via WhatsApp</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </a>
+
+                <button
+                  type="button"
+                  onClick={() => setSuccessData(null)}
+                  className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 px-6 rounded-2xl transition-colors text-xs uppercase tracking-wider"
+                >
+                  Selesai & Tutup Halaman
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Direct Error Banner */}
       {errorText && (
-        <div className="bg-red-50 text-primary p-3.5 sm:p-4 rounded-xl mb-4 sm:mb-6 border border-red-100 text-sm font-semibold flex items-center gap-2">
-          <AlertCircle className="w-5 h-5 text-red-600 shrink-0" />
-          <span>{errorText}</span>
+        <div className="bg-red-50 text-red-900 p-4 rounded-2xl mb-6 border border-red-200 text-xs sm:text-sm font-semibold flex items-start gap-3 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <AlertCircle className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
+          <div className="space-y-1">
+            <span className="font-bold text-red-950 block">Gagal Mengirim Form Pendaftaran:</span>
+            <span className="leading-relaxed font-medium text-red-800">{errorText}</span>
+          </div>
         </div>
       )}
 
@@ -259,8 +452,17 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
       <form onSubmit={handleFormSubmit} className="space-y-4 sm:space-y-6 relative z-0 w-full">
         <div className="space-y-1.5 sm:space-y-2">
-          <label className="text-xs sm:text-sm font-semibold text-dark">Pilihan Lomba eSport</label>
-          <select required name="lomba" value={selectedGame} onChange={(e) => setSelectedGame(e.target.value)} className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
+          <label className="text-xs sm:text-sm font-semibold text-dark">Pilihan Lomba eSport <span className="text-red-500">*</span></label>
+          <select 
+            required 
+            name="lomba" 
+            value={selectedGame} 
+            onChange={(e) => {
+              setSelectedGame(e.target.value);
+              setErrorText("");
+            }} 
+            className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none font-medium"
+          >
             <option value="">Pilih Game eSport</option>
             <option value="Mobile Legends: Bang-Bang (Tim)">Mobile Legends: Bang-Bang (Tim - 5 Orang)</option>
             <option value="Free Fire (Squad)">Free Fire (Squad - 4 Orang)</option>
@@ -273,7 +475,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs sm:text-sm font-semibold text-dark flex items-center justify-between">
-                  <span>{selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Nama Peserta' : 'Nama Tim / Squad'}</span>
+                  <span>{selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Nama Peserta' : 'Nama Tim / Squad'} <span className="text-red-500">*</span></span>
                 </label>
                 <input 
                   required 
@@ -287,9 +489,9 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
               </div>
               <div className="space-y-1.5 sm:space-y-2">
                 <label className="text-xs sm:text-sm font-semibold text-dark">
-                  {selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Usia' : 'Rata-rata Usia Tim'}
+                  {selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Usia' : 'Rata-rata Usia Tim'} <span className="text-red-500">*</span>
                 </label>
-                <input required type="number" name="usia" max="50" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="Misal: 18" />
+                <input required type="number" name="usia" min="5" max="70" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none font-medium" placeholder="Misal: 18" />
               </div>
             </div>
 
@@ -339,19 +541,25 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-semibold text-dark">Alamat / Asal Kampung</label>
-                <input required type="text" name="alamat" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="RT/RW, Kp." />
+                <label className="text-xs sm:text-sm font-semibold text-dark">Alamat / Asal Kampung <span className="text-red-500">*</span></label>
+                <input required type="text" name="alamat" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none font-medium" placeholder="RT/RW, Kp. Padasuka" />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-semibold text-dark">Nomor WhatsApp Aktif</label>
-                <input required type="tel" name="wa" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none" placeholder="08..." />
+                <label className="text-xs sm:text-sm font-semibold text-dark">Nomor WhatsApp Aktif <span className="text-red-500">*</span></label>
+                <input required type="tel" name="wa" className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-sm sm:text-base outline-none font-medium" placeholder="08..." />
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
               <div className="space-y-1.5 sm:space-y-2">
-                <label className="text-xs sm:text-sm font-semibold text-dark">Kategori</label>
-                <select required name="kategori" value={selectedKategori} onChange={(e) => setSelectedKategori(e.target.value)} className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none">
+                <label className="text-xs sm:text-sm font-semibold text-dark">Kategori Usia <span className="text-red-500">*</span></label>
+                <select 
+                  required 
+                  name="kategori" 
+                  value={selectedKategori} 
+                  onChange={(e) => setSelectedKategori(e.target.value)} 
+                  className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none font-medium"
+                >
                   <option value="">Pilih Kategori Usia</option>
                   {getPricingConfig().map(p => (
                     <option key={p.label} value={p.label}>{p.label} - Rp {(p.price / 1000)}K/org</option>
@@ -364,7 +572,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   <label className="text-xs sm:text-sm font-semibold text-dark mb-2 block">Total Biaya Pendaftaran</label>
                   <div className="bg-primary/10 border border-primary/20 rounded-[12px] p-4 flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold text-primary block">Rp {feePerPerson.toLocaleString('id-ID')} x {playerCount} Orang ({selectedGame.includes('FC 26') ? 'Individu' : 'Tim'})</span>
+                      <span className="text-xs font-semibold text-primary block">Rp {feePerPerson.toLocaleString('id-ID')} x {playerCount} Orang ({selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Individu' : 'Tim'})</span>
                     </div>
                     <span className="text-lg font-black text-primary">Rp {totalFee.toLocaleString('id-ID')}</span>
                   </div>
@@ -391,7 +599,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             <button 
               type="submit" 
               disabled={isSubmitting}
-              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 sm:py-4 rounded-[16px] mt-4 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base uppercase tracking-wide"
+              className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 sm:py-4 rounded-[16px] mt-4 transition-all shadow-lg shadow-primary/20 hover:shadow-primary/40 hover:-translate-y-0.5 active:translate-y-0 flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm sm:text-base uppercase tracking-wide cursor-pointer"
             >
               {isSubmitting ? (
                 <Loader2 className="animate-spin w-5 h-5 cursor-wait" />
@@ -432,7 +640,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             <button
               type="button"
               onClick={() => setShowTerms(false)}
-              className="mt-8 w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg"
+              className="mt-8 w-full py-3.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg cursor-pointer"
             >
               Saya Mengerti
             </button>
@@ -474,45 +682,11 @@ Halo Panitia, saya tertarik untuk menjadi Sponsor dengan detil berikut:
 Mohon informasi lebih lanjut mengenai teknis pengiriman logo dan MoU. Saya siap mendukung kesuksesan Festival!`;
 
     try {
-      // Save to Firebase (sponsors collection)
-      try {
-        await addDoc(collection(db, "sponsors"), {
-          nama,
-          perusahaan,
-          paket,
-          wa,
-          pesan,
-          status: "pending",
-          createdAt: serverTimestamp()
-        });
-      } catch (fbErr) {
-        console.error("Firebase save err:", fbErr);
-      }
-
-      // Try saving to Google Sheets if authenticated
-      try {
-        const { getOrCreateSpreadsheetId, appendRowToSheet } = await import('../sheets');
-        const sheetId = await getOrCreateSpreadsheetId();
-        await appendRowToSheet(sheetId, [
-          new Date().toLocaleString('id-ID'),
-          nama,
-          "-",
-          "Sponsor",
-          perusahaan,
-          wa,
-          "-",
-          paket,
-          pesan || "-"
-        ]);
-      } catch (sheetError) {
-        console.log("Google Sheets integration requires OAuth login or is not fully configured.", sheetError);
-      }
-
       const encodedMessage = encodeURIComponent(message);
       const whatsappNumber = "6282312907731";
       const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodedMessage}`;
       
-      await new Promise(resolve => setTimeout(resolve, 800));
+      await new Promise(resolve => setTimeout(resolve, 600));
       window.open(whatsappUrl, "_blank");
       onClose();
     } catch (err: any) {
@@ -618,7 +792,7 @@ Mohon informasi lebih lanjut mengenai teknis pengiriman logo dan MoU. Saya siap 
       <button 
         type="submit" 
         disabled={isSubmitting}
-        className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-[12px] mt-2 transition-all shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm uppercase tracking-wide"
+        className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3.5 rounded-[12px] mt-2 transition-all shadow-lg flex items-center justify-center gap-2.5 disabled:opacity-70 disabled:cursor-not-allowed text-sm uppercase tracking-wide cursor-pointer"
       >
         {isSubmitting ? <Loader2 className="animate-spin w-5 h-5" /> : (
           <>

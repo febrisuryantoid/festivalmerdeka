@@ -1,19 +1,25 @@
 import React, { useState, useEffect } from "react";
-import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { Users, Gamepad2, ShieldCheck, User } from "lucide-react";
+import { Gamepad2, ShieldCheck, User } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
+import { getLocalRegistrations, mergeRegistrations, RegistrationData } from "../lib/registrationsStore";
 
 export function LiveLeaderboard() {
-  const [participants, setParticipants] = useState<any[]>([]);
+  const [participants, setParticipants] = useState<RegistrationData[]>([]);
   const [activeTab, setActiveTab] = useState("Mobile Legends");
 
   useEffect(() => {
-    const q = query(collection(db, "registrations"), where("status", "==", "verified"));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setParticipants(data);
+    const unsub = onSnapshot(collection(db, "registrations"), (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      const local = getLocalRegistrations();
+      const merged = mergeRegistrations(docs, local);
+      setParticipants(merged.filter(p => p.status === "verified"));
+    }, (error) => {
+      console.warn("Leaderboard snapshot fallback to local:", error);
+      const local = getLocalRegistrations().filter(p => p.status === "verified");
+      setParticipants(local);
     });
     return unsub;
   }, []);

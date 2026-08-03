@@ -1,13 +1,22 @@
 import React, { useState, useEffect } from "react";
 import { auth, db } from "./firebase";
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword, onAuthStateChanged, signOut } from "firebase/auth";
-import { collection, query, orderBy, onSnapshot, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, onSnapshot } from "firebase/firestore";
 import { 
   ShieldAlert, LogOut, CheckCircle, Clock, Trash2, Users, Trophy, 
-  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, Sparkles, AlertTriangle
+  Lock, Eye, EyeOff, ShieldCheck, KeyRound, Search, Filter, Download, AlertTriangle, RefreshCw
 } from "lucide-react";
 import { WhatsAppIcon } from "./components/WhatsAppIcon";
-import { SLOT_TARGETS, calculateDynamicPrize } from "./lib/utils";
+import { calculateDynamicPrize } from "./lib/utils";
+import { 
+  RegistrationData, 
+  getLocalRegistrations, 
+  mergeRegistrations, 
+  updateRegistrationStatusInStore, 
+  deleteRegistrationFromStore, 
+  syncLocalRegistrationsToFirestore, 
+  formatRegistrationDate 
+} from "./lib/registrationsStore";
 
 // Security Salt & SHA-256 Hashes for credentials verification
 const SECURITY_SALT = "padasuka_esport_2026_salt_99";
@@ -33,9 +42,13 @@ export default function AdminPanel() {
   const [loginError, setLoginError] = useState("");
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [lockoutTimer, setLockoutTimer] = useState(0);
-  const [registrations, setRegistrations] = useState<any[]>([]);
+  
+  const [firestoreDocs, setFirestoreDocs] = useState<any[]>([]);
+  const [mergedRegistrations, setMergedRegistrations] = useState<RegistrationData[]>([]);
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [gameFilter, setGameFilter] = useState("all");
+  const [actionNotice, setActionNotice] = useState<string | null>(null);
 
   // Injeksi meta tag robots noindex untuk URL /melbu
   useEffect(() => {
@@ -94,16 +107,35 @@ export default function AdminPanel() {
     return unsub;
   }, []);
 
-  // Real-time Firestore fetch
+  // Real-time Firestore fetch & Auto-sync local storage
   useEffect(() => {
     if (!user) return;
-    const q = query(collection(db, "registrations"), orderBy("createdAt", "desc"));
-    const unsub = onSnapshot(q, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setRegistrations(data);
+
+    // Trigger sync unsynced local registrations to Firestore automatically
+    syncLocalRegistrationsToFirestore().catch(err => console.error("Auto sync err:", err));
+
+    const colRef = collection(db, "registrations");
+    const unsub = onSnapshot(colRef, (snapshot) => {
+      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setFirestoreDocs(docs);
+    }, (error) => {
+      console.warn("Firestore snapshot error, falling back to local registrations:", error);
     });
+
     return unsub;
   }, [user]);
+
+  // Combine Firestore and LocalStorage whenever either updates
+  useEffect(() => {
+    const local = getLocalRegistrations();
+    const merged = mergeRegistrations(firestoreDocs, local);
+    setMergedRegistrations(merged);
+  }, [firestoreDocs]);
+
+  const showToast = (msg: string) => {
+    setActionNotice(msg);
+    setTimeout(() => setActionNotice(null), 4000);
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,20 +206,40 @@ export default function AdminPanel() {
     await signOut(auth).catch(() => {});
   };
 
-  const updateStatus = async (id: string, status: string) => {
-    await updateDoc(doc(db, "registrations", id), { status });
+  const updateStatus = async (id: string, status: "pending" | "verified") => {
+    try {
+      await updateRegistrationStatusInStore(id, status);
+      
+      // Update state locally for immediate UI response
+      setMergedRegistrations(prev => 
+        prev.map(r => r.id === id ? { ...r, status } : r)
+      );
+
+      showToast(`Status pendaftaran berhasil diperbarui menjadi: ${status.toUpperCase()}`);
+    } catch (err) {
+      console.error("Failed to update status:", err);
+      showToast("Gagal memperbarui status.");
+    }
   };
 
   const deleteRegistration = async (id: string) => {
     if (window.confirm("Hapus data pendaftaran ini secara permanen?")) {
-      await deleteDoc(doc(db, "registrations", id));
+      try {
+        await deleteRegistrationFromStore(id);
+        
+        setMergedRegistrations(prev => prev.filter(r => r.id !== id));
+        showToast("Data pendaftaran berhasil dihapus.");
+      } catch (err) {
+        console.error("Failed to delete registration:", err);
+        showToast("Gagal menghapus data.");
+      }
     }
   };
 
   const exportToCSV = () => {
-    if (registrations.length === 0) return;
+    if (mergedRegistrations.length === 0) return;
     const headers = ["Nama/Tim", "Kategori", "Lomba", "Alamat", "Nomor WA", "Pemain", "Status", "Tanggal"];
-    const rows = registrations.map((r) => [
+    const rows = mergedRegistrations.map((r) => [
       `"${r.nama || ''}"`,
       `"${r.kategori || ''}"`,
       `"${r.lomba || ''}"`,
@@ -195,7 +247,7 @@ export default function AdminPanel() {
       `"${r.wa || ''}"`,
       `"${Array.isArray(r.players) ? r.players.join('; ') : ''}"`,
       `"${r.status || ''}"`,
-      `"${r.createdAt ? new Date(r.createdAt.seconds * 1000).toLocaleString('id-ID') : ''}"`
+      `"${formatRegistrationDate(r.createdAt)}"`
     ]);
     const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
     const encodedUri = encodeURI(csvContent);
@@ -292,7 +344,7 @@ export default function AdminPanel() {
             <button
               type="submit"
               disabled={loading || lockoutTimer > 0}
-              className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-primary/30 flex justify-center items-center gap-2 uppercase tracking-wider text-sm mt-2 disabled:opacity-50"
+              className="w-full bg-primary hover:bg-primary-dark text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-primary/30 flex justify-center items-center gap-2 uppercase tracking-wider text-sm mt-2 disabled:opacity-50 cursor-pointer"
             >
               <Lock className="w-4 h-4" /> Masuk System Admin
             </button>
@@ -315,7 +367,7 @@ export default function AdminPanel() {
   }
 
   // Filtering Data
-  const filteredRegistrations = registrations.filter((r) => {
+  const filteredRegistrations = mergedRegistrations.filter((r) => {
     const matchesSearch =
       (r.nama && r.nama.toLowerCase().includes(searchTerm.toLowerCase())) ||
       (r.alamat && r.alamat.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -324,10 +376,18 @@ export default function AdminPanel() {
     return matchesSearch && matchesGame;
   });
 
-  const pendingCount = registrations.filter((r) => r.status === "pending").length;
+  const pendingCount = mergedRegistrations.filter((r) => r.status === "pending").length;
 
   return (
     <div className="min-h-screen bg-slate-50 text-dark">
+      {/* Toast Notice */}
+      {actionNotice && (
+        <div className="fixed top-20 right-4 z-[100] bg-slate-900 text-white border border-slate-700 px-4 py-3 rounded-xl shadow-2xl text-xs sm:text-sm font-semibold animate-in fade-in slide-in-from-top-2 flex items-center gap-2">
+          <CheckCircle className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{actionNotice}</span>
+        </div>
+      )}
+
       {/* Navbar Dashboard */}
       <nav className="bg-slate-900 text-white border-b border-slate-800 px-4 sm:px-8 py-4 flex flex-wrap justify-between items-center sticky top-0 z-50 shadow-md">
         <div className="flex items-center gap-3">
@@ -348,6 +408,13 @@ export default function AdminPanel() {
         </div>
 
         <div className="flex items-center gap-3 mt-3 sm:mt-0">
+          <button
+            onClick={() => syncLocalRegistrationsToFirestore().then(() => showToast("Sinkronisasi data lokal ke Firestore selesai."))}
+            className="flex items-center gap-1.5 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-2 rounded-lg transition-colors border border-slate-700"
+            title="Sinkronisasi Data Lokal ke Cloud"
+          >
+            <RefreshCw className="w-3.5 h-3.5 text-blue-400" /> Sync Cloud
+          </button>
           <button
             onClick={exportToCSV}
             className="flex items-center gap-2 text-xs font-bold bg-slate-800 hover:bg-slate-700 text-white px-3.5 py-2 rounded-lg transition-colors border border-slate-700"
@@ -383,7 +450,7 @@ export default function AdminPanel() {
             </div>
             <div>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Terverifikasi</p>
-              <p className="text-2xl font-black text-slate-900">{registrations.length - pendingCount}</p>
+              <p className="text-2xl font-black text-slate-900">{mergedRegistrations.length - pendingCount}</p>
             </div>
           </div>
 
@@ -393,7 +460,7 @@ export default function AdminPanel() {
             </div>
             <div>
               <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Total Registrasi</p>
-              <p className="text-2xl font-black text-slate-900">{registrations.length}</p>
+              <p className="text-2xl font-black text-slate-900">{mergedRegistrations.length}</p>
             </div>
           </div>
         </div>
@@ -411,7 +478,7 @@ export default function AdminPanel() {
               unitName: 'Tim',
               color: 'amber',
               badgeColor: 'bg-amber-100 text-amber-800 border-amber-200',
-              count: registrations.filter(r => r.status === 'verified' && r.lomba?.includes('Mobile Legends')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 5), 0)
+              count: mergedRegistrations.filter(r => r.status === 'verified' && r.lomba?.includes('Mobile Legends')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 5), 0)
             },
             {
               id: 'ff',
@@ -423,7 +490,7 @@ export default function AdminPanel() {
               unitName: 'Squad',
               color: 'rose',
               badgeColor: 'bg-rose-100 text-rose-800 border-rose-200',
-              count: registrations.filter(r => r.status === 'verified' && r.lomba?.includes('Free Fire')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 4), 0)
+              count: mergedRegistrations.filter(r => r.status === 'verified' && r.lomba?.includes('Free Fire')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 4), 0)
             },
             {
               id: 'fc',
@@ -435,7 +502,7 @@ export default function AdminPanel() {
               unitName: 'Peserta',
               color: 'cyan',
               badgeColor: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-              count: registrations.filter(r => r.status === 'verified' && r.lomba?.includes('FC')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 1), 0)
+              count: mergedRegistrations.filter(r => r.status === 'verified' && r.lomba?.includes('FC')).reduce((sum, r) => sum + (Array.isArray(r.players) && r.players.length > 0 ? r.players.length : 1), 0)
             }
           ].map((game) => {
             const result = calculateDynamicPrize(game.key, game.count);
@@ -527,7 +594,7 @@ export default function AdminPanel() {
                   <th className="px-6 py-4">Nama/Tim & Pemain</th>
                   <th className="px-6 py-4">Kategori & Lomba</th>
                   <th className="px-6 py-4">Asal & Kontak WA</th>
-                  <th className="px-6 py-4">Status</th>
+                  <th className="px-6 py-4">Status & Waktu</th>
                   <th className="px-6 py-4 text-right">Aksi Verifikasi</th>
                 </tr>
               </thead>
@@ -542,7 +609,14 @@ export default function AdminPanel() {
                   filteredRegistrations.map((reg) => (
                     <tr key={reg.id} className="hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4">
-                        <div className="font-extrabold text-slate-900 text-sm">{reg.nama}</div>
+                        <div className="font-extrabold text-slate-900 text-sm flex items-center gap-2">
+                          <span>{reg.nama}</span>
+                          {!reg.firestoreSynced && (
+                            <span className="text-[10px] font-bold bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded border border-amber-300" title="Tersimpan di memori lokal">
+                              Lokal
+                            </span>
+                          )}
+                        </div>
                         {(Array.isArray(reg.players) && reg.players.length > 0) || reg.anggotaTim ? (
                           <div className="text-xs text-slate-500 mt-1 space-y-0.5">
                             <p className="font-medium text-slate-600">Anggota Squad:</p>
@@ -571,35 +645,40 @@ export default function AdminPanel() {
                         </a>
                       </td>
                       <td className="px-6 py-4">
-                        {reg.status === "pending" ? (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
-                            <Clock className="w-3.5 h-3.5" /> Pending
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
-                            <CheckCircle className="w-3.5 h-3.5" /> Verified
-                          </span>
-                        )}
+                        <div className="space-y-1">
+                          {reg.status === "pending" ? (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                              <Clock className="w-3.5 h-3.5" /> Pending
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                              <CheckCircle className="w-3.5 h-3.5" /> Verified
+                            </span>
+                          )}
+                          <div className="text-[10px] text-slate-400 font-mono">
+                            {formatRegistrationDate(reg.createdAt)}
+                          </div>
+                        </div>
                       </td>
                       <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                         {reg.status === "pending" ? (
                           <button
                             onClick={() => updateStatus(reg.id, "verified")}
-                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm"
+                            className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-lg transition-colors shadow-sm cursor-pointer"
                           >
                             Verifikasi
                           </button>
                         ) : (
                           <button
                             onClick={() => updateStatus(reg.id, "pending")}
-                            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors"
+                            className="px-3 py-1.5 bg-amber-100 hover:bg-amber-200 text-amber-800 text-xs font-bold rounded-lg transition-colors cursor-pointer"
                           >
                             Batalkan
                           </button>
                         )}
                         <button
                           onClick={() => deleteRegistration(reg.id)}
-                          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors"
+                          className="px-2.5 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg transition-colors cursor-pointer"
                           title="Hapus pendaftaran"
                         >
                           <Trash2 className="w-4 h-4" />
