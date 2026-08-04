@@ -41,15 +41,13 @@ export async function appendRowToSheet(sheetId: string = DEFAULT_SPREADSHEET_ID,
 }
 
 export async function syncAllRegistrationsToSheet(
-  sheetId: string = DEFAULT_SPREADSHEET_ID,
+  sheetIdOrUrl: string = DEFAULT_SPREADSHEET_ID,
   registrations: any[]
 ) {
-  const token = await getAccessToken();
-  if (!token) {
-    throw new Error("Akses token Google Sheets belum aktif. Silakan login akun Google terlebih dahulu.");
-  }
+  const webhookUrl = localStorage.getItem("padasuka_sheet_webhook_url") || "";
 
-  const rows = registrations.map((r) => [
+  const rows = registrations.map((r, idx) => [
+    idx + 1,
     r.nama || "-",
     Array.isArray(r.players) ? r.players.filter(Boolean).join(", ") : (r.anggotaTim || "-"),
     r.usia || "-",
@@ -61,10 +59,40 @@ export async function syncAllRegistrationsToSheet(
     r.createdAt ? new Date(r.createdAt).toLocaleString("id-ID") : "-"
   ]);
 
-  const allValues = [SHEET_HEADERS, ...rows];
+  const payload = {
+    action: "sync_all",
+    headers: ["No", ...SHEET_HEADERS],
+    rows: rows,
+    registrations: registrations
+  };
+
+  // If Webhook Apps Script URL is set, use Webhook (bypasses Google OAuth Advanced Protection!)
+  if (webhookUrl && webhookUrl.startsWith("https://script.google.com/")) {
+    const res = await fetch(webhookUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "text/plain;charset=utf-8",
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!res.ok) {
+      throw new Error(`Gagal mengirim data ke Webhook Apps Script (${res.status})`);
+    }
+
+    return { status: "success", mode: "webhook" };
+  }
+
+  // Fallback to Google Sheets Direct API via OAuth
+  const token = await getAccessToken();
+  if (!token) {
+    throw new Error("Akses token Google Sheets belum aktif. Silakan login akun Google terlebih dahulu.");
+  }
+
+  const allValues = [["No", ...SHEET_HEADERS], ...rows];
 
   const response = await fetch(
-    `https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/Sheet1!A1?valueInputOption=USER_ENTERED`,
+    `https://sheets.googleapis.com/v4/spreadsheets/${sheetIdOrUrl}/values/Sheet1!A1?valueInputOption=USER_ENTERED`,
     {
       method: "PUT",
       headers: {

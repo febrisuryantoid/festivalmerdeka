@@ -173,15 +173,69 @@ export async function submitRegistration(data: Omit<RegistrationData, "id" | "st
   };
 }
 
+export function getRegistrationSignature(r: Partial<RegistrationData>): string {
+  const normNama = normalizeStr(r.nama || "");
+  const normWa = normalizePhone(r.wa || "");
+  const normLomba = normalizeStr(r.lomba || "");
+  if (normNama && normWa && normLomba) {
+    return `${normNama}|${normWa}|${normLomba}`;
+  }
+  return r.id || r.localId || `id_${Math.random()}`;
+}
+
 /**
- * Synchronize any local registrations that failed to upload to Firestore
+ * Synchronize any local registrations that failed to upload to Firestore without creating duplicates.
  */
-export async function syncLocalRegistrationsToFirestore() {
+export async function syncLocalRegistrationsToFirestore(existingFirestoreDocs?: any[]) {
   const localItems = getLocalRegistrations();
   const unsynced = localItems.filter(item => !item.firestoreSynced);
+  
+  // Fetch Firestore docs if not provided
+  let firestoreItems = existingFirestoreDocs || [];
+  if (!existingFirestoreDocs || existingFirestoreDocs.length === 0) {
+    try {
+      const qSnap = await getDocs(collection(db, "registrations"));
+      firestoreItems = qSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (e) {
+      console.warn("Could not fetch Firestore docs for sync deduplication:", e);
+    }
+  }
+
+  // Map existing Firestore signatures and IDs
+  const existingSigs = new Set<string>();
+  const existingIds = new Set<string>();
+
+  for (const fDoc of firestoreItems) {
+    if (fDoc.id) existingIds.add(fDoc.id);
+    if (fDoc.localId) existingIds.add(fDoc.localId);
+    existingSigs.add(getRegistrationSignature(fDoc));
+  }
+
+  // Clean up duplicate documents in Firestore if present
+  if (firestoreItems.length > 1) {
+    await cleanupFirestoreDuplicates(firestoreItems);
+  }
+
   if (unsynced.length === 0) return;
 
   for (const item of unsynced) {
+    const itemSig = getRegistrationSignature(item);
+    const itemLocalId = item.localId || item.id;
+
+    // Check if this item ALREADY exists in Firestore
+    if (existingSigs.has(itemSig) || (itemLocalId && existingIds.has(itemLocalId))) {
+      // Already uploaded or matched! DO NOT call addDoc again!
+      const updated = getLocalRegistrations().map(l => {
+        if (l.localId === item.localId || l.id === item.id) {
+          return { ...l, firestoreSynced: true };
+        }
+        return l;
+      });
+      saveLocalRegistrations(updated);
+      continue;
+    }
+
+    // Truly unsynced new item: upload to Firestore
     try {
       const docRef = await addDoc(collection(db, "registrations"), {
         nama: item.nama,
@@ -197,8 +251,11 @@ export async function syncLocalRegistrationsToFirestore() {
         localId: item.localId
       });
 
+      existingSigs.add(itemSig);
+      existingIds.add(docRef.id);
+
       const updated = getLocalRegistrations().map(l => {
-        if (l.localId === item.localId) {
+        if (l.localId === item.localId || l.id === item.id) {
           return { ...l, id: docRef.id, firestoreSynced: true };
         }
         return l;
@@ -211,50 +268,116 @@ export async function syncLocalRegistrationsToFirestore() {
 }
 
 /**
- * Merge Firestore documents and LocalStorage items safely
+ * Merge Firestore documents and LocalStorage items safely with strict deduplication
  */
 export function mergeRegistrations(firestoreItems: any[], localItems: RegistrationData[]): RegistrationData[] {
-  const map = new Map<string, RegistrationData>();
+  const mapBySig = new Map<string, RegistrationData>();
 
-  // Add local items first
-  for (const item of localItems) {
-    const key = item.id || item.localId || `local_${Math.random()}`;
-    map.set(key, { ...item });
-  }
-
-  // Overlay Firestore items (Firestore is authoritative if present)
+  // Overlay Firestore items first
   for (const docItem of firestoreItems) {
     const firestoreId = docItem.id;
-    const localMatch = docItem.localId 
-      ? localItems.find(l => l.localId === docItem.localId || l.id === firestoreId)
-      : localItems.find(l => l.id === firestoreId);
-
-    const merged: RegistrationData = {
+    const item: RegistrationData = {
       id: firestoreId,
-      localId: docItem.localId || localMatch?.localId,
-      nama: docItem.nama || localMatch?.nama || "-",
-      players: Array.isArray(docItem.players) ? docItem.players : (localMatch?.players || []),
-      anggotaTim: docItem.anggotaTim || localMatch?.anggotaTim || "",
-      usia: docItem.usia || localMatch?.usia || "-",
-      kategori: docItem.kategori || localMatch?.kategori || "-",
-      alamat: docItem.alamat || localMatch?.alamat || "-",
-      wa: docItem.wa || localMatch?.wa || "-",
-      lomba: docItem.lomba || localMatch?.lomba || "-",
-      status: docItem.status || localMatch?.status || "pending",
-      createdAt: docItem.createdAt || localMatch?.createdAt || new Date().toISOString(),
+      localId: docItem.localId,
+      nama: docItem.nama || "-",
+      players: Array.isArray(docItem.players) ? docItem.players : [],
+      anggotaTim: docItem.anggotaTim || "",
+      usia: docItem.usia || "-",
+      kategori: docItem.kategori || "-",
+      alamat: docItem.alamat || "-",
+      wa: docItem.wa || "-",
+      lomba: docItem.lomba || "-",
+      status: ((docItem.status || "pending").toString().toLowerCase().trim() === "verified" ? "verified" : "pending"),
+      createdAt: docItem.createdAt || new Date().toISOString(),
       firestoreSynced: true
     };
 
-    if (localMatch?.localId) {
-      map.delete(localMatch.localId);
+    const sig = getRegistrationSignature(item);
+    if (!mapBySig.has(sig)) {
+      mapBySig.set(sig, item);
+    } else {
+      // Deduplicate: prefer "verified" status
+      const existing = mapBySig.get(sig)!;
+      if (item.status === "verified" && existing.status !== "verified") {
+        mapBySig.set(sig, { ...item, firestoreSynced: true });
+      }
     }
-    map.set(firestoreId, merged);
+  }
+
+  // Process local items
+  for (const local of localItems) {
+    const sig = getRegistrationSignature(local);
+    const localStatus = (local.status || "pending").toString().toLowerCase().trim() === "verified" ? "verified" : "pending";
+
+    if (mapBySig.has(sig)) {
+      const existing = mapBySig.get(sig)!;
+      const merged: RegistrationData = {
+        ...existing,
+        localId: local.localId || existing.localId,
+        players: (existing.players && existing.players.length) ? existing.players : local.players,
+        anggotaTim: existing.anggotaTim || local.anggotaTim,
+        status: (existing.status === "verified" || localStatus === "verified") ? "verified" : "pending",
+        firestoreSynced: true
+      };
+      mapBySig.set(sig, merged);
+    } else {
+      mapBySig.set(sig, {
+        ...local,
+        status: localStatus,
+        id: local.id || local.localId || `local_${Math.random()}`
+      });
+    }
   }
 
   // Convert map to array and sort by createdAt descending
-  const result = Array.from(map.values());
+  const result = Array.from(mapBySig.values());
   result.sort((a, b) => parseTimestampMillis(b.createdAt) - parseTimestampMillis(a.createdAt));
+
+  // Update local storage with clean deduplicated list
+  saveLocalRegistrations(result);
+
   return result;
+}
+
+/**
+ * Automatically cleans up duplicate records from Firestore if redundant records exist.
+ */
+export async function cleanupFirestoreDuplicates(firestoreItems: any[]): Promise<number> {
+  if (!firestoreItems || firestoreItems.length <= 1) return 0;
+
+  const seenSigs = new Map<string, any>();
+  const duplicateDocIdsToDelete: string[] = [];
+
+  for (const item of firestoreItems) {
+    const sig = getRegistrationSignature(item);
+    if (!seenSigs.has(sig)) {
+      seenSigs.set(sig, item);
+    } else {
+      const existing = seenSigs.get(sig);
+      const isExistingVerified = (existing.status || "").toString().toLowerCase() === "verified";
+      const isItemVerified = (item.status || "").toString().toLowerCase() === "verified";
+
+      if (isItemVerified && !isExistingVerified) {
+        duplicateDocIdsToDelete.push(existing.id);
+        seenSigs.set(sig, item);
+      } else {
+        duplicateDocIdsToDelete.push(item.id);
+      }
+    }
+  }
+
+  let deletedCount = 0;
+  for (const docId of duplicateDocIdsToDelete) {
+    if (docId) {
+      try {
+        await deleteDoc(doc(db, "registrations", docId));
+        deletedCount++;
+      } catch (err) {
+        console.warn("Could not delete duplicate Firestore doc:", docId, err);
+      }
+    }
+  }
+  return deletedCount;
 }
 
 /**

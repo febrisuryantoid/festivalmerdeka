@@ -65,6 +65,10 @@ export default function AdminPanel() {
   const [sheetIdInput, setSheetIdInput] = useState(
     localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID
   );
+  const [webhookUrlInput, setWebhookUrlInput] = useState(
+    localStorage.getItem("padasuka_sheet_webhook_url") || ""
+  );
+  const [copiedScriptCode, setCopiedScriptCode] = useState(false);
 
   const [formNama, setFormNama] = useState("");
   const [formUsia, setFormUsia] = useState("");
@@ -161,8 +165,8 @@ export default function AdminPanel() {
   useEffect(() => {
     if (!user) return;
 
-    // Trigger sync unsynced local registrations to Firestore automatically
-    syncLocalRegistrationsToFirestore().catch(err => console.error("Auto sync err:", err));
+    // Trigger sync unsynced local registrations to Firestore automatically without duplicates
+    syncLocalRegistrationsToFirestore(firestoreDocs).catch(err => console.error("Auto sync err:", err));
 
     const colRef = collection(db, "registrations");
     const unsub = onSnapshot(colRef, (snapshot) => {
@@ -456,38 +460,53 @@ export default function AdminPanel() {
     try {
       showToast("Menyinkronkan data ke Google Spreadsheet...");
       const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
-      await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
-      showToast(`Berhasil menyinkronkan ${mergedRegistrations.length} data ke Google Spreadsheet!`);
+      const res = await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
+      if (res?.mode === "webhook") {
+        showToast(`Berhasil menyinkronkan ${mergedRegistrations.length} data via Webhook Apps Script!`);
+      } else {
+        showToast(`Berhasil menyinkronkan ${mergedRegistrations.length} data ke Google Spreadsheet!`);
+      }
     } catch (err: any) {
       console.warn("Spreadsheet sync error, checking Google Auth:", err);
-      if (err.message?.includes("Akses token") || err.message?.includes("login") || err.code === "auth/unauthorized-domain") {
+      const errMsg = err?.message || "";
+      if (errMsg.includes("policy_enforced") || errMsg.includes("400") || errMsg.includes("Advanced Protection") || errMsg.includes("Perlindungan Lanjutan")) {
+        setIsSheetSettingsOpen(true);
+        showToast("Perhatian: Akun Google Anda mengaktifkan Program Perlindungan Lanjutan. Gunakan opsi Webhook Apps Script di Pengaturan Sheet!");
+        return;
+      }
+
+      if (errMsg.includes("Akses token") || errMsg.includes("login") || err.code === "auth/unauthorized-domain") {
         try {
           await googleSignIn();
           const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
           await syncAllRegistrationsToSheet(sheetId, mergedRegistrations);
           showToast(`Berhasil terhubung & menyinkronkan ${mergedRegistrations.length} data ke Google Spreadsheet!`);
         } catch (authErr: any) {
-          if (authErr?.code === "auth/unauthorized-domain" || authErr?.message?.includes("unauthorized-domain")) {
+          const authErrMsg = authErr?.message || authErr?.code || "";
+          if (authErrMsg.includes("policy_enforced") || authErrMsg.includes("400")) {
+            setIsSheetSettingsOpen(true);
+            showToast("Login diblokir oleh Program Perlindungan Lanjutan Google. Gunakan opsi Webhook Apps Script di tombol Pengaturan!");
+          } else if (authErr?.code === "auth/unauthorized-domain" || authErrMsg.includes("unauthorized-domain")) {
             setIsUnauthorizedModalOpen(true);
             showToast("Perhatian: Domain festival.baros.my.id belum diotorisasi di Firebase Console.");
           } else {
-            showToast("Otentikasi Google dibatalkan atau gagal: " + (authErr?.message || "Error"));
+            showToast("Otentikasi Google dibatalkan atau gagal: " + authErrMsg);
           }
         }
       } else {
-        showToast("Gagal sync ke Sheet: " + (err?.message || "Terjadi kesalahan"));
+        showToast("Gagal sync ke Sheet: " + errMsg);
       }
     }
   };
 
   const handleSyncCloud = async () => {
     try {
-      showToast("Menyinkronkan data lokal ke Cloud Firestore...");
-      await syncLocalRegistrationsToFirestore();
+      showToast("Menyinkronkan data & membersihkan duplikasi di Cloud Firestore...");
+      await syncLocalRegistrationsToFirestore(firestoreDocs);
       const local = getLocalRegistrations();
       const updated = mergeRegistrations(firestoreDocs, local);
       setMergedRegistrations(updated);
-      showToast(`Sync Cloud Selesai! ${updated.length} data pendaftaran aktif di database.`);
+      showToast(`Sync Cloud Selesai! ${updated.length} data pendaftaran unik terverifikasi & bebas duplikasi.`);
     } catch (err: any) {
       console.error("Sync Cloud error:", err);
       showToast("Gagal sync Cloud: " + (err?.message || "Terjadi kesalahan"));
@@ -504,13 +523,19 @@ export default function AdminPanel() {
   const handleSaveSheetId = (e: React.FormEvent) => {
     e.preventDefault();
     const cleanId = sheetIdInput.trim();
-    if (!cleanId) {
-      alert("Spreadsheet ID tidak boleh kosong!");
-      return;
+    const cleanWebhook = webhookUrlInput.trim();
+
+    if (cleanId) {
+      localStorage.setItem("padasuka_spreadsheet_id", cleanId);
     }
-    localStorage.setItem("padasuka_spreadsheet_id", cleanId);
+    if (cleanWebhook) {
+      localStorage.setItem("padasuka_sheet_webhook_url", cleanWebhook);
+    } else {
+      localStorage.removeItem("padasuka_sheet_webhook_url");
+    }
+
     setIsSheetSettingsOpen(false);
-    showToast("ID Google Spreadsheet berhasil diperbarui!");
+    showToast("Pengaturan Google Spreadsheet berhasil disimpan!");
   };
 
   if (loading) {
@@ -1292,10 +1317,10 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
-      {/* Modal Settings Spreadsheet ID */}
+      {/* Modal Settings Spreadsheet ID & Webhook */}
       {isSheetSettingsOpen && (
-        <div className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-md shadow-2xl relative border border-slate-200">
+        <div className="fixed inset-0 z-[125] flex items-center justify-center bg-slate-950/80 backdrop-blur-sm p-4 overflow-y-auto">
+          <div className="bg-white rounded-3xl p-6 sm:p-8 w-full max-w-xl shadow-2xl relative border border-slate-200 my-8">
             <button
               onClick={() => setIsSheetSettingsOpen(false)}
               className="absolute top-5 right-5 p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-800 rounded-full transition-colors"
@@ -1313,33 +1338,89 @@ export default function AdminPanel() {
                   Pengaturan Google Sheet
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
-                  Konfigurasi Spreadsheet ID Tujuan
+                  Konfigurasi Integrasi & Bypass Program Perlindungan Lanjutan
                 </p>
               </div>
             </div>
 
-            <form onSubmit={handleSaveSheetId} className="space-y-4 text-xs font-medium text-slate-700">
-              <div>
-                <label className="block text-slate-800 font-bold mb-1.5">
-                  Spreadsheet ID *
+            <form onSubmit={handleSaveSheetId} className="space-y-5 text-xs font-medium text-slate-700">
+              {/* Solution 1: Webhook Apps Script (Bypasses Advanced Protection) */}
+              <div className="bg-emerald-50/70 rounded-2xl p-4 border border-emerald-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-slate-900 font-bold flex items-center gap-1.5">
+                    <span className="bg-emerald-600 text-white text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider font-extrabold">Solusi Bebas OAuth</span>
+                    Apps Script Webhook URL (Direkomendasikan)
+                  </label>
+                </div>
+                <p className="text-[11px] text-slate-600 leading-relaxed">
+                  Jika akun Google Anda menggunakan <strong>Program Perlindungan Lanjutan</strong>, Google memblokir popup OAuth login. Masukkan URL Web App Google Apps Script di sini untuk menyinkronkan data secara otomatis tanpa login:
+                </p>
+                <input
+                  type="url"
+                  value={webhookUrlInput}
+                  onChange={(e) => setWebhookUrlInput(e.target.value)}
+                  placeholder="https://script.google.com/macros/s/AKfycbx.../exec"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-emerald-300 focus:outline-none focus:border-emerald-600 bg-white text-slate-900 font-mono text-xs shadow-sm"
+                />
+
+                {/* Script Code Collapsible Guide */}
+                <div className="mt-3 pt-2 border-t border-emerald-200/60">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[11px] font-bold text-slate-800">Cara Buat Apps Script di Google Sheet:</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = `function doPost(e) {
+  var data = JSON.parse(e.postData.contents);
+  var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+  sheet.clear();
+  if (data.headers) sheet.appendRow(data.headers);
+  if (data.rows && data.rows.length) {
+    data.rows.forEach(function(row) { sheet.appendRow(row); });
+  }
+  return ContentService.createTextOutput(JSON.stringify({result: "success"}))
+    .setMimeType(ContentService.MimeType.JSON);
+}`;
+                        navigator.clipboard.writeText(code);
+                        setCopiedScriptCode(true);
+                        setTimeout(() => setCopiedScriptCode(false), 3000);
+                      }}
+                      className="text-[11px] font-bold text-emerald-700 hover:text-emerald-900 bg-emerald-100 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1 cursor-pointer"
+                    >
+                      {copiedScriptCode ? <Check className="w-3 h-3 text-emerald-700" /> : <Copy className="w-3 h-3" />}
+                      {copiedScriptCode ? "Kode Tersalin!" : "Salin Skrip Google"}
+                    </button>
+                  </div>
+                  <ol className="list-decimal list-inside text-[11px] text-slate-600 space-y-1 mt-1 leading-normal">
+                    <li>Buka Google Sheet milik Anda &gt; menu <strong>Ekstensi</strong> &gt; <strong>Apps Script</strong>.</li>
+                    <li>Salin kode skrip di atas, lalu tempelkan di editor Apps Script.</li>
+                    <li>Klik <strong>Terapkan (Deploy)</strong> &gt; <strong>Terapkan sebagai Aplikasi Web</strong>.</li>
+                    <li>Pilih Akses: <strong>Siapa Saja (Anyone)</strong>, lalu salin URL yang diberikan dan tempel di kolom di atas.</li>
+                  </ol>
+                </div>
+              </div>
+
+              {/* Solution 2: Spreadsheet ID Standard */}
+              <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200 space-y-2">
+                <label className="block text-slate-900 font-bold">
+                  Spreadsheet ID (Metode Standar OAuth)
                 </label>
                 <input
                   type="text"
-                  required
                   value={sheetIdInput}
                   onChange={(e) => setSheetIdInput(e.target.value)}
                   placeholder="Contoh: 1XmIC9_glnSfin0xj4uunmKhUM6CAIObHsIoPTxvYQuk"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 text-slate-900 font-mono text-xs"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:border-emerald-500 bg-white text-slate-900 font-mono text-xs"
                 />
-                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
-                  Dapatkan ID ini dari URL spreadsheet Google Anda: <br />
+                <p className="text-[11px] text-slate-500 leading-relaxed">
+                  Diambil dari URL spreadsheet Google Anda: <br />
                   <span className="font-mono text-slate-700 text-[10px]">
                     docs.google.com/spreadsheets/d/<strong>[SPREADSHEET_ID]</strong>/edit
                   </span>
                 </p>
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2">
+              <div className="pt-2 flex items-center justify-end gap-2">
                 <button
                   type="button"
                   onClick={() => setIsSheetSettingsOpen(false)}
@@ -1351,7 +1432,7 @@ export default function AdminPanel() {
                   type="submit"
                   className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold rounded-xl text-xs transition-colors flex items-center gap-1.5 shadow-sm cursor-pointer"
                 >
-                  <Save className="w-4 h-4" /> Simpan Konfigurasi
+                  <Save className="w-4 h-4" /> Simpan Pengaturan
                 </button>
               </div>
             </form>
