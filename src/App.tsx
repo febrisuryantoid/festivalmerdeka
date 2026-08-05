@@ -65,7 +65,10 @@ export default function App() {
   useEffect(() => {
     import("firebase/firestore").then(({ collection, onSnapshot }) => {
       import("./firebase").then(({ db }) => {
-        import("./lib/registrationsStore").then(({ getLocalRegistrations, mergeRegistrations }) => {
+        import("./lib/registrationsStore").then(({ getLocalRegistrations, mergeRegistrations, seedManualRegistrations }) => {
+          // Seed requested manual registrations (BEE3SKA, Ifal Wibawa, ZIEZAN) if not present
+          seedManualRegistrations().catch(err => console.warn("Seed manual registrations error:", err));
+
           onSnapshot(collection(db, "registrations"), (snapshot) => {
             const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             const local = getLocalRegistrations();

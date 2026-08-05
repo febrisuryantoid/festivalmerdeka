@@ -243,8 +243,12 @@ export default function AdminPanel() {
         if (err.code === "auth/user-not-found" || err.code === "auth/invalid-credential" || err.code === "auth/invalid-login-credentials") {
           try {
             await createUserWithEmailAndPassword(auth, adminEmail, fbPass);
-          } catch (cErr) {
-            console.error("Firebase auth creation fallback:", cErr);
+          } catch (cErr: any) {
+            if (cErr.code === "auth/email-already-in-use") {
+              console.warn("User already exists but sign in failed (likely different provider). Proceeding with local session.");
+            } else {
+              console.warn("Firebase auth creation fallback:", cErr);
+            }
           }
         } else if (err.code === "auth/unauthorized-domain") {
           console.warn("Domain festival.baros.my.id is not yet in Firebase Authorized Domains. Using local encrypted session.");

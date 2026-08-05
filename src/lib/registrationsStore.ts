@@ -538,3 +538,107 @@ export async function checkForDuplicateRegistration(data: {
   return null;
 }
 
+/**
+ * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
+ */
+export async function seedManualRegistrations() {
+  if (localStorage.getItem("padasuka_manual_seeded_v1.1") === "true") {
+    return;
+  }
+
+  const manualData: RegistrationData[] = [
+    {
+      id: "manual_bee3ska",
+      localId: "manual_bee3ska",
+      nama: "BEE3SKA",
+      players: [],
+      anggotaTim: "",
+      usia: "17",
+      kategori: "Kategori Pemuda Karang Taruna Desa Padasuka",
+      lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+      alamat: "Desa Padasuka",
+      wa: "08123456789",
+      status: "verified" as const,
+      createdAt: "2026-08-03T23:56:00.000Z",
+      firestoreSynced: true
+    },
+    {
+      id: "manual_ifal_wibawa",
+      localId: "manual_ifal_wibawa",
+      nama: "Ifal Wibawa",
+      players: [],
+      anggotaTim: "",
+      usia: "9",
+      kategori: "SD",
+      lomba: "PS 4 Pro FC26 (Individu)",
+      alamat: "Gunalong",
+      wa: "08123456782",
+      status: "verified" as const,
+      createdAt: "2026-08-04T10:00:00.000Z",
+      firestoreSynced: true
+    },
+    {
+      id: "manual_ziezan",
+      localId: "manual_ziezan",
+      nama: "ZIEZAN",
+      players: [],
+      anggotaTim: "",
+      usia: "8",
+      kategori: "SD",
+      lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+      alamat: "Nyomplong",
+      wa: "08123456783",
+      status: "verified" as const,
+      createdAt: "2026-08-04T11:00:00.000Z",
+      firestoreSynced: true
+    }
+  ];
+
+  // 1. Check local storage
+  const local = getLocalRegistrations();
+  let hasAnyChange = false;
+  const updatedLocal = [...local];
+
+  for (const item of manualData) {
+    const existsLocal = local.some(l => l.nama.trim().toLowerCase() === item.nama.trim().toLowerCase());
+    if (!existsLocal) {
+      updatedLocal.push(item);
+      hasAnyChange = true;
+    }
+  }
+
+  if (hasAnyChange) {
+    saveLocalRegistrations(updatedLocal);
+  }
+
+  // 2. Check Firestore
+  try {
+    const qSnap = await getDocs(collection(db, "registrations"));
+    const firestoreDocs = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
+    const firestoreNames = new Set(firestoreDocs.map(d => (d.nama || "").trim().toLowerCase()));
+
+    for (const item of manualData) {
+      const existsInFirestore = firestoreNames.has(item.nama.trim().toLowerCase());
+      if (!existsInFirestore) {
+        await addDoc(collection(db, "registrations"), {
+          nama: item.nama,
+          players: item.players,
+          anggotaTim: item.anggotaTim,
+          usia: item.usia,
+          kategori: item.kategori,
+          alamat: item.alamat,
+          wa: item.wa,
+          lomba: item.lomba,
+          status: "verified",
+          createdAt: item.createdAt,
+          localId: item.localId
+        });
+      }
+    }
+    // Set localStorage flag so we don't repeat the firestore checks on every load
+    localStorage.setItem("padasuka_manual_seeded_v1.1", "true");
+  } catch (err) {
+    console.warn("Could not seed manual registrations to Firestore:", err);
+  }
+}
+
