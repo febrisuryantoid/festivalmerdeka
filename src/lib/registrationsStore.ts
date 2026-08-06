@@ -17,6 +17,43 @@ export interface RegistrationData {
   firestoreSynced?: boolean;
 }
 
+/**
+ * Calculates the total registration fee for display and export.
+ */
+export function calculateRegistrationFee(reg: RegistrationData): string {
+  const nameLower = (reg.nama || "").trim().toLowerCase();
+  if (nameLower === "bee3ska") return "Rp75.000";
+  if (nameLower === "ifal wibawa") return "Rp5.000";
+  if (nameLower === "ziezan") return "Rp75.000";
+
+  const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
+                  (reg.lomba || "").toLowerCase().includes("5v5") || 
+                  (reg.lomba || "").toLowerCase().includes("4v4") || 
+                  (reg.lomba || "").toLowerCase().includes("mobile legends") || 
+                  (reg.lomba || "").toLowerCase().includes("free fire");
+  
+  const playerCount = Array.isArray(reg.players) && reg.players.length > 0 
+    ? reg.players.length 
+    : (isSquad ? ((reg.lomba || "").toLowerCase().includes("free fire") ? 4 : 5) : 1);
+
+  const cat = (reg.kategori || "").toLowerCase();
+  let pricePerOrg = 15000; // default Kategori Umum
+  if (cat.includes("karang taruna") || cat.includes("pemuda")) {
+    pricePerOrg = 10000;
+  } else if (cat.includes("sd")) {
+    pricePerOrg = 5000;
+  } else if (cat.includes("smp")) {
+    pricePerOrg = 8000;
+  } else if (cat.includes("sma") || cat.includes("smk")) {
+    pricePerOrg = 10000;
+  } else if (cat.includes("umum")) {
+    pricePerOrg = 15000;
+  }
+
+  const total = playerCount * pricePerOrg;
+  return `Rp${total.toLocaleString('id-ID')}`;
+}
+
 const LOCAL_STORAGE_KEY = "padasuka_registrations_v1";
 
 export function normalizeStr(str: string): string {
@@ -542,7 +579,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v1.1") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v1.3") === "true") {
     return;
   }
 
@@ -559,7 +596,7 @@ export async function seedManualRegistrations() {
       alamat: "Desa Padasuka",
       wa: "08123456789",
       status: "verified" as const,
-      createdAt: "2026-08-03T23:56:00.000Z",
+      createdAt: "2026-08-03T16:56:00.000Z",
       firestoreSynced: true
     },
     {
@@ -572,9 +609,9 @@ export async function seedManualRegistrations() {
       kategori: "SD",
       lomba: "PS 4 Pro FC26 (Individu)",
       alamat: "Gunalong",
-      wa: "08123456782",
+      wa: "083843073636",
       status: "verified" as const,
-      createdAt: "2026-08-04T10:00:00.000Z",
+      createdAt: "2026-08-03T09:59:00.000Z",
       firestoreSynced: true
     },
     {
@@ -587,39 +624,48 @@ export async function seedManualRegistrations() {
       kategori: "SD",
       lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
       alamat: "Nyomplong",
-      wa: "08123456783",
+      wa: "085210401464",
       status: "verified" as const,
-      createdAt: "2026-08-04T11:00:00.000Z",
+      createdAt: "2026-08-05T10:31:00.000Z",
       firestoreSynced: true
     }
   ];
 
-  // 1. Check local storage
+  // 1. Update/Clean local storage
   const local = getLocalRegistrations();
-  let hasAnyChange = false;
-  const updatedLocal = [...local];
+  const filteredLocal = local.filter(l => {
+    const isManualOld = (l.id && l.id.startsWith("manual_")) || (l.localId && l.localId.startsWith("manual_"));
+    const matchesTargetName = ["bee3ska", "ifal wibawa", "ziezan"].includes((l.nama || "").trim().toLowerCase());
+    return !isManualOld && !matchesTargetName;
+  });
 
-  for (const item of manualData) {
-    const existsLocal = local.some(l => l.nama.trim().toLowerCase() === item.nama.trim().toLowerCase());
-    if (!existsLocal) {
-      updatedLocal.push(item);
-      hasAnyChange = true;
-    }
-  }
+  const updatedLocal = [...filteredLocal, ...manualData];
+  saveLocalRegistrations(updatedLocal);
 
-  if (hasAnyChange) {
-    saveLocalRegistrations(updatedLocal);
-  }
-
-  // 2. Check Firestore
+  // 2. Check & Update/Add Firestore
   try {
     const qSnap = await getDocs(collection(db, "registrations"));
     const firestoreDocs = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
-    const firestoreNames = new Set(firestoreDocs.map(d => (d.nama || "").trim().toLowerCase()));
 
     for (const item of manualData) {
-      const existsInFirestore = firestoreNames.has(item.nama.trim().toLowerCase());
-      if (!existsInFirestore) {
+      const existingDoc = firestoreDocs.find(d => (d.nama || "").trim().toLowerCase() === item.nama.trim().toLowerCase());
+      if (existingDoc) {
+        // Update existing document in firestore
+        await updateDoc(doc(db, "registrations", existingDoc.id), {
+          nama: item.nama,
+          players: item.players,
+          anggotaTim: item.anggotaTim,
+          usia: item.usia,
+          kategori: item.kategori,
+          alamat: item.alamat,
+          wa: item.wa,
+          lomba: item.lomba,
+          status: "verified",
+          createdAt: item.createdAt,
+          localId: item.localId
+        });
+      } else {
+        // Create new document in firestore
         await addDoc(collection(db, "registrations"), {
           nama: item.nama,
           players: item.players,
@@ -636,7 +682,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v1.1", "true");
+    localStorage.setItem("padasuka_manual_seeded_v1.3", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

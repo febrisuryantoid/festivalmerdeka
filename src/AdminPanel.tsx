@@ -18,7 +18,8 @@ import {
   updateRegistrationStatusInStore, 
   deleteRegistrationFromStore, 
   syncLocalRegistrationsToFirestore, 
-  formatRegistrationDate 
+  formatRegistrationDate,
+  calculateRegistrationFee 
 } from "./lib/registrationsStore";
 import { syncAllRegistrationsToSheet, DEFAULT_SPREADSHEET_ID } from "./sheets";
 import { googleSignIn } from "./auth";
@@ -426,7 +427,8 @@ export default function AdminPanel() {
       "Alamat / Asal",
       "Nomor WhatsApp",
       "Status Verifikasi",
-      "Waktu Pendaftaran"
+      "Waktu Pendaftaran",
+      "Total Biaya (+Kuota Tim)"
     ];
 
     const rows = mergedRegistrations.map((r, idx) => [
@@ -439,7 +441,8 @@ export default function AdminPanel() {
       `"${(r.alamat || '').replace(/"/g, '""')}"`,
       `"${(r.wa || '').replace(/"/g, '""')}"`,
       `"${(r.status || 'pending').toUpperCase()}"`,
-      `"${formatRegistrationDate(r.createdAt)}"`
+      `"${formatRegistrationDate(r.createdAt)}"`,
+      `"${calculateRegistrationFee(r)}"`
     ]);
 
     // UTF-8 BOM \uFEFF for seamless Excel & Google Sheets compatibility
@@ -1018,6 +1021,9 @@ export default function AdminPanel() {
                           )}
                           <div className="text-[10px] text-slate-400 font-mono">
                             {formatRegistrationDate(reg.createdAt)}
+                          </div>
+                          <div className="text-[11px] font-black text-slate-900 bg-slate-100/90 px-2.5 py-1 rounded border border-slate-200/60 inline-flex items-center gap-1 mt-1 shadow-sm">
+                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Biaya:</span> {calculateRegistrationFee(reg)}
                           </div>
                         </div>
                       </td>
