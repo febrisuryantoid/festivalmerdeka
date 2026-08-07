@@ -22,9 +22,13 @@ export interface RegistrationData {
  */
 export function calculateRegistrationFee(reg: RegistrationData): string {
   const nameLower = (reg.nama || "").trim().toLowerCase();
+  
+  // Manual Overrides for specific teams/players
   if (nameLower === "bee3ska") return "Rp75.000";
   if (nameLower === "ifal wibawa") return "Rp5.000";
-  if (nameLower === "ziezan") return "Rp75.000";
+  if (nameLower === "ziezan") return "Rp25.000";
+  if (nameLower === "o2") return "Rp75.000";
+  if (nameLower === "ripiansyah") return "Rp5.000";
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -579,7 +583,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v1.3") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v1.4") === "true") {
     return;
   }
 
@@ -591,7 +595,7 @@ export async function seedManualRegistrations() {
       players: [],
       anggotaTim: "",
       usia: "17",
-      kategori: "Kategori Pemuda Karang Taruna Desa Padasuka",
+      kategori: "Umum",
       lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
       alamat: "Desa Padasuka",
       wa: "08123456789",
@@ -628,6 +632,36 @@ export async function seedManualRegistrations() {
       status: "verified" as const,
       createdAt: "2026-08-05T10:31:00.000Z",
       firestoreSynced: true
+    },
+    {
+      id: "manual_o2",
+      localId: "manual_o2",
+      nama: "O2",
+      players: [],
+      anggotaTim: "",
+      usia: "18",
+      kategori: "SMA",
+      lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+      alamat: "NYodor Tengah",
+      wa: "083146667785",
+      status: "pending" as const,
+      createdAt: "2026-08-07T10:18:00.000Z",
+      firestoreSynced: true
+    },
+    {
+      id: "manual_ripiansyah",
+      localId: "manual_ripiansyah",
+      nama: "Ripiansyah",
+      players: [],
+      anggotaTim: "",
+      usia: "11",
+      kategori: "SD",
+      lomba: "PS 4 Pro FC26 (Individu)",
+      alamat: "Nyomplong",
+      wa: "08123456789",
+      status: "verified" as const,
+      createdAt: "2026-08-07T14:32:00.000Z",
+      firestoreSynced: true
     }
   ];
 
@@ -635,7 +669,7 @@ export async function seedManualRegistrations() {
   const local = getLocalRegistrations();
   const filteredLocal = local.filter(l => {
     const isManualOld = (l.id && l.id.startsWith("manual_")) || (l.localId && l.localId.startsWith("manual_"));
-    const matchesTargetName = ["bee3ska", "ifal wibawa", "ziezan"].includes((l.nama || "").trim().toLowerCase());
+    const matchesTargetName = ["bee3ska", "ifal wibawa", "ziezan", "o2", "ripiansyah"].includes((l.nama || "").trim().toLowerCase());
     return !isManualOld && !matchesTargetName;
   });
 
@@ -660,7 +694,7 @@ export async function seedManualRegistrations() {
           alamat: item.alamat,
           wa: item.wa,
           lomba: item.lomba,
-          status: "verified",
+          status: item.status,
           createdAt: item.createdAt,
           localId: item.localId
         });
@@ -675,14 +709,14 @@ export async function seedManualRegistrations() {
           alamat: item.alamat,
           wa: item.wa,
           lomba: item.lomba,
-          status: "verified",
+          status: item.status,
           createdAt: item.createdAt,
           localId: item.localId
         });
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v1.3", "true");
+    localStorage.setItem("padasuka_manual_seeded_v1.4", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }
