@@ -50,7 +50,13 @@ export default function AdminPanel() {
   const [lockoutTimer, setLockoutTimer] = useState(0);
   
   const [firestoreDocs, setFirestoreDocs] = useState<any[]>([]);
-  const [mergedRegistrations, setMergedRegistrations] = useState<RegistrationData[]>([]);
+  const [mergedRegistrations, setMergedRegistrations] = useState<RegistrationData[]>(() => {
+    try {
+      return getLocalRegistrations();
+    } catch {
+      return [];
+    }
+  });
   
   const [searchTerm, setSearchTerm] = useState("");
   const [gameFilter, setGameFilter] = useState("all");

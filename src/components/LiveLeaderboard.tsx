@@ -7,7 +7,14 @@ import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 import { getLocalRegistrations, mergeRegistrations, RegistrationData, formatRegistrationDate } from "../lib/registrationsStore";
 
 export function LiveLeaderboard() {
-  const [participants, setParticipants] = useState<RegistrationData[]>([]);
+  const [participants, setParticipants] = useState<RegistrationData[]>(() => {
+    try {
+      const local = getLocalRegistrations();
+      return local.filter(p => (p.status || "").toLowerCase().trim() === "verified");
+    } catch {
+      return [];
+    }
+  });
   const [activeTab, setActiveTab] = useState("Semua");
 
   useEffect(() => {
