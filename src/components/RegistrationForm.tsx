@@ -898,13 +898,12 @@ Mohon informasi lebih lanjut mengenai teknis pengiriman logo dan MoU. Saya siap 
             className="w-full px-4 py-2.5 rounded-[12px] border border-gray-200 bg-gray-100 text-gray-700 font-semibold focus:outline-none cursor-not-allowed text-sm" 
           />
         ) : (
-          <select required name="paket" className="w-full px-4 py-2.5 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm appearance-none">
+          <select required name="paket" className="w-full px-4 py-2.5 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-sm appearance-none font-medium">
             <option value="">Pilih Paket...</option>
-            <option value="Paket Silver (Rp 20.000)">Paket Silver (Rp 20.000)</option>
-            <option value="Paket Gold (Rp 50.000)">Paket Gold (Rp 50.000)</option>
-            <option value="Paket Platinum (Rp 150.000+)">Paket Platinum (Rp 150.000+)</option>
-            <option value="Sumbangan Barang / Doorprize">Sumbangan Barang / Doorprize</option>
-            <option value="Sponsor Khusus Lainya">Bentuk Dukungan Lainnya</option>
+            <option value="Paket Silver (Rp 500.000+)">Paket Silver (Rp 500.000+)</option>
+            <option value="Paket Gold (Rp 1.250.000+)">Paket Gold (Rp 1.250.000+)</option>
+            <option value="Paket Platinum (Rp 2.500.000+)">Paket Platinum (Rp 2.500.000+)</option>
+            <option value="Donasi Bebas / Sumbangan">Donasi Bebas / Sumbangan</option>
           </select>
         )}
       </div>

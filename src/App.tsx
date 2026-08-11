@@ -29,7 +29,8 @@ import {
   Award,
   AlertTriangle,
   Flame,
-  FileText
+  FileText,
+  Heart
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { RegistrationForm, SponsorForm } from "./components/RegistrationForm";
@@ -1147,57 +1148,130 @@ export default function App() {
             </motion.p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-5xl mx-auto">
+          {/* 3 Grid Tiered Packages */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8 max-w-6xl mx-auto mb-10 items-stretch">
             {/* Paket Silver */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInLeftVariant} className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all flex flex-col">
-              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#94a3b8_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInLeftVariant} className="relative p-[3px] rounded-[24px] group shadow-sm hover:shadow-lg transition-all flex flex-col h-full">
+              <div className="absolute inset-0 rounded-[24px] overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 w-[300%] h-[300%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#94a3b8_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              </div>
               
-              <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
-                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
-                <h3 className="font-heading font-bold text-xl text-slate-600 mb-2">Paket Silver</h3>
-                <div className="text-3xl font-black text-slate-800 font-heading mb-6">Rp 50.000<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Minimal</span></div>
-                <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Disebutkan oleh MC (1x Adlips Pengumuman)</li>
+              <div className="relative z-10 flex flex-col flex-1 bg-white p-6 sm:p-7 rounded-[21px] text-center border border-slate-200/80 h-full">
+                <div className="mb-3">
+                  <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 rounded-full text-xs font-extrabold uppercase tracking-wider">SILVER</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-slate-800 font-heading mb-1">Rp500.000+</div>
+                <div className="text-xs text-slate-500 font-semibold mb-6 bg-slate-50 py-1.5 px-3 rounded-lg border border-slate-100">
+                  Cocok untuk: perorangan, komunitas & UMKM
+                </div>
+                <ul className="space-y-2.5 mb-6 text-xs sm:text-sm text-secondary font-medium text-left flex-1 border-t border-slate-100 pt-4">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Penyebutan nama/brand oleh MC 1x</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Nama/brand di website kegiatan</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Nama/brand masuk dalam daftar sponsor</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo pada spanduk & banner utama acara</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 50.000)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors relative overflow-hidden group/btn">
-                  <span className="relative z-10">Pilih Paket Silver</span>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Silver (Rp 500.000+)'); setActiveModal('sponsor'); }} className="w-full bg-slate-100 text-slate-700 font-bold py-3 rounded-xl hover:bg-slate-200 transition-colors relative overflow-hidden text-xs sm:text-sm uppercase tracking-wide cursor-pointer">
+                  Pilih Paket Silver
                 </button>
               </div>
             </motion.div>
 
-            {/* Paket Gold */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="relative p-[3px] rounded-[24px] group shadow-xl mb-4 md:mb-0 transform md:-translate-y-4 hover:shadow-gold/30 transition-shadow flex flex-col text-center">
-              <div className="absolute inset-0 overflow-hidden rounded-[24px]">
-                <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#fde047_80%,#ca8a04_100%)] animate-[spin_3s_linear_infinite]" />
+            {/* Paket Gold (Paling Diminati) */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="relative p-[3px] rounded-[24px] group shadow-xl transform lg:-translate-y-2 hover:shadow-gold/30 transition-all flex flex-col h-full text-center">
+              <div className="absolute inset-0 rounded-[24px] overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 w-[300%] h-[300%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#fde047_80%,#ca8a04_100%)] animate-[spin_3s_linear_infinite]" />
               </div>
-              <div className="bg-white h-full w-full rounded-[21px] p-6 sm:p-8 flex flex-col relative z-20">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-bold text-xs uppercase tracking-widest py-1 px-4 rounded-full shadow-md z-30 whitespace-nowrap">Paling Diminati</div>
-                <h3 className="font-heading font-bold text-xl text-yellow-600 mb-2 mt-2">Paket Gold</h3>
-                <div className="text-3xl font-black text-yellow-700 font-heading mb-6">Rp 150.000<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Menengah</span></div>
-                <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi Produk & Jasa oleh MC (3x Adlips)</li>
+              <div className="relative z-10 bg-white h-full w-full rounded-[21px] p-6 sm:p-7 flex flex-col">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-gold text-white font-black text-[10px] sm:text-xs uppercase tracking-widest py-1 px-3.5 rounded-full shadow-md z-30 whitespace-nowrap">
+                  Paling Diminati
+                </div>
+                <div className="mb-3 mt-1">
+                  <span className="inline-block px-3 py-1 bg-amber-100 text-amber-800 rounded-full text-xs font-extrabold uppercase tracking-wider">GOLD</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-amber-700 font-heading mb-1">Rp1.250.000+</div>
+                <div className="text-xs text-amber-800 font-semibold mb-6 bg-amber-50/80 py-1.5 px-3 rounded-lg border border-amber-100">
+                  Cocok untuk: toko, outlet, usaha & UMKM
+                </div>
+                <ul className="space-y-2.5 mb-6 text-xs sm:text-sm text-secondary font-medium text-left flex-1 border-t border-amber-100 pt-4">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Penyebutan nama/brand oleh MC 3x</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo/brand di website & media sosial kegiatan</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo/brand pada spanduk, banner utama & brosur</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Publikasi produk/jasa melalui media sosial kegiatan</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Kesempatan booth promosi di lokasi acara</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Logo/brand pada sertifikat & dokumentasi kegiatan</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Gold (Rp 150.000)'); setActiveModal('sponsor'); }} className="w-full bg-gold text-white font-bold py-3 rounded-xl hover:bg-yellow-600 transition-colors shadow-lg shadow-gold/20">Pilih Paket Gold</button>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Gold (Rp 1.250.000+)'); setActiveModal('sponsor'); }} className="w-full bg-gold text-white font-bold py-3 rounded-xl hover:bg-yellow-600 transition-colors shadow-lg shadow-gold/20 text-xs sm:text-sm uppercase tracking-wide cursor-pointer">
+                  Pilih Paket Gold
+                </button>
               </div>
             </motion.div>
 
-            {/* Paket Platinum */}
-            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="relative p-[2px] rounded-[24px] overflow-hidden group shadow-sm hover:shadow-lg transition-all flex flex-col">
-              <div className="absolute top-1/2 left-1/2 w-[250%] h-[250%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_75%,#1e293b_100%)] animate-[spin_4s_linear_infinite] opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {/* Paket Platinum (Tertinggi / Sponsor Utama) */}
+            <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={slideInRightVariant} className="relative p-[3px] rounded-[24px] group shadow-xl hover:shadow-2xl hover:shadow-red-500/20 transition-all flex flex-col h-full text-center">
+              <div className="absolute inset-0 rounded-[24px] overflow-hidden">
+                <div className="absolute top-1/2 left-1/2 w-[300%] h-[300%] -translate-x-1/2 -translate-y-1/2 bg-[conic-gradient(from_0deg_at_50%_50%,transparent_0%,transparent_60%,#f87171_80%,#d61216_100%)] animate-[spin_3s_linear_infinite]" />
+              </div>
               
-              <div className="relative flex flex-col flex-1 bg-white p-6 sm:p-8 rounded-[22px] text-center z-10 border border-gray-100/50">
-                <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-primary/20 group-hover:bg-primary transition-colors duration-300 shadow-[0_0_8px_rgba(214,18,22,0.5)]" />
-                <h3 className="font-heading font-bold text-xl text-dark mb-2">Paket Platinum</h3>
-                <div className="text-3xl font-black text-dark font-heading mb-6 text-balance">Rp 500.000+<span className="text-sm text-secondary font-normal block mt-1">/ Donatur Eksklusif</span></div>
-                <ul className="space-y-3 mb-8 text-sm text-secondary font-medium text-left flex-1">
-                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-green-500 mt-0.5 shrink-0" /> Promosi oleh MC Tanpa Batas / Adlips Eksklusif</li>
+              <div className="relative z-10 flex flex-col flex-1 bg-white p-6 sm:p-7 rounded-[21px] text-center h-full">
+                <div className="mb-3">
+                  <span className="inline-block px-3 py-1 bg-primary text-white rounded-full text-xs font-black uppercase tracking-wider shadow-sm">PLATINUM</span>
+                </div>
+                <div className="text-2xl sm:text-3xl font-black text-primary font-heading mb-1">Rp2.500.000+</div>
+                <div className="text-xs text-red-900 font-bold mb-6 bg-red-50 py-1.5 px-3 rounded-lg border border-red-200/80">
+                  Cocok untuk: bank, perusahaan, brand nasional, dealer & institusi
+                </div>
+                <ul className="space-y-2.5 mb-6 text-xs sm:text-sm text-secondary font-medium text-left flex-1 border-t border-red-100 pt-4">
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> <strong>Sponsor Utama & Brand Partner Festival 2026</strong></li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Logo paling dominan pada media promosi utama</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Logo/brand di website & seluruh media sosial</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Logo pada spanduk, banner utama & brosur</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Penyebutan brand oleh MC sepanjang rangkaian acara</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Promosi produk/jasa secara eksklusif</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Booth utama di area acara & Sponsor Hadiah</li>
+                  <li className="flex items-start gap-2"><CheckCircle2 className="w-4 h-4 text-red-600 mt-0.5 shrink-0" /> Dokumentasi khusus untuk publikasi sponsor</li>
                 </ul>
-                <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 500.000+)'); setActiveModal('sponsor'); }} className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary-dark transition-colors relative overflow-hidden group/btn shadow-lg shadow-primary/20">
-                  <span className="relative z-10">Pilih Paket Platinum</span>
+                <button onClick={() => { setSelectedSponsorPackage('Paket Platinum (Rp 2.500.000+)'); setActiveModal('sponsor'); }} className="w-full bg-primary hover:bg-primary-dark text-white font-bold py-3 rounded-xl transition-colors shadow-lg shadow-primary/20 text-xs sm:text-sm uppercase tracking-wide cursor-pointer">
+                  Pilih Paket Platinum
                 </button>
               </div>
             </motion.div>
           </div>
+
+          {/* Donasi Bebas Banner */}
+          <motion.div 
+            initial="hidden" 
+            whileInView="visible" 
+            viewport={{ once: true, margin: "-50px" }} 
+            variants={fadeUpVariant}
+            className="max-w-6xl mx-auto bg-white rounded-[24px] border border-amber-200 shadow-lg p-6 sm:p-8 md:p-10 relative overflow-hidden flex flex-col items-center text-center gap-6"
+          >
+            <div className="absolute top-0 right-0 w-64 h-64 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+            
+            <div className="space-y-3.5 text-center max-w-3xl relative z-10 flex flex-col items-center">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1 bg-amber-100 text-amber-900 rounded-full text-xs font-black uppercase tracking-wider">
+                <HandCoins className="w-4 h-4 text-amber-700" /> DONASI BEBAS
+              </div>
+              <h3 className="font-heading font-black text-2xl sm:text-3xl text-dark">
+                Tidak Ada Batasan Nominal
+              </h3>
+              <p className="text-xs sm:text-sm text-secondary font-medium leading-relaxed max-w-2xl">
+                Bagi pihak yang ingin mendukung tanpa memilih paket, kami menerima kontribusi dalam bentuk dana, barang, hadiah, doorprize, konsumsi, perlengkapan, maupun jasa.
+              </p>
+              <p className="text-xs sm:text-sm text-amber-900 font-semibold leading-relaxed bg-amber-50/80 p-4 rounded-xl border border-amber-200/80 max-w-2xl">
+                Semakin besar dukungan, semakin besar ruang apresiasi dan eksposur yang dapat diberikan kepada sponsor. Seluruh benefit disesuaikan dengan bentuk dan nilai kontribusi serta ketersediaan media promosi.
+              </p>
+            </div>
+
+            <div className="relative z-10 w-full flex justify-center pt-1">
+              <button 
+                onClick={() => { setSelectedSponsorPackage('Donasi Bebas / Sumbangan'); setActiveModal('sponsor'); }} 
+                className="w-full sm:w-auto min-w-[260px] bg-amber-500 hover:bg-amber-600 text-white font-extrabold px-8 py-3.5 rounded-xl transition-all shadow-md shadow-amber-500/20 flex items-center justify-center gap-2 text-xs sm:text-sm uppercase tracking-wider cursor-pointer"
+              >
+                <Heart className="w-4 h-4 text-white fill-white" />
+                Dukung Donasi Bebas
+              </button>
+            </div>
+          </motion.div>
         </div>
       </section>
 
