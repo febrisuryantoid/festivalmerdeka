@@ -295,7 +295,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl sm:text-2xl font-bold font-heading text-dark mb-2"
+              className="text-xl sm:text-2xl font-heading text-dark mb-2"
             >
               Menyimpan Data Pendaftaran...
             </motion.h3>
@@ -335,7 +335,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   <AlertCircle className="w-7 h-7" />
                 </div>
                 <div>
-                  <h3 className="text-lg sm:text-xl font-black text-slate-900 font-heading">
+                  <h3 className="text-slate-900 font-heading">
                     Data Sudah Terdaftar!
                   </h3>
                   <p className="text-xs text-amber-700 font-semibold">
@@ -425,7 +425,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                 <span className="px-3 py-1 bg-emerald-100 text-emerald-800 rounded-full text-xs font-black tracking-wider uppercase mb-2">
                   Status: Pending Verifikasi
                 </span>
-                <h3 className="text-2xl sm:text-3xl font-black font-heading text-slate-900 leading-tight">
+                <h3 className="font-heading text-slate-900 leading-tight">
                   Pendaftaran Berhasil!
                 </h3>
                 <p className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
@@ -521,7 +521,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
 
       {/* Kartu Kontak Pendaftaran Panitia */}
       <div className="mb-6 sm:mb-8">
-        <h3 className="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-2">
+        <h3 className="text-gray-700 uppercase tracking-wider mb-3 flex items-center gap-2">
           <Phone className="w-4 h-4 text-primary" /> Kartu Kontak Pendaftaran Panitia
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
@@ -682,11 +682,11 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none font-medium"
                 >
                   <option value="">Pilih Kategori Pendaftar</option>
-                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka - Rp 10K/org</option>
-                  <option value="Kategori Umum">Kategori Umum - Rp 15K/org</option>
+                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka - Rp 5K/org</option>
+                  <option value="Kategori Umum">Kategori Umum - Rp 5K/org</option>
                   <option value="SD">Kategori SD - Rp 5K/org</option>
-                  <option value="SMP">Kategori SMP - Rp 8K/org</option>
-                  <option value="SMA / SMK">Kategori SMA / SMK - Rp 10K/org</option>
+                  <option value="SMP">Kategori SMP - Rp 5K/org</option>
+                  <option value="SMA / SMK">Kategori SMA / SMK - Rp 5K/org</option>
                 </select>
               </div>
               
@@ -746,7 +746,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
             >
               <X className="w-5 h-5" />
             </button>
-            <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark pr-8 mb-5">
+            <h3 className="font-heading text-dark pr-8 mb-5">
               Syarat dan Ketentuan (T&C) eSport
             </h3>
             <div className="text-sm sm:text-base text-gray-600 space-y-4 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
@@ -840,7 +840,7 @@ Mohon informasi lebih lanjut mengenai teknis pengiriman logo dan MoU. Saya siap 
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg font-bold font-heading text-dark mb-1"
+              className="text-lg font-heading text-dark mb-1"
             >
               Memproses...
             </motion.h3>

@@ -19,7 +19,7 @@ import {
   deleteRegistrationFromStore, 
   syncLocalRegistrationsToFirestore, 
   formatRegistrationDate,
-  calculateRegistrationFee 
+  getFeeDetails 
 } from "./lib/registrationsStore";
 import { syncAllRegistrationsToSheet, DEFAULT_SPREADSHEET_ID } from "./sheets";
 import { googleSignIn } from "./auth";
@@ -278,6 +278,12 @@ export default function AdminPanel() {
     await signOut(auth).catch(() => {});
   };
 
+  const generateTMUrl = (wa: string, nama: string) => {
+    const phone = wa?.replace(/[^0-9]/g, '');
+    const message = `Halo ${nama},\n\nKami dari Panitia eSports Festival mengundang Anda selaku PIC tim/peserta untuk menghadiri Technical Meeting pada:\nTanggal: 15 Agustus 2026\nWaktu: Pukul 16.30 WIB\nTempat: Kp. Batu Karut, RT 08/RW 04, Desa Padasuka, Kecamatan Baros, Kabupaten Serang, Banten (Rumah Pak Rudi Ketua Karang Taruna Desa Padasuka)\n\nMohon kehadirannya tepat waktu.\nTerima kasih.`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+  };
+
   const updateStatus = async (id: string, status: "pending" | "verified") => {
     try {
       await updateRegistrationStatusInStore(id, status);
@@ -434,22 +440,29 @@ export default function AdminPanel() {
       "Nomor WhatsApp",
       "Status Verifikasi",
       "Waktu Pendaftaran",
-      "Total Biaya (+Kuota Tim)"
+      "Total Bayar",
+      "Total Biaya",
+      "Sisa Biaya"
     ];
 
-    const rows = mergedRegistrations.map((r, idx) => [
-      idx + 1,
-      `"${(r.nama || '').replace(/"/g, '""')}"`,
-      `"${(Array.isArray(r.players) && r.players.length > 0 ? r.players.filter(Boolean).join('; ') : (r.anggotaTim || '')).replace(/"/g, '""')}"`,
-      `"${r.usia || ''}"`,
-      `"${(r.kategori || '').replace(/"/g, '""')}"`,
-      `"${(r.lomba || '').replace(/"/g, '""')}"`,
-      `"${(r.alamat || '').replace(/"/g, '""')}"`,
-      `"${(r.wa || '').replace(/"/g, '""')}"`,
-      `"${(r.status || 'pending').toUpperCase()}"`,
-      `"${formatRegistrationDate(r.createdAt)}"`,
-      `"${calculateRegistrationFee(r)}"`
-    ]);
+    const rows = mergedRegistrations.map((r, idx) => {
+      const fee = getFeeDetails(r);
+      return [
+        idx + 1,
+        `"${(r.nama || '').replace(/"/g, '""')}"`,
+        `"${(Array.isArray(r.players) && r.players.length > 0 ? r.players.filter(Boolean).join('; ') : (r.anggotaTim || '')).replace(/"/g, '""')}"`,
+        `"${r.usia || ''}"`,
+        `"${(r.kategori || '').replace(/"/g, '""')}"`,
+        `"${(r.lomba || '').replace(/"/g, '""')}"`,
+        `"${(r.alamat || '').replace(/"/g, '""')}"`,
+        `"${(r.wa || '').replace(/"/g, '""')}"`,
+        `"${(r.status || 'pending').toUpperCase()}"`,
+        `"${formatRegistrationDate(r.createdAt)}"`,
+        `"${fee.formattedBayar}"`,
+        `"${fee.formattedBiaya}"`,
+        `"${fee.formattedSisa}"`
+      ];
+    });
 
     // UTF-8 BOM \uFEFF for seamless Excel & Google Sheets compatibility
     const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
@@ -578,7 +591,7 @@ export default function AdminPanel() {
             <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-red-950/80 text-red-400 border border-red-800/50 rounded-full text-[11px] font-bold tracking-widest uppercase mb-2">
               <Lock className="w-3 h-3" /> SECURE AREA • NO-INDEX
             </span>
-            <h2 className="text-2xl sm:text-3xl font-black font-heading tracking-tight uppercase text-white">
+            <h2 className="font-heading tracking-tight uppercase text-white">
               ADMINISTRATOR
             </h2>
             <p className="text-xs text-gray-400 mt-1">
@@ -689,7 +702,7 @@ export default function AdminPanel() {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-base sm:text-lg leading-tight font-heading">
+              <h1 className="leading-tight font-heading">
                 Admin Panel eSport
               </h1>
               <span className="bg-red-900/60 text-red-300 text-[10px] px-2 py-0.5 rounded font-mono border border-red-700/50">
@@ -753,7 +766,7 @@ export default function AdminPanel() {
           <div className="space-y-1">
             <div className="flex items-center gap-2">
               <ShieldCheck className="w-5 h-5 text-emerald-400" />
-              <h2 className="text-base font-extrabold font-heading text-white">
+              <h2 className="font-heading text-white">
                 Informasi Penyimpanan Data Formulir
               </h2>
             </div>
@@ -893,7 +906,7 @@ export default function AdminPanel() {
           <div className="p-4 sm:p-6 border-b border-slate-100 flex flex-col md:flex-row justify-between items-stretch md:items-center gap-4 bg-slate-50/50">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5 text-primary" />
-              <h2 className="text-base sm:text-lg font-bold text-slate-900">
+              <h2 className="text-slate-900">
                 Daftar Pendaftar eSport ({filteredRegistrations.length})
               </h2>
             </div>
@@ -1028,8 +1041,25 @@ export default function AdminPanel() {
                           <div className="text-[10px] text-slate-400 font-mono">
                             {formatRegistrationDate(reg.createdAt)}
                           </div>
-                          <div className="text-[11px] font-black text-slate-900 bg-slate-100/90 px-2.5 py-1 rounded border border-slate-200/60 inline-flex items-center gap-1 mt-1 shadow-sm">
-                            <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Biaya:</span> {calculateRegistrationFee(reg)}
+                          <div className="flex flex-col gap-1 mt-1">
+                            {(() => {
+                              const fee = getFeeDetails(reg);
+                              return (
+                                <>
+                                  <div className="text-[11px] font-black text-slate-900 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60 inline-flex items-center gap-1 shadow-sm w-fit">
+                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Bayar:</span> {fee.formattedBayar}
+                                  </div>
+                                  <div className="text-[11px] font-black text-slate-900 bg-slate-100/90 px-2 py-0.5 rounded border border-slate-200/60 inline-flex items-center gap-1 shadow-sm w-fit">
+                                    <span className="text-[9px] font-bold text-slate-500 uppercase tracking-wide">Biaya:</span> {fee.formattedBiaya}
+                                  </div>
+                                  {fee.sisa !== 0 && (
+                                    <div className={`text-[11px] font-black px-2 py-0.5 rounded border inline-flex items-center gap-1 shadow-sm w-fit ${fee.sisa > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                                      <span className={`text-[9px] font-bold uppercase tracking-wide ${fee.sisa > 0 ? 'text-emerald-600' : 'text-red-600'}`}>Sisa:</span> {fee.formattedSisa}
+                                    </div>
+                                  )}
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                       </td>
@@ -1063,6 +1093,16 @@ export default function AdminPanel() {
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
+                        <a
+                          href={generateTMUrl(reg.wa || "", reg.nama || "")}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-2.5 py-1.5 bg-green-50 hover:bg-green-100 text-green-600 rounded-lg transition-colors cursor-pointer inline-flex items-center gap-1.5"
+                          title="Undang Technical Meeting (WhatsApp)"
+                        >
+                          <WhatsAppIcon className="w-4 h-4 shrink-0" />
+                          <span className="text-xs font-bold">TM</span>
+                        </a>
                       </td>
                     </tr>
                   ))
@@ -1093,7 +1133,7 @@ export default function AdminPanel() {
                 {editingReg ? <Pencil className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 font-heading">
+                <h3 className="text-slate-900 font-heading">
                   {editingReg ? "Edit Data Pendaftaran" : "Tambah Pendaftar Baru"}
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">
@@ -1240,7 +1280,7 @@ export default function AdminPanel() {
                 <Globe className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 font-heading">
+                <h3 className="text-slate-900 font-heading">
                   Otorisasi Domain Firebase Auth
                 </h3>
                 <p className="text-xs text-amber-700 font-bold bg-amber-50 px-2.5 py-0.5 rounded-full inline-block mt-0.5 border border-amber-200">
@@ -1350,7 +1390,7 @@ export default function AdminPanel() {
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-lg font-black text-slate-900 font-heading">
+                <h3 className="text-slate-900 font-heading">
                   Pengaturan Google Sheet
                 </h3>
                 <p className="text-xs text-slate-500 font-medium">

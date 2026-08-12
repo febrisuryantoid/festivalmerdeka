@@ -1,4 +1,5 @@
 import { getAccessToken } from "./auth";
+import { getFeeDetails } from "./lib/registrationsStore";
 
 export const DEFAULT_SPREADSHEET_ID = "1XmIC9_glnSfin0xj4uunmKhUM6CAIObHsIoPTxvYQuk";
 
@@ -11,7 +12,10 @@ export const SHEET_HEADERS = [
   "Alamat / Asal",
   "Nomor WhatsApp",
   "Status Verifikasi",
-  "Waktu Pendaftaran"
+  "Waktu Pendaftaran",
+  "Total Bayar",
+  "Total Biaya",
+  "Sisa Biaya"
 ];
 
 export async function appendRowToSheet(sheetId: string = DEFAULT_SPREADSHEET_ID, values: any[]) {
@@ -46,18 +50,24 @@ export async function syncAllRegistrationsToSheet(
 ) {
   const webhookUrl = localStorage.getItem("padasuka_sheet_webhook_url") || "";
 
-  const rows = registrations.map((r, idx) => [
-    idx + 1,
-    r.nama || "-",
-    Array.isArray(r.players) ? r.players.filter(Boolean).join(", ") : (r.anggotaTim || "-"),
-    r.usia || "-",
-    r.kategori || "-",
-    r.lomba || "-",
-    r.alamat || "-",
-    r.wa || "-",
-    (r.status || "pending").toUpperCase(),
-    r.createdAt ? new Date(r.createdAt).toLocaleString("id-ID") : "-"
-  ]);
+  const rows = registrations.map((r, idx) => {
+    const fee = getFeeDetails(r);
+    return [
+      idx + 1,
+      r.nama || "-",
+      Array.isArray(r.players) ? r.players.filter(Boolean).join(", ") : (r.anggotaTim || "-"),
+      r.usia || "-",
+      r.kategori || "-",
+      r.lomba || "-",
+      r.alamat || "-",
+      r.wa || "-",
+      (r.status || "pending").toUpperCase(),
+      r.createdAt ? new Date(r.createdAt).toLocaleString("id-ID") : "-",
+      fee.formattedBayar,
+      fee.formattedBiaya,
+      fee.formattedSisa
+    ];
+  });
 
   const payload = {
     action: "sync_all",

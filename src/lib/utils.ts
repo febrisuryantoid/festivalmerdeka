@@ -35,15 +35,15 @@ export function formatTeamName(str: string): string {
 
 export const getPricingConfig = () => {
   return [
-    { label: "Kategori Pemuda Karang Taruna Desa Padasuka", price: 10000 },
-    { label: "Kategori Umum", price: 15000 },
+    { label: "Kategori Pemuda Karang Taruna Desa Padasuka", price: 5000 },
+    { label: "Kategori Umum", price: 5000 },
     { label: "Kategori SD", price: 5000 },
-    { label: "Kategori SMP", price: 8000 },
-    { label: "Kategori SMA / SMK", price: 10000 },
+    { label: "Kategori SMP", price: 5000 },
+    { label: "Kategori SMA / SMK", price: 5000 },
     { label: "SD", price: 5000 },
-    { label: "SMP", price: 8000 },
-    { label: "SMA / SMK", price: 10000 },
-    { label: "UMUM", price: 15000 },
+    { label: "SMP", price: 5000 },
+    { label: "SMA / SMK", price: 5000 },
+    { label: "UMUM", price: 5000 },
   ];
 };
 
@@ -59,10 +59,7 @@ export const SLOT_TARGETS = {
     unitName: "Tim",
     minPrizePoolRatio: 0.60, // Minimum 60%
     categories: [
-      { level: "SD", juara1Base: 150000, juara2Base: 75000 },
-      { level: "SMP", juara1Base: 250000, juara2Base: 100000 },
-      { level: "SMA", juara1Base: 350000, juara2Base: 150000 },
-      { level: "Umum", juara1Base: 500000, juara2Base: 250000 },
+      { level: "Kategori Utama (Semua Usia)", juara1Base: 500000, juara2Base: 250000 },
     ],
   },
   ff: {
@@ -76,10 +73,7 @@ export const SLOT_TARGETS = {
     unitName: "Squad",
     minPrizePoolRatio: 0.60, // Minimum 60%
     categories: [
-      { level: "SD", juara1Base: 120000, juara2Base: 60000 },
-      { level: "SMP", juara1Base: 200000, juara2Base: 100000 },
-      { level: "SMA", juara1Base: 250000, juara2Base: 125000 },
-      { level: "Umum", juara1Base: 400000, juara2Base: 200000 },
+      { level: "Kategori Utama (Semua Usia)", juara1Base: 450000, juara2Base: 225000 },
     ],
   },
   fc: {
@@ -93,10 +87,7 @@ export const SLOT_TARGETS = {
     unitName: "Peserta",
     minPrizePoolRatio: 0.60, // Minimum 60%
     categories: [
-      { level: "SD", juara1Base: 30000, juara2Base: 15000 },
-      { level: "SMP", juara1Base: 50000, juara2Base: 25000 },
-      { level: "SMA", juara1Base: 75000, juara2Base: 35000 },
-      { level: "Umum", juara1Base: 100000, juara2Base: 50000 },
+      { level: "Kategori Utama (Semua Usia)", juara1Base: 120000, juara2Base: 60000 },
     ],
   }
 };
@@ -107,7 +98,8 @@ function roundMoney(amount: number, step = 5000): number {
 
 /**
  * Algoritma Penyesuaian Hadiah Otomatis (Dynamic Target Prize Algorithm)
- * Menghitung hadiah secara transparan berdasarkan data Juara 1 dan Juara 2 original.
+ * Menghitung hadiah secara transparan berdasarkan data Juara 1 dan Juara 2 original
+ * dan otomatis memperbarui nilai total & breakdown setiap ada penambahan peserta.
  */
 export function calculateDynamicPrize(
   gameKey: 'mlbb' | 'ff' | 'fc',
@@ -148,25 +140,33 @@ export function calculateDynamicPrize(
   const rawRatio = actualParticipants / config.targetParticipants;
   const ratioPercent = Math.round(rawRatio * 100);
 
-  // Minimum ratio threshold (60%)
+  // Minimum ratio threshold floor (60% baseline guarantee)
   const minRatio = config.minPrizePoolRatio || 0.60;
   const minPrizePool = roundMoney(basePrizePool * minRatio, roundStep);
 
-  // Baseline multiplier: tidak boleh turun di bawah 1.0 (100% Baseline Minimum)
-  // Ketika peserta melebihi target (> 100%), multiplier naik secara proporsional.
-  const effectiveRatio = Math.max(1.0, rawRatio);
+  // Dynamic scaling multiplier:
+  // Mulai dari minRatio (60%) dan bertambah secara halus & otomatis setiap ada penambahan peserta baru!
+  // Ketika rawRatio > 1.0 (melebihi target 100%), multiplier naik secara proporsional sebagai bonus.
+  const effectiveRatio = rawRatio >= 1.0
+    ? rawRatio
+    : (minRatio + (1.0 - minRatio) * rawRatio);
 
   const isBonusActive = rawRatio > 1.0;
 
   // Status Badge & Color Indicators
-  let badgeText = "Target Belum Tercapai (Hadiah Awal 100%)";
+  let badgeText = `Hadiah Realtime: ${ratioPercent}% Target`;
   let badgeType: "red" | "yellow" | "green" = "yellow";
   let indicatorColor = "bg-amber-500";
   let indicatorText = "text-amber-600";
 
   if (ratioPercent >= 100) {
     badgeType = "green";
-    badgeText = isBonusActive ? `Bonus Prize Pool Aktif (+${Math.round((rawRatio - 1) * 100)}%)` : "Target Tercapai (100%)";
+    badgeText = isBonusActive ? `Bonus Prize Pool Aktif (+${Math.round((rawRatio - 1) * 100)}%)` : "Target Kuota Terpenuhi (100%)";
+    indicatorColor = "bg-emerald-500";
+    indicatorText = "text-emerald-600";
+  } else if (ratioPercent >= 10) {
+    badgeType = "green";
+    badgeText = `Terdaftar ${actualParticipants} Peserta (Auto-Update)`;
     indicatorColor = "bg-emerald-500";
     indicatorText = "text-emerald-600";
   }

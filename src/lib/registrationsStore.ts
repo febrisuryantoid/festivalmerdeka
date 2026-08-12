@@ -18,26 +18,33 @@ export interface RegistrationData {
 }
 
 /**
- * Calculates the total registration fee for display and export.
+ * Calculates detailed fee information for a registration
  */
-export function calculateRegistrationFee(reg: RegistrationData): string {
+export function getFeeDetails(reg: RegistrationData) {
   const nameLower = (reg.nama || "").trim().toLowerCase();
+  const lombaLower = (reg.lomba || "").trim().toLowerCase();
+  
+  let bayar = 0;
   
   // Manual Overrides for specific teams/players matching official table
-  if (nameLower === "bee3ska") return "Rp75.000";
-  if (nameLower === "ifal wibawa") return "Rp5.000";
-  if (nameLower === "ziezan") return "Rp25.000";
-  if (nameLower === "o2") return "Rp75.000";
-  if (nameLower === "ripiansyah") return "Rp5.000";
-  if (nameLower === "wahab") return "Rp75.000";
-  if (nameLower === "nyawit") return "Rp25.000";
-  if (nameLower === "harimau gold line") return "Rp55.000";
-  if (nameLower === "patah hati") return "Rp40.000";
-  if (nameLower === "ihab") return "Rp32.000";
-  if (nameLower === "iftah") return "Rp15.000";
-  if (nameLower === "ff 3") return "Rp32.000";
-  if (nameLower === "kancil jamshot") return "Rp32.000";
-  if (nameLower === "desta") return "Rp20.000";
+  if (nameLower === "bee3ska") bayar = 75000;
+  else if (nameLower === "ifal wibawa") bayar = 5000;
+  else if (nameLower === "ziezan") bayar = 25000;
+  else if (nameLower === "o2") bayar = 75000;
+  else if (nameLower === "ripiansyah") bayar = 5000;
+  else if (nameLower === "wahab") bayar = 15000;
+  else if (nameLower === "nyawit") bayar = 25000;
+  else if (nameLower === "harimau gold line") bayar = 55000;
+  else if (nameLower === "patah hati") bayar = 40000;
+  else if (nameLower === "ihab") bayar = 32000;
+  else if (nameLower === "iftah") bayar = 15000;
+  else if (nameLower === "ff 3") bayar = 32000;
+  else if (nameLower === "kancil jamshot") bayar = 32000;
+  else if (nameLower === "desta") bayar = 20000;
+  else if (nameLower === "kacung pret") {
+    if (lombaLower.includes("free fire")) bayar = 40000;
+    else if (lombaLower.includes("mobile legends")) bayar = 50000;
+  }
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -49,22 +56,32 @@ export function calculateRegistrationFee(reg: RegistrationData): string {
     ? reg.players.length 
     : (isSquad ? ((reg.lomba || "").toLowerCase().includes("free fire") ? 4 : 5) : 1);
 
-  const cat = (reg.kategori || "").toLowerCase();
-  let pricePerOrg = 15000; // default Kategori Umum
-  if (cat.includes("karang taruna") || cat.includes("pemuda")) {
-    pricePerOrg = 10000;
-  } else if (cat.includes("sd")) {
-    pricePerOrg = 5000;
-  } else if (cat.includes("smp")) {
-    pricePerOrg = 8000;
-  } else if (cat.includes("sma") || cat.includes("smk")) {
-    pricePerOrg = 10000;
-  } else if (cat.includes("umum")) {
-    pricePerOrg = 15000;
-  }
+  // Kebijakan baru: Flat Rp5.000 per orang untuk semua kelompok usia
+  const pricePerOrg = 5000;
+  const biaya = playerCount * pricePerOrg;
+  
+  if (bayar === 0) bayar = biaya;
 
-  const total = playerCount * pricePerOrg;
-  return `Rp${total.toLocaleString('id-ID')}`;
+  const sisa = bayar - biaya;
+
+  const formatMoney = (val: number) => (val < 0 ? "-" : "") + "Rp" + Math.abs(val).toLocaleString('id-ID');
+
+  return {
+    bayar,
+    biaya,
+    sisa,
+    formattedBayar: formatMoney(bayar),
+    formattedBiaya: formatMoney(biaya),
+    formattedSisa: formatMoney(sisa)
+  };
+}
+
+/**
+ * Calculates the total registration fee for display and export.
+ * Deprecated: Use getFeeDetails instead.
+ */
+export function calculateRegistrationFee(reg: RegistrationData): string {
+  return getFeeDetails(reg).formattedBayar;
 }
 
 const LOCAL_STORAGE_KEY = "padasuka_registrations_v1";
@@ -259,7 +276,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "14",
     kategori: "SMP",
     lomba: "Free Fire (4 Squad)",
-    alamat: "gunalonh",
+    alamat: "Gunalong",
     wa: "083169964552",
     status: "verified" as const,
     createdAt: "2026-08-11T09:43:00.000Z",
@@ -324,6 +341,36 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     status: "verified" as const,
     createdAt: "2026-08-11T13:28:00.000Z",
     firestoreSynced: true
+  },
+  {
+    id: "manual_kacung_pret_ff",
+    localId: "manual_kacung_pret_ff",
+    nama: "KACUNG PRET",
+    players: [],
+    anggotaTim: "",
+    usia: "16",
+    kategori: "SMA",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Bakar",
+    wa: "085891593497",
+    status: "verified" as const,
+    createdAt: "2026-08-11T13:28:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_kacung_pret_ml",
+    localId: "manual_kacung_pret_ml",
+    nama: "KACUNG PRET",
+    players: [],
+    anggotaTim: "",
+    usia: "16",
+    kategori: "SMA",
+    lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+    alamat: "Bakar",
+    wa: "089507569004",
+    status: "verified" as const,
+    createdAt: "2026-08-11T13:28:00.000Z",
+    firestoreSynced: true
   }
 ];
 
@@ -339,17 +386,17 @@ export function getLocalRegistrations(): RegistrationData[] {
       if (Array.isArray(parsed)) items = parsed;
     }
     
-    // Always update or merge default initial registrations so changes to defaults (e.g. O2 verified, Wahab age 20)
+    // Always update or merge default initial registrations so changes to defaults
     // are instantly reflected in milliseconds without waiting for async seed or stale localStorage!
     const updatedMap = new Map<string, RegistrationData>();
     
     for (const item of items) {
-      const key = (item.nama || "").trim().toLowerCase();
+      const key = (item.id || (item.nama + "_" + item.lomba)).trim().toLowerCase();
       if (key) updatedMap.set(key, item);
     }
 
     for (const def of DEFAULT_INITIAL_REGISTRATIONS) {
-      const key = def.nama.trim().toLowerCase();
+      const key = (def.id || (def.nama + "_" + def.lomba)).trim().toLowerCase();
       const existing = updatedMap.get(key);
       if (!existing) {
         updatedMap.set(key, def);
@@ -837,7 +884,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v2.0") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v2.3") === "true") {
     return;
   }
 
@@ -848,7 +895,7 @@ export async function seedManualRegistrations() {
   const filteredLocal = local.filter(l => {
     const isManualOld = (l.id && l.id.startsWith("manual_")) || (l.localId && l.localId.startsWith("manual_"));
     const matchesTargetName = DEFAULT_INITIAL_REGISTRATIONS.some(
-      d => d.nama.trim().toLowerCase() === (l.nama || "").trim().toLowerCase()
+      d => d.nama.trim().toLowerCase() === (l.nama || "").trim().toLowerCase() && d.lomba.trim().toLowerCase() === (l.lomba || "").trim().toLowerCase()
     );
     return !isManualOld && !matchesTargetName;
   });
@@ -862,7 +909,10 @@ export async function seedManualRegistrations() {
     const firestoreDocs = qSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })) as any[];
 
     for (const item of manualData) {
-      const existingDoc = firestoreDocs.find(d => (d.nama || "").trim().toLowerCase() === item.nama.trim().toLowerCase());
+      const existingDoc = firestoreDocs.find(d => 
+        (d.nama || "").trim().toLowerCase() === item.nama.trim().toLowerCase() &&
+        (d.lomba || "").trim().toLowerCase() === item.lomba.trim().toLowerCase()
+      );
       if (existingDoc) {
         // Update existing document in firestore
         await updateDoc(doc(db, "registrations", existingDoc.id), {
@@ -896,7 +946,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v2.0", "true");
+    localStorage.setItem("padasuka_manual_seeded_v2.3", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

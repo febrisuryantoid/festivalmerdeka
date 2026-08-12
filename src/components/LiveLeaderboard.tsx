@@ -4,7 +4,16 @@ import { db } from "../firebase";
 import { Gamepad2, ShieldCheck, Clock, Layers } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
-import { getLocalRegistrations, mergeRegistrations, RegistrationData, formatRegistrationDate } from "../lib/registrationsStore";
+import { getLocalRegistrations, mergeRegistrations, RegistrationData, formatRegistrationDate, parseTimestampMillis } from "../lib/registrationsStore";
+
+const getShortLomba = (lomba?: string) => {
+  if (!lomba) return "-";
+  const l = lomba.toLowerCase();
+  if (l.includes("mobile") || l.includes("ml") || l.includes("legends")) return "MLBB";
+  if (l.includes("free") || l.includes("fire") || l.includes("ff")) return "FF";
+  if (l.includes("fc") || l.includes("ps") || l.includes("ea") || l.includes("fifa")) return "FC26";
+  return lomba;
+};
 
 export function LiveLeaderboard() {
   const [participants, setParticipants] = useState<RegistrationData[]>(() => {
@@ -39,13 +48,17 @@ export function LiveLeaderboard() {
     if (activeTab === "Free Fire") return l.includes("free") || l.includes("fire") || l.includes("ff");
     if (activeTab === "PS 4 Pro FC26") return l.includes("fc") || l.includes("ps") || l.includes("ea") || l.includes("fifa");
     return l.includes(activeTab.toLowerCase());
+  }).sort((a, b) => {
+    const timeA = parseTimestampMillis(a.createdAt);
+    const timeB = parseTimestampMillis(b.createdAt);
+    return timeA - timeB; // Ascending: oldest top, newest bottom
   });
 
   return (
     <div className="w-full bg-white/95 backdrop-blur-xl border border-white/20 p-5 sm:p-8 rounded-[24px] shadow-2xl relative overflow-hidden">
       <div className="flex flex-col items-center text-center gap-5 mb-8">
         <div className="flex flex-col items-center w-full">
-           <h3 className="text-xl sm:text-2xl font-bold font-heading text-dark flex items-center justify-center gap-2">
+           <h3 className="font-heading text-dark flex items-center justify-center gap-2">
              <ShieldCheck className="w-6 h-6 text-emerald-500" /> Peserta Terdaftar (Tim Terverifikasi)
            </h3>
            <p className="text-secondary text-sm font-medium mt-1">
@@ -107,7 +120,8 @@ export function LiveLeaderboard() {
                     <th className="py-3.5 px-4 w-16 text-center">No.</th>
                     <th className="py-3.5 px-4">Nama / Nama Tim</th>
                     <th className="py-3.5 px-4">Alamat / Asal</th>
-                    <th className="py-3.5 px-4 text-right">Status Pembayaran</th>
+                    <th className="py-3.5 px-4">Jenis Lomba</th>
+                    <th className="py-3.5 px-4 text-right">Status Verifikasi</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-sm font-medium text-slate-800">
@@ -133,9 +147,12 @@ export function LiveLeaderboard() {
                         <td className="py-3.5 px-4 text-sm text-slate-600 font-semibold whitespace-nowrap">
                           {item.alamat || "-"}
                         </td>
+                        <td className="py-3.5 px-4 text-sm font-black text-slate-700 whitespace-nowrap">
+                          {getShortLomba(item.lomba)}
+                        </td>
                         <td className="py-3.5 px-4 text-right text-xs sm:text-sm font-bold whitespace-nowrap">
                           <span className="inline-flex items-center justify-end gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> Terbayar & Terverifikasi
+                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> TERVERIFIKASI
                           </span>
                         </td>
                       </motion.tr>
