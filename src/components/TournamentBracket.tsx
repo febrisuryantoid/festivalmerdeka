@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { ShieldCheck, Trophy, Swords } from "lucide-react";
+import { ShieldCheck, Trophy, Swords, ChevronsRight } from "lucide-react";
 import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 import { getLocalRegistrations, mergeRegistrations, RegistrationData, parseTimestampMillis } from "../lib/registrationsStore";
 
@@ -143,7 +143,14 @@ export function TournamentBracket() {
         </div>
       </div>
 
-      <div className="overflow-x-auto pb-8 pt-4 w-full">
+      
+      {/* Mobile Scroll Indicator */}
+      <div className="md:hidden flex items-center justify-end text-xs font-semibold text-gray-500 mb-2 px-2 animate-pulse">
+        Geser untuk melihat bagan <ChevronsRight className="w-4 h-4 ml-1" />
+      </div>
+
+      <div className="overflow-x-auto pb-8 pt-4 w-full scrollbar-thin scrollbar-thumb-gray-200 scrollbar-track-transparent">
+
         <div className="flex justify-between px-2 gap-8" style={{ minWidth: `${(totalRounds + 1) * 224}px` }}>
           
           {roundsData.map((roundMatches, r) => {

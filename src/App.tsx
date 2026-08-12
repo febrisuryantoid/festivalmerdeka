@@ -431,7 +431,7 @@ export default function App() {
       </motion.section>
 
       {/* Tentang */}
-      <section id="tentang" className="py-20 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6"
+      <section aria-label="Tentang Festival" id="tentang" className="py-20 sm:py-28 max-w-7xl mx-auto px-4 sm:px-6"
       >
         <div>
           <div className="text-center mb-8 sm:mb-12">
@@ -677,7 +677,7 @@ export default function App() {
       </section>
 
       {/* Timeline */}
-      <section id="jadwal" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-y border-white/50 relative overflow-hidden"
+      <section aria-label="Jadwal Acara" id="jadwal" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-y border-white/50 relative overflow-hidden"
       >
         <div
           className="absolute inset-0 opacity-5"
@@ -788,7 +788,7 @@ export default function App() {
           </div>
         </div>
       </section>      {/* eSport */}
-      <section id="esport" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden"
+      <section aria-label="Cabang Perlombaan" id="esport" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden"
       >
         {/* Abstract Backgrounds */}
         <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10 w-full">
@@ -1031,7 +1031,7 @@ export default function App() {
       </section>
 
       {/* Form Pendaftaran */}
-      <section id="daftar" className="py-20 sm:py-28 relative overflow-hidden bg-white/60 backdrop-blur-2xl border-t border-white/50"
+      <section aria-label="Formulir Pendaftaran" id="daftar" className="py-20 sm:py-28 relative overflow-hidden bg-white/60 backdrop-blur-2xl border-t border-white/50"
       >
         <div className="absolute inset-0 opacity-10 mix-blend-multiply bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]" />
         <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-primary/20 rounded-full blur-3xl opacity-50 mix-blend-multiply"></div>
@@ -1068,7 +1068,7 @@ export default function App() {
       </section>
 
       {/* Bagan Turnamen */}
-      <section id="bagan" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
+      <section aria-label="Bagan dan Papan Peringkat" id="bagan" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant}>
             <TournamentBracket />
@@ -1353,7 +1353,7 @@ export default function App() {
       </section>
 
       {/* Map Lokasi */}
-      <section id="lokasi" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
+      <section aria-label="Lokasi Acara" id="lokasi" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center mb-10 sm:mb-14">
             <motion.span initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeDownVariant} className="text-primary/80 font-bold tracking-widest uppercase text-[10px] xs:text-xs sm:text-sm mb-2 block">
@@ -1507,7 +1507,7 @@ export default function App() {
       </section>
 
       {/* FAQ di Paling Bawah Setelah Maps */}
-      <section id="faq" className="py-20 sm:py-28 w-full max-w-7xl mx-auto px-4 sm:px-6"
+      <section aria-label="Tanya Jawab" id="faq" className="py-20 sm:py-28 w-full max-w-7xl mx-auto px-4 sm:px-6"
       >
         <div className="max-w-3xl mx-auto px-4 sm:px-6 w-full">
           <div className="text-center mb-10 sm:mb-16">
