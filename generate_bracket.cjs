@@ -1,41 +1,11 @@
-import React, { useState, useEffect } from "react";
-import { collection, onSnapshot } from "firebase/firestore";
-import { db } from "../firebase";
-import { ShieldCheck, Trophy, Swords } from "lucide-react";
-import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
-import { getLocalRegistrations, mergeRegistrations, RegistrationData, parseTimestampMillis } from "../lib/registrationsStore";
+const fs = require('fs');
 
-export function TournamentBracket() {
-  const [participants, setParticipants] = useState<RegistrationData[]>(() => {
-    try {
-      const local = getLocalRegistrations();
-      return local.filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
-    } catch {
-      return [];
-    }
-  });
+let content = fs.readFileSync('src/components/TournamentBracket.tsx', 'utf8');
 
-  const [activeTab, setActiveTab] = useState("Mobile Legends");
-
-  useEffect(() => {
-    const unsub = onSnapshot(collection(db, "registrations"), (snapshot) => {
-      const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as RegistrationData));
-      const local = getLocalRegistrations();
-      const merged = mergeRegistrations(docs, local);
-      const activeParticipants = merged.filter(d => (d.status || "").toLowerCase().trim() !== "rejected");
-      setParticipants(activeParticipants);
-    }, (error) => {
-      console.warn("Bracket realtime fetch failed:", error);
-      const local = getLocalRegistrations().filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
-      setParticipants(local);
-    });
-
-    return () => unsub();
-  }, []);
-
-  
+// The replacement code string
+const dynamicBracketCode = `
   const getCategoryWeight = (kategori = "") => {
-    const k = (kategori || "").toLowerCase();
+    const k = kategori.toLowerCase();
     if (k.includes("sd")) return 1;
     if (k.includes("smp")) return 2;
     if (k.includes("sma") || k.includes("smk")) return 3;
@@ -45,7 +15,7 @@ export function TournamentBracket() {
   };
 
   const filteredParticipants = participants.filter(p => {
-    if ((p.status || "").toLowerCase().trim() === "rejected") return false;
+    if ((p.status || "").toLowerCase() !== "verified") return false;
     const l = (p.lomba || "").toLowerCase();
     if (activeTab === "Mobile Legends" && (l.includes("mobile") || l.includes("ml") || l.includes("legend"))) return true;
     if (activeTab === "Free Fire" && (l.includes("free") || l.includes("fire") || l.includes("ff"))) return true;
@@ -96,8 +66,8 @@ export function TournamentBracket() {
     const paddingTop = 32 + 38 * (Math.pow(2, r) - 1);
     const gap = 76 * Math.pow(2, r) - 60;
     return {
-      paddingTop: `${paddingTop}px`,
-      gap: `${gap}px`
+      paddingTop: \`\${paddingTop}px\`,
+      gap: \`\${gap}px\`
     };
   };
 
@@ -124,17 +94,17 @@ export function TournamentBracket() {
               <button
                 key={game.name}
                 onClick={() => setActiveTab(game.key)}
-                className={`flex items-center justify-center p-2 rounded-lg transition-all shadow-sm cursor-pointer ${
+                className={\`flex items-center justify-center p-2 rounded-lg transition-all shadow-sm cursor-pointer \${
                   isActive ? "bg-primary text-white shadow-md" : "hover:bg-gray-200/50"
-                }`}
+                }\`}
               >
                 <div className="w-16 sm:w-24 md:w-28 aspect-[2/1] flex items-center justify-center">
                   <img
                     src={game.logo}
                     alt={game.name}
-                    className={`h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105 ${
+                    className={\`h-full max-w-full object-contain drop-shadow-sm transition-transform duration-300 hover:scale-105 \${
                       isActive ? "brightness-0 invert" : ""
-                    }`}
+                    }\`}
                   />
                 </div>
               </button>
@@ -144,27 +114,27 @@ export function TournamentBracket() {
       </div>
 
       <div className="overflow-x-auto pb-8 pt-4 w-full">
-        <div className="flex justify-between px-2 gap-8" style={{ minWidth: `${(totalRounds + 1) * 224}px` }}>
+        <div className="flex justify-between px-2 gap-8" style={{ minWidth: \`\${(totalRounds + 1) * 224}px\` }}>
           
           {roundsData.map((roundMatches, r) => {
             const isGrandFinal = r === totalRounds - 1;
-            const roundTitle = isGrandFinal ? "Grand Final" : r === totalRounds - 2 ? "Semi Finals" : r === totalRounds - 3 ? "Quarter Finals" : `Round ${r + 1}`;
+            const roundTitle = isGrandFinal ? "Grand Final" : r === totalRounds - 2 ? "Semi Finals" : r === totalRounds - 3 ? "Quarter Finals" : \`Round \${r + 1}\`;
             const { paddingTop, gap } = getRoundStyle(r);
 
             return (
               <div key={r} className="flex flex-col shrink-0 relative w-48" style={{ paddingTop, gap }}>
-                <h4 className={`text-center uppercase tracking-wider absolute top-0 left-0 right-0 font-bold text-xs flex items-center justify-center gap-1 ${isGrandFinal ? 'text-gold' : 'text-slate-400'}`}>
+                <h4 className={\`text-center uppercase tracking-wider absolute top-0 left-0 right-0 font-bold text-xs flex items-center justify-center gap-1 \${isGrandFinal ? 'text-gold' : 'text-slate-400'}\`}>
                   {isGrandFinal && <Trophy className="w-3 h-3" />} {roundTitle}
                 </h4>
                 
                 {roundMatches.map((match, i) => (
-                  <div key={i} className={`h-[60px] ${isGrandFinal ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'} border rounded-lg p-2 shadow-sm flex flex-col justify-center gap-1 relative z-10`}>
+                  <div key={i} className={\`h-[60px] \${isGrandFinal ? 'bg-amber-50 border-amber-300' : 'bg-slate-50 border-slate-200'} border rounded-lg p-2 shadow-sm flex flex-col justify-center gap-1 relative z-10\`}>
                     
-                    <div className={`px-2 py-0.5 bg-white border border-slate-100 rounded text-xs font-bold flex justify-between items-center ${match.team1 ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                    <div className={\`px-2 py-0.5 bg-white border border-slate-100 rounded text-xs font-bold flex justify-between items-center \${match.team1 ? 'text-slate-700' : 'text-slate-400 italic'}\`}>
                       <span className="truncate">{match.team1 ? match.team1.nama : (r === 0 ? "TBD" : "Menunggu Lawan")}</span>
                       <span className="text-[10px] text-slate-400 font-mono">-</span>
                     </div>
-                    <div className={`px-2 py-0.5 bg-white border border-slate-100 rounded text-xs font-bold flex justify-between items-center ${match.team2 ? 'text-slate-700' : 'text-slate-400 italic'}`}>
+                    <div className={\`px-2 py-0.5 bg-white border border-slate-100 rounded text-xs font-bold flex justify-between items-center \${match.team2 ? 'text-slate-700' : 'text-slate-400 italic'}\`}>
                       <span className="truncate">{match.team2 ? match.team2.nama : (r === 0 ? "TBD" : "Menunggu Lawan")}</span>
                       <span className="text-[10px] text-slate-400 font-mono">-</span>
                     </div>
@@ -172,7 +142,7 @@ export function TournamentBracket() {
                     {r > 0 && (
                        <>
                          <div className="absolute w-[2px] bg-slate-200" style={{
-                            height: `${76 * Math.pow(2, r - 1) + 2}px`,
+                            height: \`\${76 * Math.pow(2, r - 1) + 2}px\`,
                             left: '-16px',
                             top: '50%',
                             transform: 'translateY(-50%)'
@@ -221,6 +191,12 @@ export function TournamentBracket() {
       </div>
     </div>
   );
+`;
 
-}
+const startIndex = content.indexOf('const filteredParticipants');
+const endIndex = content.lastIndexOf(');') + 2;
 
+content = content.substring(0, startIndex) + dynamicBracketCode + content.substring(endIndex);
+
+fs.writeFileSync('src/components/TournamentBracket.tsx', content);
+console.log('Done');

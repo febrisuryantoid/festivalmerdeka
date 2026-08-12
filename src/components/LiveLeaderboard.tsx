@@ -19,7 +19,7 @@ export function LiveLeaderboard() {
   const [participants, setParticipants] = useState<RegistrationData[]>(() => {
     try {
       const local = getLocalRegistrations();
-      return local.filter(p => (p.status || "").toLowerCase().trim() === "verified");
+      return local.filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
     } catch {
       return [];
     }
@@ -31,10 +31,10 @@ export function LiveLeaderboard() {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const local = getLocalRegistrations();
       const merged = mergeRegistrations(docs, local);
-      setParticipants(merged.filter(p => (p.status || "").toLowerCase().trim() === "verified"));
+      setParticipants(merged.filter(p => (p.status || "").toLowerCase().trim() !== "rejected"));
     }, (error) => {
       console.warn("Leaderboard snapshot fallback to local:", error);
-      const local = getLocalRegistrations().filter(p => (p.status || "").toLowerCase().trim() === "verified");
+      const local = getLocalRegistrations().filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
       setParticipants(local);
     });
     return unsub;
@@ -151,9 +151,15 @@ export function LiveLeaderboard() {
                           {getShortLomba(item.lomba)}
                         </td>
                         <td className="py-3.5 px-4 text-right text-xs sm:text-sm font-bold whitespace-nowrap">
-                          <span className="inline-flex items-center justify-end gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
-                            <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> TERVERIFIKASI
-                          </span>
+                          {(!item.status || item.status.toLowerCase().trim() === "pending") ? (
+                            <span className="inline-flex items-center justify-end gap-1 text-[11px] font-bold text-amber-700 bg-amber-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                              <Clock className="w-3.5 h-3.5 text-amber-600" /> PENDING
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center justify-end gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-100 px-3 py-1 rounded-full uppercase tracking-wider">
+                              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600" /> TERVERIFIKASI
+                            </span>
+                          )}
                         </td>
                       </motion.tr>
                     ))}
