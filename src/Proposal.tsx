@@ -164,8 +164,8 @@ export default function Proposal() {
                      <td className="py-1">: 09.00 WIB s/d Selesai</td>
                    </tr>
                    <tr>
-                     <td className="py-1 font-semibold align-top">• Tempat</td>
-                     <td className="py-1">: Lapangan Utama Padasuka & Panggung Utama eSport Arena</td>
+                     <td className="py-1 font-semibold align-top">• Tempat ML & FF<br/>• Tempat FC26</td>
+                     <td className="py-1">: Kp. Batu Karut RT/RW 08/04, Desa Padasuka, Kec. Baros, Kab. Serang, Banten<br/>: Ziezan Station Kp. Nyomplong No.34, RT.09/RW.02, Padasuka, Kec. Baros, Kab. Serang 42173</td>
                    </tr>
                  </tbody>
                </table>

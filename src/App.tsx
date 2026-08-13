@@ -740,21 +740,21 @@ export default function App() {
                   date: "14 Agustus 2026 (Pukul 20.00 WIB)",
                   icon: Gamepad2,
                   badge: "MLBB & FF",
-                  desc: "Pertandingan babak penyisihan cabang Mobile Legends & Free Fire resmi dimulai tanggal 14 Agustus Pukul 20.00 WIB.",
+                  desc: "Pertandingan babak penyisihan cabang Mobile Legends & Free Fire resmi dimulai tanggal 14 Agustus Pukul 20.00 WIB berlokasi di Kp. Batu Karut RT/RW 08/04, Desa Padasuka, Kec. Baros, Kab. Serang, Banten.",
                 },
                 {
                   title: "Grand Final MLBB & Free Fire",
                   date: "15 Agustus 2026 (Pukul 20.00 WIB)",
                   icon: Trophy,
                   badge: "Grand Final MLBB & FF",
-                  desc: "Puncak laga Grand Final MLBB & Free Fire serta penyerahan hadiah uang tunai tanggal 15 Agustus Pukul 20.00 WIB.",
+                  desc: "Puncak laga Grand Final MLBB & Free Fire serta penyerahan hadiah uang tunai tanggal 15 Agustus Pukul 20.00 WIB berlokasi di Kp. Batu Karut RT/RW 08/04, Desa Padasuka, Kec. Baros, Kab. Serang, Banten.",
                 },
                 {
                   title: "Jadwal Tanding Khusus PS4 Pro FC26",
                   date: "16 Agustus 2026 (Pukul 20.00 WIB)",
                   icon: Gamepad2,
                   badge: "Khusus FC26",
-                  desc: "Pertandingan kualifikasi hingga babak final khusus cabang EA SPORTS FC26 PS4 Pro dilaksanakan pada tanggal 16 Agustus Pukul 20.00 WIB.",
+                  desc: "Pertandingan kualifikasi hingga babak final khusus cabang EA SPORTS FC26 PS4 Pro dilaksanakan pada tanggal 16 Agustus Pukul 20.00 WIB berlokasi di Ziezan Station Kp. Nyomplong No.34, RT.09/RW.02, Padasuka, Kec. Baros, Kab. Serang 42173.",
                 },
               ].map((item, i) => {
                 const isEven = i % 2 === 0;
@@ -1415,7 +1415,7 @@ export default function App() {
                   Lokasi Mobile Legends & Free Fire
                 </h3>
                 <p className="text-xs sm:text-sm text-secondary mb-4 leading-relaxed font-medium">
-                  Venue resmi pertandingan babak kualifikasi dan penyisihan Mobile Legends: Bang Bang & Free Fire.
+                  Kp. Batu Karut RT/RW 08/04, Desa Padasuka, Kec. Baros, Kab. Serang, Banten.
                 </p>
 
                 {/* Embedded Map Venue 1: MLBB & FF */}
@@ -1462,7 +1462,7 @@ export default function App() {
                   Lokasi PS4 Pro EA SPORTS FC25/26
                 </h3>
                 <p className="text-xs sm:text-sm text-secondary mb-4 leading-relaxed font-medium">
-                  Venue resmi turnamen konsol PlayStation 4 Pro EA SPORTS FC25 / FC26 kategori Individu (1v1).
+                  Ziezan Station Kp. Nyomplong No.34, RT.09/RW.02, Padasuka, Kec. Baros, Kab. Serang 42173.
                 </p>
 
                 {/* Embedded Map Venue 2: FC25/FC26 (Ziezan Store) */}
