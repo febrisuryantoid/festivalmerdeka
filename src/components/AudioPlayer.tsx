@@ -9,27 +9,39 @@ import {
 const TRACKS = [
   { 
     id: 1, 
-    title: "Welcome", 
+    title: "Participants", 
     artist: "eSports Karang Taruna", 
-    url: "https://audio.jukehost.co.uk/019ff2d0-6e7e-733d-a694-4cef0c258432" 
+    url: "https://audio.jukehost.co.uk/019ffcfb-8084-7139-ac10-386763e6e9c4" 
   },
   { 
     id: 2, 
-    title: "In Game", 
+    title: "Welcome", 
     artist: "eSports Karang Taruna", 
-    url: "https://audio.jukehost.co.uk/019ff2d0-6c38-71da-9110-7971203fd7e1" 
+    url: "https://audio.jukehost.co.uk/019ffc91-9731-70ed-9260-23c743fb696d" 
   },
   { 
     id: 3, 
-    title: "The Winners", 
+    title: "In Game", 
     artist: "eSports Karang Taruna", 
-    url: "https://audio.jukehost.co.uk/019ff2d0-6d94-705e-9910-52eb6b6e4f60" 
+    url: "https://audio.jukehost.co.uk/019ffc9e-02ce-70c1-b0f8-61e314b70eb7" 
   },
   { 
     id: 4, 
+    title: "The Champion", 
+    artist: "eSports Karang Taruna", 
+    url: "https://audio.jukehost.co.uk/019ffc91-97a3-70ab-a23d-38173f4f8722" 
+  },
+  { 
+    id: 5, 
+    title: "The Winner's", 
+    artist: "eSports Karang Taruna", 
+    url: "https://audio.jukehost.co.uk/019ffc9e-0165-7374-8b36-8cca2183e6ab" 
+  },
+  { 
+    id: 6, 
     title: "Thank You", 
     artist: "eSports Karang Taruna", 
-    url: "https://audio.jukehost.co.uk/019ff2d0-6f45-7226-a531-e8dbed9f4cb2" 
+    url: "https://audio.jukehost.co.uk/019ffcfb-8328-7332-b931-4491a9d46896" 
   },
 ];
 

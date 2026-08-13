@@ -127,17 +127,17 @@ export function TournamentBracket() {
 
   // Calculate dynamic column width & gap based on total rounds so bracket fits desktop without scroll
   const numCols = totalRounds + 1;
-  let colWidth = 220;
-  let colGap = 48;
+  let colWidth = 175;
+  let colGap = 40;
 
   if (numCols <= 4) {
-    colWidth = 240;
-    colGap = 50;
+    colWidth = 190;
+    colGap = 45;
   } else if (numCols === 5) {
-    colWidth = 200;
-    colGap = 36;
+    colWidth = 170;
+    colGap = 32;
   } else if (numCols >= 6) {
-    colWidth = 175;
+    colWidth = 150;
     colGap = 24;
   }
 
@@ -280,8 +280,8 @@ export function TournamentBracket() {
     if (!isFullView) return;
     const updateScale = () => {
       if (containerRef.current) {
-        const containerWidth = containerRef.current.clientWidth - 48;
-        const containerHeight = containerRef.current.clientHeight - 180;
+        const containerWidth = containerRef.current.clientWidth - 32;
+        const containerHeight = containerRef.current.clientHeight - 120;
         const widthScale = containerWidth / totalCanvasWidth;
         const heightScale = containerHeight / totalCanvasHeight;
         setScaleFactor(Math.min(widthScale, heightScale, 1.8));
@@ -480,7 +480,7 @@ export function TournamentBracket() {
                               ? 'bg-slate-50 text-slate-900 border border-slate-200/90' 
                               : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
                           }`}>
-                            <span className="truncate flex items-center gap-1 max-w-[125px]">
+                            <span className="truncate flex items-center gap-1 max-w-full">
                               {match.team1 ? (
                                 <>
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -492,11 +492,6 @@ export function TournamentBracket() {
                                 </span>
                               )}
                             </span>
-                            {match.team1 && (
-                              <span className="text-[9px] font-mono font-extrabold text-amber-800 bg-amber-100 border border-amber-200 px-1 py-0.5 rounded">
-                                {match.team1.kategori || "UMUM"}
-                              </span>
-                            )}
                           </div>
 
                           {/* Team 2 Slot */}
@@ -505,7 +500,7 @@ export function TournamentBracket() {
                               ? 'bg-slate-50 text-slate-900 border border-slate-200/90' 
                               : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
                           }`}>
-                            <span className="truncate flex items-center gap-1 max-w-[125px]">
+                            <span className="truncate flex items-center gap-1 max-w-full">
                               {match.team2 ? (
                                 <>
                                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -517,11 +512,6 @@ export function TournamentBracket() {
                                 </span>
                               )}
                             </span>
-                            {match.team2 && (
-                              <span className="text-[9px] font-mono font-extrabold text-amber-800 bg-amber-100 border border-amber-200 px-1 py-0.5 rounded">
-                                {match.team2.kategori || "UMUM"}
-                              </span>
-                            )}
                           </div>
                         </div>
                       );
@@ -586,78 +576,93 @@ export function TournamentBracket() {
     </div>
 
       {isFullView && typeof document !== 'undefined' ? createPortal(
-        <div className="fixed inset-0 bg-slate-100/90 z-[99999] flex items-center justify-center p-4 sm:p-8 backdrop-blur-2xl transition-all duration-300">
-          {/* Conic Animated Border for 16:9 Screen */}
-          <div className="relative aspect-[16/9] w-full max-w-[1920px] max-h-[1080px] rounded-[32px] p-[3px] overflow-hidden shadow-[0_0_80px_rgba(245,158,11,0.25)] flex items-center justify-center bg-white border border-slate-200" ref={containerRef}>
-            <div className="absolute -inset-[150%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)] opacity-30 blur-[2px]" />
+        <div 
+          className="fixed inset-0 bg-white z-[99999] flex flex-col overflow-hidden transition-all duration-300" 
+          ref={containerRef}
+        >
+          {/* Soft Background Accent Glow */}
+          <div className={`absolute -top-48 -left-48 w-[800px] h-[800px] bg-gradient-to-r ${theme.accentColor} opacity-5 blur-[120px] rounded-full pointer-events-none`} />
+          <div className={`absolute -bottom-48 -right-48 w-[800px] h-[800px] bg-gradient-to-r ${theme.accentColor} opacity-5 blur-[120px] rounded-full pointer-events-none`} />
 
+          {/* Header Broadcast style & Tabs (Same layout as normal view) */}
+          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-4 p-4 sm:p-6 border-b border-slate-100 bg-white/80 backdrop-blur-md">
             
-            {/* Main Card (esports broadcast mode) - Full Light 4K Theme */}
-            <div className="relative w-full h-full bg-white rounded-[30px] p-8 text-slate-900 z-10 flex flex-col justify-between overflow-hidden">
-              {/* Soft Background Accent Glow */}
-              <div className={`absolute -top-24 -left-24 w-[500px] h-[500px] bg-gradient-to-r ${theme.accentColor} opacity-10 blur-[100px] rounded-full pointer-events-none`} />
-              <div className={`absolute -bottom-24 -right-24 w-[500px] h-[500px] bg-gradient-to-r ${theme.accentColor} opacity-10 blur-[100px] rounded-full pointer-events-none`} />
+            <div className="flex flex-col sm:flex-row items-center gap-4 text-center sm:text-left">
+              <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase border ${theme.badgeBg} text-amber-600 border-amber-200`}>
+                <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                {theme.badge} • <span className="font-extrabold">{theme.matchDate}</span>
+              </div>
+              <div>
+                <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight justify-center sm:justify-start">
+                  <Trophy className="w-6 h-6 text-amber-500" /> LIVE TOURNAMENT BRACKET
+                </h3>
+              </div>
+            </div>
 
-              {/* Header Broadcast style */}
-              <div className="flex justify-between items-center relative z-10 border-b border-slate-100 pb-6 mb-4">
-                <div className="flex items-center gap-4 text-left">
-                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase border ${theme.badgeBg} text-amber-600 border-amber-200`}>
-                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
-                    {theme.badge} • <span className="font-extrabold">{theme.matchDate}</span>
-                  </div>
-                  <div>
-                    <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
-                      <Trophy className="w-6 h-6 text-amber-500 animate-bounce" /> LIVE TOURNAMENT BRACKET
-                    </h3>
-                    <p className="text-slate-500 text-xs font-semibold">
-                      Bagan otomatis dibuat khusus untuk <span className="text-amber-500 font-mono font-bold">{count}</span> peserta terverifikasi (<span className="text-amber-500 font-mono font-bold">{bracketSize} Slot</span>)
-                    </p>
-                  </div>
-                </div>
-
-                {/* Game Selection in Fullscreen */}
-                <div className="flex gap-2">
-                  {[
-                    { name: "Mobile Legends", logo: MLBB_LOGO },
-                    { name: "Free Fire", logo: FF_LOGO },
-                    { name: "PS 4 Pro FC26", logo: FC26_LOGO }
-                  ].map(game => (
+            {/* Game Selection in Fullscreen - Identical Layout to Normal View */}
+            <div className="flex items-center gap-4">
+              <div className="flex justify-center flex-wrap bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 gap-2 shadow-inner">
+                {[
+                  { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("mobile") || (p.lomba||"").toLowerCase().includes("ml")).length },
+                  { name: "Free Fire", key: "Free Fire", logo: FF_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("free") || (p.lomba||"").toLowerCase().includes("ff")).length },
+                  { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("fc") || (p.lomba||"").toLowerCase().includes("ps")).length }
+                ].map(game => {
+                  const isActive = activeTab === game.key;
+                  return isActive ? (
+                    <div key={game.name} className="relative p-[2px] rounded-xl overflow-hidden shadow-md">
+                      <div className="absolute -inset-[150%] animate-[spin_4s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)]" />
+                      <button
+                        onClick={() => setActiveTab(game.key)}
+                        className="relative z-10 bg-white text-slate-900 font-extrabold px-3.5 py-2 rounded-[10px] flex items-center gap-2.5 cursor-pointer"
+                      >
+                        <div className="w-8 sm:w-12 aspect-[2/1] flex items-center justify-center">
+                          <img src={game.logo} alt={game.name} className="h-full max-w-full object-contain drop-shadow-sm" />
+                        </div>
+                        <span className="text-xs font-mono font-black px-2 py-0.5 rounded-full bg-slate-100 text-slate-900 border border-slate-200">
+                          {game.count}
+                        </span>
+                      </button>
+                    </div>
+                  ) : (
                     <button
                       key={game.name}
-                      onClick={() => setActiveTab(game.name)}
-                      className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all border font-bold text-xs cursor-pointer ${
-                        activeTab === game.name
-                          ? `bg-slate-900 text-white border-slate-900 shadow-md scale-105`
-                          : "bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200"
-                      }`}
+                      onClick={() => setActiveTab(game.key)}
+                      className="flex items-center justify-between gap-2.5 px-3.5 py-2 rounded-xl transition-all shadow-sm cursor-pointer bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/80"
                     >
-                      <img src={game.logo} alt={game.name} className="h-5 object-contain" />
+                      <div className="w-8 sm:w-12 aspect-[2/1] flex items-center justify-center">
+                        <img src={game.logo} alt={game.name} className="h-full max-w-full object-contain drop-shadow-sm opacity-70 hover:opacity-100 transition-opacity" />
+                      </div>
+                      <span className="text-xs font-mono font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600">
+                        {game.count}
+                      </span>
                     </button>
-                  ))}
-
-                  {/* Minimize Icon on top right */}
-                  <button 
-                    onClick={() => setIsFullView(false)}
-                    className="p-3 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-200 hover:border-red-500 transition-all cursor-pointer flex items-center justify-center"
-                    title="Keluar Layar Penuh (ESC)"
-                  >
-                    <Minimize2 className="w-5 h-5" />
-                  </button>
-                </div>
+                  );
+                })}
               </div>
 
-              {/* Scaled Bracket Content Area */}
-              <div className="flex-1 flex items-center justify-center overflow-hidden relative">
-                <div 
-                  style={{
-                    transform: `scale(${scaleFactor})`,
-                    transformOrigin: "center center",
-                    transition: "transform 0.2s ease-out",
-                    width: `${totalCanvasWidth}px`,
-                    height: `${totalCanvasHeight}px`
-                  }}
-                  className="relative shrink-0 flex justify-center items-center select-none"
-                >
+              {/* Minimize Icon on top right */}
+              <button 
+                onClick={() => setIsFullView(false)}
+                className="p-3 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-200 hover:border-red-500 transition-all cursor-pointer flex items-center justify-center shadow-sm"
+                title="Keluar Layar Penuh (ESC)"
+              >
+                <Minimize2 className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+
+          {/* Scaled Bracket Content Area */}
+          <div className="flex-1 flex items-center justify-center overflow-hidden relative">
+            <div 
+              style={{
+                transform: `scale(${scaleFactor})`,
+                transformOrigin: "center center",
+                transition: "transform 0.2s ease-out",
+                width: `${totalCanvasWidth}px`,
+                height: `${totalCanvasHeight}px`
+              }}
+              className="relative shrink-0 flex justify-center items-center select-none"
+            >
                   {/* Matches Columns */}
                   <div className="relative flex" style={{ height: `${totalCanvasHeight}px`, gap: `${colGap}px` }}>
                     {/* SVG lines */}
@@ -691,7 +696,7 @@ export function TournamentBracket() {
                                     ? 'bg-slate-50 text-slate-900 border border-slate-200' 
                                     : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
                                 }`}>
-                                  <span className="truncate flex items-center gap-1 max-w-[125px]">
+                                  <span className="truncate flex items-center gap-1 max-w-full">
                                     {match.team1 ? (
                                       <>
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -703,11 +708,6 @@ export function TournamentBracket() {
                                       </span>
                                     )}
                                   </span>
-                                  {match.team1 && (
-                                    <span className="text-[9px] font-mono font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">
-                                      {match.team1.kategori || "UMUM"}
-                                    </span>
-                                  )}
                                 </div>
 
                                 {/* Team 2 Slot */}
@@ -716,7 +716,7 @@ export function TournamentBracket() {
                                     ? 'bg-slate-50 text-slate-900 border border-slate-200' 
                                     : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
                                 }`}>
-                                  <span className="truncate flex items-center gap-1 max-w-[125px]">
+                                  <span className="truncate flex items-center gap-1 max-w-full">
                                     {match.team2 ? (
                                       <>
                                         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
@@ -728,11 +728,6 @@ export function TournamentBracket() {
                                       </span>
                                     )}
                                   </span>
-                                  {match.team2 && (
-                                    <span className="text-[9px] font-mono font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">
-                                      {match.team2.kategori || "UMUM"}
-                                    </span>
-                                  )}
                                 </div>
                               </div>
                             );
@@ -796,12 +791,10 @@ export function TournamentBracket() {
               </div>
 
               {/* Footer Broadcast info */}
-              <div className="flex justify-between items-center relative z-10 border-t border-slate-200 pt-4 text-[10px] font-mono font-bold tracking-wider text-slate-500">
+              <div className="flex justify-between items-center relative z-10 border-t border-slate-200 p-4 sm:px-6 text-[10px] font-mono font-bold tracking-wider text-slate-500 bg-white">
                 <div>OFFICIAL LIVE ESPORTS STREAM OVERLAY • 4K ULTRA QUALITY</div>
                 <div className="text-right">PRESS ESC TO CLOSE FULL VIEW</div>
               </div>
-            </div>
-          </div>
         </div>,
         document.body
       ) : null}

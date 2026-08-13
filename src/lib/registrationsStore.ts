@@ -467,6 +467,21 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     status: "pending" as const,
     createdAt: "2026-08-13T14:34:00.000Z",
     firestoreSynced: true
+  },
+  {
+    id: "manual_ziezan_ff",
+    localId: "manual_ziezan_ff",
+    nama: "ZIEZAN",
+    players: [],
+    anggotaTim: "",
+    usia: "8",
+    kategori: "SD",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Nyomplong",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-13T15:49:00.000Z",
+    firestoreSynced: true
   }
 ];
 
