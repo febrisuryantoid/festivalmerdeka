@@ -254,7 +254,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
     alamat: "Batu Karut",
     wa: "083838441748",
-    status: "pending" as const,
+    status: "verified" as const,
     createdAt: "2026-08-10T09:43:00.000Z",
     firestoreSynced: true
   },

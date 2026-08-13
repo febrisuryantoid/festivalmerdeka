@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { ShieldCheck, Trophy, Swords, ChevronsRight, Crown, Sparkles, Award, Flame, Gamepad2, Layers } from "lucide-react";
+import { ShieldCheck, Trophy, Swords, ChevronsRight, Crown, Sparkles, Award, Flame, Gamepad2, Layers, Maximize2, Minimize2 } from "lucide-react";
 import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 import { getLocalRegistrations, mergeRegistrations, RegistrationData, parseTimestampMillis } from "../lib/registrationsStore";
 
@@ -16,6 +17,27 @@ export function TournamentBracket() {
   });
 
   const [activeTab, setActiveTab] = useState("Mobile Legends");
+  const [isFullView, setIsFullView] = useState(false);
+  const [scaleFactor, setScaleFactor] = useState(1);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsFullView(false);
+      }
+    };
+    if (isFullView) {
+      window.addEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+      document.body.style.overflow = "unset";
+    };
+  }, [isFullView]);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "registrations"), (snapshot) => {
@@ -254,22 +276,53 @@ export function TournamentBracket() {
 
   const totalCanvasWidth = (totalRounds + 1) * colWidth + totalRounds * colGap;
 
-  return (
-    <div className="relative w-full rounded-[28px] p-[2.5px] overflow-hidden shadow-2xl bg-white">
-      <style>{`
-        @keyframes pulse-scale {
-          0% { transform: scale(0.9); }
-          100% { transform: scale(1.1); }
-        }
-      `}</style>
-      {/* Animated Conic Gradient Border Radius */}
-      <div className="absolute -inset-[150%] animate-[spin_7s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)] opacity-85 blur-[1px]" />
+  useEffect(() => {
+    if (!isFullView) return;
+    const updateScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth - 48;
+        const containerHeight = containerRef.current.clientHeight - 180;
+        const widthScale = containerWidth / totalCanvasWidth;
+        const heightScale = containerHeight / totalCanvasHeight;
+        setScaleFactor(Math.min(widthScale, heightScale, 1.8));
+      }
+    };
+    updateScale();
+    window.addEventListener("resize", updateScale);
+    const timer = setTimeout(updateScale, 150);
+    return () => {
+      window.removeEventListener("resize", updateScale);
+      clearTimeout(timer);
+    };
+  }, [isFullView, totalCanvasWidth, totalCanvasHeight]);
 
-      {/* Main Bracket Card Container - Full White */}
-      <div className="relative w-full bg-white rounded-[26px] p-4 sm:p-8 text-slate-900 z-10">
-        {/* Soft Background Accent Glow */}
-        <div className={`absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
-        <div className={`absolute -bottom-24 -right-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
+  return (
+    <>
+      <div className="relative w-full rounded-[28px] p-[2.5px] overflow-hidden shadow-2xl bg-white">
+        <style>{`
+          @keyframes pulse-scale {
+            0% { transform: scale(0.9); }
+            100% { transform: scale(1.1); }
+          }
+        `}</style>
+        {/* Animated Conic Gradient Border Radius */}
+        <div className="absolute -inset-[150%] animate-[spin_7s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)] opacity-85 blur-[1px]" />
+
+        {/* Main Bracket Card Container - Full White */}
+        <div className="relative w-full bg-white rounded-[26px] p-4 sm:p-8 text-slate-900 z-10">
+          {/* Soft Background Accent Glow */}
+          <div className={`absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
+          <div className={`absolute -bottom-24 -right-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
+
+          {/* Maximize Button to enter 16:9 full-screen broadcast view */}
+          <button 
+            onClick={() => setIsFullView(true)}
+            className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-100 hover:bg-gradient-to-r hover:from-amber-500 hover:to-orange-500 text-slate-700 hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all duration-300 cursor-pointer flex items-center justify-center z-20 group shadow-sm hover:shadow-md"
+            title="Tampilkan Layar Penuh (16:9)"
+          >
+            <Maximize2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline ml-1.5 text-xs font-black tracking-wider uppercase">Full View (16:9)</span>
+          </button>
 
         {/* Header */}
         <div className="flex flex-col items-center text-center gap-5 mb-8 relative z-10">
@@ -531,5 +584,227 @@ export function TournamentBracket() {
         </div>
       </div>
     </div>
+
+      {isFullView && typeof document !== 'undefined' ? createPortal(
+        <div className="fixed inset-0 bg-slate-100/90 z-[99999] flex items-center justify-center p-4 sm:p-8 backdrop-blur-2xl transition-all duration-300">
+          {/* Conic Animated Border for 16:9 Screen */}
+          <div className="relative aspect-[16/9] w-full max-w-[1920px] max-h-[1080px] rounded-[32px] p-[3px] overflow-hidden shadow-[0_0_80px_rgba(245,158,11,0.25)] flex items-center justify-center bg-white border border-slate-200" ref={containerRef}>
+            <div className="absolute -inset-[150%] animate-[spin_8s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)] opacity-30 blur-[2px]" />
+
+            
+            {/* Main Card (esports broadcast mode) - Full Light 4K Theme */}
+            <div className="relative w-full h-full bg-white rounded-[30px] p-8 text-slate-900 z-10 flex flex-col justify-between overflow-hidden">
+              {/* Soft Background Accent Glow */}
+              <div className={`absolute -top-24 -left-24 w-[500px] h-[500px] bg-gradient-to-r ${theme.accentColor} opacity-10 blur-[100px] rounded-full pointer-events-none`} />
+              <div className={`absolute -bottom-24 -right-24 w-[500px] h-[500px] bg-gradient-to-r ${theme.accentColor} opacity-10 blur-[100px] rounded-full pointer-events-none`} />
+
+              {/* Header Broadcast style */}
+              <div className="flex justify-between items-center relative z-10 border-b border-slate-100 pb-6 mb-4">
+                <div className="flex items-center gap-4 text-left">
+                  <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[10px] font-mono font-bold tracking-widest uppercase border ${theme.badgeBg} text-amber-600 border-amber-200`}>
+                    <Sparkles className="w-3.5 h-3.5 animate-pulse" />
+                    {theme.badge} • <span className="font-extrabold">{theme.matchDate}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2 tracking-tight">
+                      <Trophy className="w-6 h-6 text-amber-500 animate-bounce" /> LIVE TOURNAMENT BRACKET
+                    </h3>
+                    <p className="text-slate-500 text-xs font-semibold">
+                      Bagan otomatis dibuat khusus untuk <span className="text-amber-500 font-mono font-bold">{count}</span> peserta terverifikasi (<span className="text-amber-500 font-mono font-bold">{bracketSize} Slot</span>)
+                    </p>
+                  </div>
+                </div>
+
+                {/* Game Selection in Fullscreen */}
+                <div className="flex gap-2">
+                  {[
+                    { name: "Mobile Legends", logo: MLBB_LOGO },
+                    { name: "Free Fire", logo: FF_LOGO },
+                    { name: "PS 4 Pro FC26", logo: FC26_LOGO }
+                  ].map(game => (
+                    <button
+                      key={game.name}
+                      onClick={() => setActiveTab(game.name)}
+                      className={`flex items-center gap-2 px-4 py-2 rounded-xl transition-all border font-bold text-xs cursor-pointer ${
+                        activeTab === game.name
+                          ? `bg-slate-900 text-white border-slate-900 shadow-md scale-105`
+                          : "bg-slate-50 hover:bg-slate-100 text-slate-500 border-slate-200"
+                      }`}
+                    >
+                      <img src={game.logo} alt={game.name} className="h-5 object-contain" />
+                    </button>
+                  ))}
+
+                  {/* Minimize Icon on top right */}
+                  <button 
+                    onClick={() => setIsFullView(false)}
+                    className="p-3 bg-red-50 hover:bg-red-500 text-red-500 hover:text-white rounded-xl border border-red-200 hover:border-red-500 transition-all cursor-pointer flex items-center justify-center"
+                    title="Keluar Layar Penuh (ESC)"
+                  >
+                    <Minimize2 className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Scaled Bracket Content Area */}
+              <div className="flex-1 flex items-center justify-center overflow-hidden relative">
+                <div 
+                  style={{
+                    transform: `scale(${scaleFactor})`,
+                    transformOrigin: "center center",
+                    transition: "transform 0.2s ease-out",
+                    width: `${totalCanvasWidth}px`,
+                    height: `${totalCanvasHeight}px`
+                  }}
+                  className="relative shrink-0 flex justify-center items-center select-none"
+                >
+                  {/* Matches Columns */}
+                  <div className="relative flex" style={{ height: `${totalCanvasHeight}px`, gap: `${colGap}px` }}>
+                    {/* SVG lines */}
+                    <svg className="absolute inset-0 pointer-events-none w-full h-full z-0 overflow-visible">
+                      <defs>
+                        <linearGradient id={`bracketGradDark-${activeTab.replace(/\s+/g, '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                          <stop offset="0%" stopColor={theme.stroke1} />
+                          <stop offset="100%" stopColor={theme.stroke2} />
+                        </linearGradient>
+                      </defs>
+                      {/* Connector paths */}
+                      {generateConnectorPaths()}
+                    </svg>
+
+                    {roundsData.map((roundMatches, r) => {
+                      return (
+                        <div key={r} className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
+                          {roundMatches.map((match, i) => {
+                            const centerY = yCenters[r][i];
+                            const topPos = centerY - cardHeight / 2;
+
+                            return (
+                              <div
+                                key={i}
+                                className={`absolute w-full rounded-2xl p-1.5 shadow-md border transition-all duration-300 hover:scale-105 flex flex-col justify-center gap-1 z-10 bg-white border-slate-200`}
+                                style={{ top: `${topPos}px`, height: `${cardHeight}px` }}
+                              >
+                                {/* Team 1 Slot */}
+                                <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
+                                  match.team1 
+                                    ? 'bg-slate-50 text-slate-900 border border-slate-200' 
+                                    : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
+                                }`}>
+                                  <span className="truncate flex items-center gap-1 max-w-[125px]">
+                                    {match.team1 ? (
+                                      <>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team1.nama}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-slate-400 font-normal text-[11px]">
+                                        {r === 0 ? (i * 2 + 1 <= count ? `#${i * 2 + 1}` : "BYE") : "Menunggu"}
+                                      </span>
+                                    )}
+                                  </span>
+                                  {match.team1 && (
+                                    <span className="text-[9px] font-mono font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">
+                                      {match.team1.kategori || "UMUM"}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {/* Team 2 Slot */}
+                                <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
+                                  match.team2 
+                                    ? 'bg-slate-50 text-slate-900 border border-slate-200' 
+                                    : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
+                                }`}>
+                                  <span className="truncate flex items-center gap-1 max-w-[125px]">
+                                    {match.team2 ? (
+                                      <>
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team2.nama}</span>
+                                      </>
+                                    ) : (
+                                      <span className="text-slate-400 font-normal text-[11px]">
+                                        {r === 0 ? (i * 2 + 2 <= count ? `#${i * 2 + 2}` : "BYE") : "Menunggu"}
+                                      </span>
+                                    )}
+                                  </span>
+                                  {match.team2 && (
+                                    <span className="text-[9px] font-mono font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-1 py-0.5 rounded">
+                                      {match.team2.kategori || "UMUM"}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })}
+
+                    {/* Champion Podium */}
+                    <div className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
+                      <div
+                        className={`absolute w-full rounded-2xl p-3 border border-amber-400 bg-gradient-to-b from-white via-slate-50 to-white flex flex-col items-center justify-center text-center gap-2 z-20`}
+                        style={{
+                          top: `${yCenters[totalRounds - 1][0] - 70}px`,
+                          height: '140px',
+                          boxShadow: '0 4px 25px rgba(245, 158, 11, 0.15)'
+                        }}
+                      >
+                        {/* Glowing Crown/Cash Icon with custom scaling and conic border radius animation */}
+                        <div className="relative flex items-center justify-center p-[2px] rounded-full overflow-hidden w-11 h-11 shadow-inner">
+                          <div 
+                            className="absolute -inset-[150%] animate-[spin_4s_linear_infinite]" 
+                            style={{
+                              background: activeTab === "Mobile Legends"
+                                ? "conic-gradient(from 0deg, #f59e0b, #fff, #d97706, #fff, #f59e0b)"
+                                : activeTab === "Free Fire"
+                                ? "conic-gradient(from 0deg, #dc2626, #fff, #f97316, #fff, #dc2626)"
+                                : "conic-gradient(from 0deg, #0284c7, #fff, #2563eb, #fff, #0284c7)"
+                            }}
+                          />
+                          <div 
+                            className="relative z-10 w-full h-full rounded-full bg-white flex items-center justify-center shadow-md border border-slate-100"
+                            style={{ animation: 'pulse-scale 1.5s infinite alternate ease-in-out' }}
+                          >
+                            <Crown className={`w-5 h-5 ${
+                              activeTab === "Mobile Legends" 
+                                ? "text-amber-500" 
+                                : activeTab === "Free Fire" 
+                                ? "text-red-500" 
+                                : "text-cyan-600"
+                            } drop-shadow-sm`} />
+                          </div>
+                        </div>
+
+                        <div>
+                          <span className="text-[9px] font-mono font-black uppercase tracking-widest text-amber-500 block mb-0.5">
+                            JUARA UTAMA
+                          </span>
+                          <h5 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight uppercase line-clamp-1">
+                            {filteredParticipants.length > 0 ? "PEMENANG FINAL" : "BYE"}
+                          </h5>
+                        </div>
+
+                        <div className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black tracking-wider uppercase bg-amber-400 text-slate-900 shadow-sm`}>
+                          HADIAH UANG CASH
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer Broadcast info */}
+              <div className="flex justify-between items-center relative z-10 border-t border-slate-200 pt-4 text-[10px] font-mono font-bold tracking-wider text-slate-500">
+                <div>OFFICIAL LIVE ESPORTS STREAM OVERLAY • 4K ULTRA QUALITY</div>
+                <div className="text-right">PRESS ESC TO CLOSE FULL VIEW</div>
+              </div>
+            </div>
+          </div>
+        </div>,
+        document.body
+      ) : null}
+    </>
   );
 }
