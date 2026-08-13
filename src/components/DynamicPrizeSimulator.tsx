@@ -77,11 +77,11 @@ export const DynamicPrizeSimulator: React.FC<DynamicPrizeSimulatorProps> = ({ re
             <span className="text-[10px] sm:text-xs font-bold tracking-widest text-slate-500 uppercase">
               Estimasi Hadiah Terkumpul
             </span>
-            <div className="text-4xl sm:text-5xl font-black text-slate-900 tracking-tighter drop-shadow-sm">
+            <div className="text-4xl sm:text-5xl font-black font-mono text-slate-900 tracking-tighter drop-shadow-sm">
               {formatRupiah(calcResult.adjustedPrizePool)}
             </div>
             {calcResult.isBonusActive && (
-              <div className="inline-block px-2.5 py-1 bg-emerald-100/80 text-emerald-700 text-[10px] sm:text-xs font-bold rounded-full mt-2">
+              <div className="inline-block px-2.5 py-1 bg-emerald-100/80 text-emerald-700 text-[10px] sm:text-xs font-bold font-mono rounded-full mt-2">
                 Bonus Aktif (+{formatRupiah(calcResult.diffAmount)})
               </div>
             )}
@@ -89,14 +89,14 @@ export const DynamicPrizeSimulator: React.FC<DynamicPrizeSimulatorProps> = ({ re
 
           {/* Minimalist Slider */}
           <div className="space-y-4 max-w-xl mx-auto w-full">
-            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <div className="flex justify-between items-center text-[10px] sm:text-xs font-bold font-mono text-slate-500 uppercase tracking-wider">
               <span>0</span>
               <div className="flex items-center gap-1.5 px-2.5 py-1 bg-white/80 rounded-full shadow-sm border border-slate-100">
                 <Users className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-primary" />
-                <span className="text-primary text-xs sm:text-sm">{simulatedCount}</span> 
-                <span className="hidden sm:inline">Peserta</span>
+                <span className="text-primary text-xs sm:text-sm font-mono font-bold">{simulatedCount}</span> 
+                <span className="hidden sm:inline font-sans">Peserta</span>
               </div>
-              <span>{Math.round(activeConfig.targetParticipants * 1.5)}</span>
+              <span className="font-mono font-bold">{Math.round(activeConfig.targetParticipants * 1.5)}</span>
             </div>
             <input
               type="range"
@@ -118,15 +118,15 @@ export const DynamicPrizeSimulator: React.FC<DynamicPrizeSimulatorProps> = ({ re
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-semibold text-xs sm:text-sm flex items-center gap-1.5">
-                    <span className="text-sm">🥇</span> Juara 1
+                    <span className="text-sm">🥇</span> Juara <span className="font-mono font-bold">1</span>
                   </span>
-                  <span className="font-black text-slate-900 text-sm sm:text-base">{cat.juara1Formatted}</span>
+                  <span className="font-black font-mono text-slate-900 text-sm sm:text-base">{cat.juara1Formatted}</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500 font-semibold text-xs sm:text-sm flex items-center gap-1.5">
-                    <span className="text-sm">🥈</span> Juara 2
+                    <span className="text-sm">🥈</span> Juara <span className="font-mono font-bold">2</span>
                   </span>
-                  <span className="font-bold text-slate-700 text-sm sm:text-base">{cat.juara2Formatted}</span>
+                  <span className="font-bold font-mono text-slate-700 text-sm sm:text-base">{cat.juara2Formatted}</span>
                 </div>
               </div>
             ))}

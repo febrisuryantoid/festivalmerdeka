@@ -101,7 +101,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    const targetDate = new Date("2026-08-15T17:00:00").getTime();
+    const targetDate = new Date("2026-08-14T17:00:00").getTime();
     const timer = setInterval(() => {
       const now = new Date().getTime();
       const distance = targetDate - now;
@@ -152,35 +152,35 @@ export default function App() {
   };
 
   const fadeUpVariant = {
-    hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, y: 35, scale: 0.96 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 220, damping: 20 } }
   };
 
   const fadeDownVariant = {
-    hidden: { opacity: 0, y: -30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, y: -35, scale: 0.96 },
+    visible: { opacity: 1, y: 0, scale: 1, transition: { type: "spring", stiffness: 220, damping: 20 } }
   };
 
   const slideInLeftVariant = {
-    hidden: { opacity: 0, x: -40 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, x: -45, scale: 0.95 },
+    visible: { opacity: 1, x: 0, scale: 1, transition: { type: "spring", stiffness: 210, damping: 20 } }
   };
 
   const slideInRightVariant = {
-    hidden: { opacity: 0, x: 40 },
-    visible: { opacity: 1, x: 0, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, x: 45, scale: 0.95 },
+    visible: { opacity: 1, x: 0, scale: 1, transition: { type: "spring", stiffness: 210, damping: 20 } }
   };
 
   const scaleUpVariant = {
-    hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.8, ease: [0.16, 1, 0.3, 1] } }
+    hidden: { opacity: 0, scale: 0.86, y: 20 },
+    visible: { opacity: 1, scale: 1, y: 0, transition: { type: "spring", stiffness: 240, damping: 18 } }
   };
 
   const staggerContainer = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.15, delayChildren: 0.1 }
+      transition: { staggerChildren: 0.14, delayChildren: 0.05 }
     }
   };
 
@@ -188,7 +188,7 @@ export default function App() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.08, delayChildren: 0.05 }
+      transition: { staggerChildren: 0.08, delayChildren: 0.03 }
     }
   };
 
@@ -196,7 +196,7 @@ export default function App() {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
-      transition: { staggerChildren: 0.25, delayChildren: 0.1 }
+      transition: { staggerChildren: 0.22, delayChildren: 0.08 }
     }
   };
 
@@ -403,7 +403,7 @@ export default function App() {
                 Batas Akhir Pendaftaran
               </p>
               <div className="flex items-center justify-center md:justify-end gap-2 text-primary font-heading text-xl sm:text-2xl lg:text-3xl">
-                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" /> 15 Ags 2026, 17.00 WIB
+                <Calendar className="w-4 h-4 sm:w-5 sm:h-5" /> <span className="font-mono font-bold">14</span> Ags <span className="font-mono font-bold">2026</span>, <span className="font-mono font-bold">17.00</span> WIB
               </div>
             </div>
             <div className="flex items-center gap-3 xs:gap-4 sm:gap-6 md:pl-12 w-full md:w-auto justify-center">
@@ -417,7 +417,7 @@ export default function App() {
                   key={i}
                   className="flex flex-col text-center min-w-[50px] xs:min-w-[60px] sm:min-w-[70px]"
                 >
-                  <span className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-heading text-dark mb-0.5 sm:mb-1">
+                  <span className="text-2xl xs:text-3xl sm:text-4xl lg:text-5xl font-heading font-mono font-black text-dark mb-0.5 sm:mb-1">
                     {item.value.toString().padStart(2, "0")}
                   </span>
                   <span className="text-[9px] xs:text-[10px] sm:text-xs text-secondary font-semibold uppercase tracking-widest">
@@ -489,14 +489,15 @@ export default function App() {
                 3 Cabang Game Utama
               </motion.h3>
               <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={scaleUpVariant} className="w-16 sm:w-20 h-1 bg-gold mx-auto rounded-full mt-3" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8">
+            </div>            <motion.div 
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, margin: "-50px" }}
+              variants={staggerContainer}
+              className="grid grid-cols-1 md:grid-cols-3 gap-6 sm:gap-8"
+            >
               {/* Card 1: Mobile Legends */}
               <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
                 variants={scaleUpVariant}
                 whileHover={{ y: -6 }}
                 className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-amber-500/60 transition-all duration-300"
@@ -520,7 +521,7 @@ export default function App() {
                       <Users className="w-5 h-5 text-slate-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Format Lomba</p>
-                        <p className="font-extrabold text-dark text-sm sm:text-base">5 vs 5</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base"><span className="font-mono font-bold">5</span> vs <span className="font-mono font-bold">5</span></p>
                       </div>
                     </div>
 
@@ -528,9 +529,17 @@ export default function App() {
                       <Trophy className="w-6 h-6 text-amber-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-amber-900 font-bold uppercase tracking-wider">Total Hadiah Realtime (Auto-Update)</p>
-                        <p className="font-black text-amber-600 text-xl sm:text-2xl font-heading">
+                        <p className="font-black text-amber-600 text-xl sm:text-2xl font-heading font-mono">
                           Rp{calculateDynamicPrize('mlbb', slotCounts.ml).adjustedPrizePool.toLocaleString('id-ID')}
                         </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-amber-500/10 p-3.5 rounded-2xl border border-amber-500/30 flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-amber-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-amber-900 font-bold uppercase tracking-wider">Jadwal Tanding MLBB</p>
+                        <p className="font-extrabold text-amber-800 text-xs sm:text-sm"><span className="font-mono font-bold">14</span> Agustus <span className="font-mono font-bold">2026</span> • Pukul <span className="font-mono font-bold">20.00</span> WIB</p>
                       </div>
                     </div>
 
@@ -538,7 +547,7 @@ export default function App() {
                       <Users className="w-5 h-5 text-slate-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
-                        <p className="font-extrabold text-dark text-sm sm:text-base">200 Peserta <span className="text-xs text-gray-500 font-normal">(40 Tim)</span></p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base"><span className="font-mono font-bold">200</span> Peserta <span className="text-xs text-gray-500 font-normal">(<span className="font-mono font-bold">40</span> Tim)</span></p>
                       </div>
                     </div>
                   </div>
@@ -554,9 +563,6 @@ export default function App() {
 
               {/* Card 2: Free Fire */}
               <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
                 variants={scaleUpVariant}
                 whileHover={{ y: -6 }}
                 className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-red-500/60 transition-all duration-300"
@@ -588,9 +594,17 @@ export default function App() {
                       <Trophy className="w-6 h-6 text-primary shrink-0" />
                       <div>
                         <p className="text-[10px] text-red-900 font-bold uppercase tracking-wider">Total Hadiah Realtime (Auto-Update)</p>
-                        <p className="font-black text-primary text-xl sm:text-2xl font-heading">
+                        <p className="font-black text-primary text-xl sm:text-2xl font-heading font-mono">
                           Rp{calculateDynamicPrize('ff', slotCounts.ff).adjustedPrizePool.toLocaleString('id-ID')}
                         </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-red-500/10 p-3.5 rounded-2xl border border-red-500/30 flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-red-600 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-red-900 font-bold uppercase tracking-wider">Jadwal Tanding Free Fire</p>
+                        <p className="font-extrabold text-red-800 text-xs sm:text-sm"><span className="font-mono font-bold">14</span> Agustus <span className="font-mono font-bold">2026</span> • Pukul <span className="font-mono font-bold">20.00</span> WIB</p>
                       </div>
                     </div>
 
@@ -598,7 +612,7 @@ export default function App() {
                       <Users className="w-5 h-5 text-slate-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
-                        <p className="font-extrabold text-dark text-sm sm:text-base">200 Peserta <span className="text-xs text-gray-500 font-normal">(50 Squad)</span></p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base"><span className="font-mono font-bold">200</span> Peserta <span className="text-xs text-gray-500 font-normal">(<span className="font-mono font-bold">50</span> Squad)</span></p>
                       </div>
                     </div>
                   </div>
@@ -614,9 +628,6 @@ export default function App() {
 
               {/* Card 3: EA SPORTS FC25 / FC26 */}
               <motion.div
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
                 variants={scaleUpVariant}
                 whileHover={{ y: -6 }}
                 className="relative rounded-[28px] sm:rounded-[36px] p-6 sm:p-8 bg-white border border-slate-200/90 shadow-xl flex flex-col justify-between overflow-hidden group text-dark hover:border-cyan-500/60 transition-all duration-300"
@@ -640,7 +651,7 @@ export default function App() {
                       <Gamepad2 className="w-5 h-5 text-slate-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Console Platform</p>
-                        <p className="font-extrabold text-dark text-sm sm:text-base">PlayStation 4 Pro</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base">PlayStation <span className="font-mono font-bold">4</span> Pro</p>
                       </div>
                     </div>
 
@@ -648,9 +659,17 @@ export default function App() {
                       <Trophy className="w-6 h-6 text-cyan-700 shrink-0" />
                       <div>
                         <p className="text-[10px] text-cyan-900 font-bold uppercase tracking-wider">Total Hadiah Realtime (Auto-Update)</p>
-                        <p className="font-black text-cyan-700 text-xl sm:text-2xl font-heading">
+                        <p className="font-black text-cyan-700 text-xl sm:text-2xl font-heading font-mono">
                           Rp{calculateDynamicPrize('fc', slotCounts.fc).adjustedPrizePool.toLocaleString('id-ID')}
                         </p>
+                      </div>
+                    </div>
+
+                    <div className="bg-cyan-500/10 p-3.5 rounded-2xl border border-cyan-500/30 flex items-center gap-3">
+                      <Calendar className="w-5 h-5 text-cyan-700 shrink-0" />
+                      <div>
+                        <p className="text-[10px] text-cyan-900 font-bold uppercase tracking-wider">Jadwal Tanding PS4 FC26</p>
+                        <p className="font-extrabold text-cyan-800 text-xs sm:text-sm"><span className="font-mono font-bold">16</span> Agustus <span className="font-mono font-bold">2026</span> • Pukul <span className="font-mono font-bold">20.00</span> WIB</p>
                       </div>
                     </div>
 
@@ -658,7 +677,7 @@ export default function App() {
                       <Users className="w-5 h-5 text-slate-600 shrink-0" />
                       <div>
                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Kuota Peserta</p>
-                        <p className="font-extrabold text-dark text-sm sm:text-base">50 Peserta</p>
+                        <p className="font-extrabold text-dark text-sm sm:text-base"><span className="font-mono font-bold">50</span> Peserta</p>
                       </div>
                     </div>
                   </div>
@@ -668,10 +687,10 @@ export default function App() {
                   href="#pendaftaran"
                   className="mt-6 w-full py-3.5 px-4 bg-gold hover:bg-amber-400 text-white font-extrabold text-xs sm:text-sm uppercase tracking-wider rounded-xl transition-all shadow-lg shadow-gold/20 text-center block"
                 >
-                  Daftar FC Sekarang
+                  Daftar PS4 FC26 Sekarang
                 </a>
               </motion.div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -704,31 +723,38 @@ export default function App() {
               {[
                 {
                   title: "Pendaftaran Peserta",
-                  date: "s.d 15 Agustus 2026 (Pukul 17.00 WIB)",
+                  date: "s.d 14 Agustus 2026 (Pukul 17.00 WIB)",
                   icon: Target,
                   badge: "Pendaftaran",
-                  desc: "Pendaftaran resmi tim & individu untuk seluruh cabang game eSport dibuka hingga 15 Agustus Pukul 17.00 WIB.",
+                  desc: "Pendaftaran resmi tim & individu untuk seluruh cabang game eSport dibuka hingga 14 Agustus Pukul 17.00 WIB.",
                 },
                 {
                   title: "Technical Meeting",
-                  date: "15 Agustus 2026 (Pukul 16.30 WIB)",
+                  date: "14 Agustus 2026 (Pukul 16.30 WIB)",
                   icon: Users,
                   badge: "TM / PIC",
                   desc: "Pertemuan teknis perwakilan/PIC tim di Kp. Batu Karut (Rumah Pak Rudi). Wajib dihadiri perwakilan tim.",
                 },
                 {
-                  title: "Babak Penyisihan",
-                  date: "15 Agustus 2026 (Pukul 19.45 WIB)",
+                  title: "Jadwal Tanding MLBB & Free Fire",
+                  date: "14 Agustus 2026 (Pukul 20.00 WIB)",
                   icon: Gamepad2,
-                  badge: "Penyisihan",
-                  desc: "Pertandingan kualifikasi & penyisihan serentak dimulai tanggal 15 Agustus Pukul 19.45 WIB.",
+                  badge: "MLBB & FF",
+                  desc: "Pertandingan babak penyisihan cabang Mobile Legends & Free Fire resmi dimulai tanggal 14 Agustus Pukul 20.00 WIB.",
                 },
                 {
-                  title: "Grand Final & Penyerahan Hadiah",
-                  date: "16 Agustus 2026 (Pukul 20.00 WIB)",
+                  title: "Grand Final MLBB & Free Fire",
+                  date: "15 Agustus 2026 (Pukul 20.00 WIB)",
                   icon: Trophy,
-                  badge: "Grand Final",
-                  desc: "Puncak laga Grand Final & penyerahan uang tunai tanggal 16 Agustus Pukul 20.00 WIB.",
+                  badge: "Grand Final MLBB & FF",
+                  desc: "Puncak laga Grand Final MLBB & Free Fire serta penyerahan hadiah uang tunai tanggal 15 Agustus Pukul 20.00 WIB.",
+                },
+                {
+                  title: "Jadwal Tanding Khusus PS4 Pro FC26",
+                  date: "16 Agustus 2026 (Pukul 20.00 WIB)",
+                  icon: Gamepad2,
+                  badge: "Khusus FC26",
+                  desc: "Pertandingan kualifikasi hingga babak final khusus cabang EA SPORTS FC26 PS4 Pro dilaksanakan pada tanggal 16 Agustus Pukul 20.00 WIB.",
                 },
               ].map((item, i) => {
                 const isEven = i % 2 === 0;
@@ -1068,8 +1094,8 @@ export default function App() {
       </section>
 
       {/* Bagan Turnamen */}
-      <section aria-label="Bagan dan Papan Peringkat" id="bagan" className="py-20 sm:py-28 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      <section aria-label="Bagan dan Papan Peringkat" id="bagan" className="py-16 sm:py-24 bg-white/60 backdrop-blur-2xl border-t border-white/50 relative overflow-hidden">
+        <div className="w-full max-w-none px-2 sm:px-6 lg:px-12">
           <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-50px" }} variants={fadeUpVariant}>
             <TournamentBracket />
           </motion.div>
@@ -1517,7 +1543,13 @@ export default function App() {
             </motion.h2>
           </div>
 
-          <div className="space-y-4 w-full">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-50px" }}
+            variants={staggerContainer}
+            className="space-y-4 w-full"
+          >
             {[
               {
                 q: "Siapa penyelenggara Festival eSports Karang Taruna Desa Padasuka ini?",
@@ -1537,7 +1569,7 @@ export default function App() {
               },
               {
                 q: "Bagaimana sistem pembagian total hadiah?",
-                a: "Sertifikat penghargaan dan total uang tunai hasil dynamic prize pool diserahkan secara langsung pada panggung utama Grand Final tanggal 16 Agustus 2026 Pukul 20.00 WIB.",
+                a: "Sertifikat penghargaan dan total uang tunai hasil dynamic prize pool diserahkan secara langsung pada panggung utama Grand Final tanggal 15 Agustus 2026 Pukul 20.00 WIB.",
               },
               {
                 q: "Apakah boleh mendaftar lebih dari satu cabang eSport?",
@@ -1557,13 +1589,10 @@ export default function App() {
               },
               {
                 q: "Kapan jadwal pendaftaran dan pertandingan turnamen eSport?",
-                a: "Pendaftaran peserta dibuka s.d 15 Agustus Pukul 17.00 WIB. Babak Penyisihan dimulai tanggal 15 Agustus Pukul 19.45 WIB, dan panggung Grand Final dilaksanakan pada 16 Agustus Pukul 20.00 WIB.",
+                a: "Pendaftaran peserta dibuka s.d 14 Agustus Pukul 17.00 WIB. Pertandingan MLBB & Free Fire dimulai pada tanggal 14 Agustus 2026 Pukul 20.00 WIB (Grand Final MLBB & FF pada 15 Agustus Pukul 20.00 WIB). Khusus pertandingan PS4 Pro FC26 dilaksanakan pada tanggal 16 Agustus 2026 Pukul 20.00 WIB.",
               },
             ].map((faq, i) => (
               <motion.details
-                initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
                 variants={fadeUpVariant}
                 key={i}
                 className="group bg-white rounded-[20px] sm:rounded-[24px] border border-slate-200/90 shadow-sm hover:shadow-md transition-shadow overflow-hidden w-full"
@@ -1581,7 +1610,7 @@ export default function App() {
                 </div>
               </motion.details>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 

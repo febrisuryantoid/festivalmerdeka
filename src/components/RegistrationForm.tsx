@@ -537,7 +537,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                 <Phone className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span>Mobile Legends & Free Fire</span>
               </div>
-              <div className="text-emerald-600 font-black text-base sm:text-lg tracking-wide flex items-center gap-1.5">
+              <div className="text-emerald-600 font-black font-mono text-base sm:text-lg tracking-wide flex items-center gap-1.5">
                 +62 838-7539-3428
               </div>
               <p className="text-[11px] sm:text-xs text-gray-500 font-medium">Chat WhatsApp MLBB & FF →</p>
@@ -559,7 +559,7 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                 <Gamepad2 className="w-4 h-4 text-blue-600 shrink-0" />
                 <span>EA SPORTS FC25 / FC26</span>
               </div>
-              <div className="text-blue-600 font-black text-base sm:text-lg tracking-wide flex items-center gap-1.5">
+              <div className="text-blue-600 font-black font-mono text-base sm:text-lg tracking-wide flex items-center gap-1.5">
                 +62 823-1290-7731
               </div>
               <p className="text-[11px] sm:text-xs text-gray-500 font-medium">Chat WhatsApp PS4 FC26 →</p>
@@ -695,9 +695,9 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   <label className="text-xs sm:text-sm font-semibold text-dark mb-2 block">Total Biaya Pendaftaran</label>
                   <div className="bg-primary/10 border border-primary/20 rounded-[12px] p-4 flex items-center justify-between">
                     <div>
-                      <span className="text-xs font-semibold text-primary block">Rp {feePerPerson.toLocaleString('id-ID')} x {playerCount} Orang ({selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Individu' : 'Tim'})</span>
+                      <span className="text-xs font-bold font-mono text-primary block">Rp {feePerPerson.toLocaleString('id-ID')} x {playerCount} Orang ({selectedGame.includes('FC') || selectedGame.includes('PS') ? 'Individu' : 'Tim'})</span>
                     </div>
-                    <span className="text-lg font-black text-primary">Rp {totalFee.toLocaleString('id-ID')}</span>
+                    <span className="text-lg font-black font-mono text-primary">Rp {totalFee.toLocaleString('id-ID')}</span>
                   </div>
                 </div>
               )}

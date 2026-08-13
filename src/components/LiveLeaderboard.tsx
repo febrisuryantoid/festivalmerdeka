@@ -19,7 +19,7 @@ export function LiveLeaderboard() {
   const [participants, setParticipants] = useState<RegistrationData[]>(() => {
     try {
       const local = getLocalRegistrations();
-      return local.filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
+      return local.filter(p => (p.status || "").toLowerCase().trim() === "verified");
     } catch {
       return [];
     }
@@ -31,16 +31,17 @@ export function LiveLeaderboard() {
       const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       const local = getLocalRegistrations();
       const merged = mergeRegistrations(docs, local);
-      setParticipants(merged.filter(p => (p.status || "").toLowerCase().trim() !== "rejected"));
+      setParticipants(merged.filter(p => (p.status || "").toLowerCase().trim() === "verified"));
     }, (error) => {
       console.warn("Leaderboard snapshot fallback to local:", error);
-      const local = getLocalRegistrations().filter(p => (p.status || "").toLowerCase().trim() !== "rejected");
+      const local = getLocalRegistrations().filter(p => (p.status || "").toLowerCase().trim() === "verified");
       setParticipants(local);
     });
     return unsub;
   }, []);
 
   const filtered = participants.filter(p => {
+    if ((p.status || "").toLowerCase().trim() !== "verified") return false;
     if (activeTab === "Semua") return true;
     if (!p.lomba) return false;
     const l = p.lomba.toLowerCase();
@@ -74,7 +75,7 @@ export function LiveLeaderboard() {
               activeTab === "Semua" ? "bg-primary text-white shadow-md" : "text-slate-600 hover:bg-gray-200/60"
             }`}
           >
-            <Layers className="w-4 h-4" /> Semua Tim ({participants.length})
+            <Layers className="w-4 h-4" /> Semua Tim (<span className="font-mono font-bold">{participants.length}</span>)
           </button>
           {[
             { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO },
@@ -130,13 +131,13 @@ export function LiveLeaderboard() {
                       <motion.tr
                         key={item.id || item.localId || i}
                         layout
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
+                        initial={{ opacity: 0, y: 12, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.95 }}
-                        transition={{ duration: 0.2 }}
+                        transition={{ duration: 0.35, delay: i * 0.04, ease: [0.16, 1, 0.3, 1] }}
                         className="hover:bg-emerald-50/40 transition-colors"
                       >
-                        <td className="py-3.5 px-4 text-center font-black text-emerald-700 bg-emerald-50/60 rounded-lg">
+                        <td className="py-3.5 px-4 text-center font-black font-mono text-emerald-700 bg-emerald-50/60 rounded-lg">
                           #{i + 1}
                         </td>
                         <td className="py-3.5 px-4 font-extrabold text-slate-900 text-base sm:text-lg">

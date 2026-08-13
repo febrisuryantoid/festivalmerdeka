@@ -45,6 +45,12 @@ export function getFeeDetails(reg: RegistrationData) {
     if (lombaLower.includes("free fire")) bayar = 40000;
     else if (lombaLower.includes("mobile legends")) bayar = 50000;
   }
+  else if (nameLower === "leo kacung") bayar = 32000;
+  else if (nameLower === "sprint") bayar = 32000;
+  else if (nameLower === "yang brow rasakan") bayar = 32000;
+  else if (nameLower === "rahmat") bayar = 15000;
+  else if (nameLower === "bkr") bayar = 75000;
+  else if (nameLower === "kodel") bayar = 15000;
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -156,8 +162,8 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "17",
     kategori: "UMUM",
     lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
-    alamat: "Desa Padasuka",
-    wa: "-",
+    alamat: "Ci Pancur",
+    wa: "083875361747",
     status: "verified" as const,
     createdAt: "2026-08-03T16:56:00.000Z",
     firestoreSynced: true
@@ -217,7 +223,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     kategori: "UMUM",
     lomba: "PS 4 Pro FC26 (Individu)",
     alamat: "Batu Karut",
-    wa: "089614180",
+    wa: "089614180019",
     status: "verified" as const,
     createdAt: "2026-08-10T06:19:00.000Z",
     firestoreSynced: true
@@ -232,7 +238,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     kategori: "SD",
     lomba: "Free Fire (4 Squad)",
     alamat: "Nyomplong",
-    wa: "0889526296784",
+    wa: "089526296784",
     status: "verified" as const,
     createdAt: "2026-08-10T09:43:00.000Z",
     firestoreSynced: true
@@ -246,7 +252,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "18",
     kategori: "UMUM",
     lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
-    alamat: "Bakar",
+    alamat: "Batu Karut",
     wa: "083838441748",
     status: "pending" as const,
     createdAt: "2026-08-10T09:43:00.000Z",
@@ -291,9 +297,9 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "10",
     kategori: "SD",
     lomba: "Free Fire (4 Squad)",
-    alamat: "Bakar",
-    wa: "-",
-    status: "pending" as const,
+    alamat: "Batu Karut",
+    wa: "083143048071",
+    status: "verified" as const,
     createdAt: "2026-08-11T09:43:00.000Z",
     firestoreSynced: true
   },
@@ -351,7 +357,7 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "16",
     kategori: "SMA",
     lomba: "Free Fire (4 Squad)",
-    alamat: "Bakar",
+    alamat: "Batu Karut",
     wa: "085891593497",
     status: "verified" as const,
     createdAt: "2026-08-11T13:28:00.000Z",
@@ -366,10 +372,100 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     usia: "16",
     kategori: "SMA",
     lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
-    alamat: "Bakar",
+    alamat: "Batu Karut",
     wa: "089507569004",
     status: "verified" as const,
     createdAt: "2026-08-11T13:28:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_leo_kacung",
+    localId: "manual_leo_kacung",
+    nama: "LEO KACUNG",
+    players: [],
+    anggotaTim: "",
+    usia: "12",
+    kategori: "SMP",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Bakar",
+    wa: "083823502753",
+    status: "verified" as const,
+    createdAt: "2026-08-12T14:02:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_sprint",
+    localId: "manual_sprint",
+    nama: "SPRINT",
+    players: [],
+    anggotaTim: "",
+    usia: "12",
+    kategori: "SMP",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Ci Pancur",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-12T14:02:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_yang_brow_rasakan",
+    localId: "manual_yang_brow_rasakan",
+    nama: "YANG BROW RASAKAN",
+    players: [],
+    anggotaTim: "",
+    usia: "12",
+    kategori: "SMP",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Lembur Asem",
+    wa: "083836757460",
+    status: "pending" as const,
+    createdAt: "2026-08-13T14:02:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_rahmat",
+    localId: "manual_rahmat",
+    nama: "RAHMAT",
+    players: [],
+    anggotaTim: "",
+    usia: "20",
+    kategori: "UMUM",
+    lomba: "PS 4 Pro FC26 (Individu)",
+    alamat: "Batu Karut",
+    wa: "083899871414",
+    status: "verified" as const,
+    createdAt: "2026-08-13T14:23:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_bkr",
+    localId: "manual_bkr",
+    nama: "BKR",
+    players: [],
+    anggotaTim: "",
+    usia: "20",
+    kategori: "UMUM",
+    lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+    alamat: "Batu Karut",
+    wa: "083875393428",
+    status: "verified" as const,
+    createdAt: "2026-08-13T14:31:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_kodel",
+    localId: "manual_kodel",
+    nama: "KODEL",
+    players: [],
+    anggotaTim: "",
+    usia: "20",
+    kategori: "UMUM",
+    lomba: "PS 4 Pro FC26 (Individu)",
+    alamat: "Muntur",
+    wa: "085931442631",
+    status: "pending" as const,
+    createdAt: "2026-08-13T14:34:00.000Z",
     firestoreSynced: true
   }
 ];
@@ -884,7 +980,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v2.3") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v2.7") === "true") {
     return;
   }
 
@@ -946,7 +1042,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v2.3", "true");
+    localStorage.setItem("padasuka_manual_seeded_v2.7", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

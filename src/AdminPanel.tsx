@@ -280,7 +280,7 @@ export default function AdminPanel() {
 
   const generateTMUrl = (wa: string, nama: string) => {
     const phone = wa?.replace(/[^0-9]/g, '');
-    const message = `Halo ${nama},\n\nKami dari Panitia eSports Festival mengundang Anda selaku PIC tim/peserta untuk menghadiri Technical Meeting pada:\nTanggal: 15 Agustus 2026\nWaktu: Pukul 16.30 WIB\nTempat: Kp. Batu Karut, RT 08/RW 04, Desa Padasuka, Kecamatan Baros, Kabupaten Serang, Banten (Rumah Pak Rudi Ketua Karang Taruna Desa Padasuka)\n\nMohon kehadirannya tepat waktu.\nTerima kasih.`;
+    const message = `Halo ${nama},\n\nKami dari Panitia eSports Festival mengundang Anda selaku PIC tim/peserta untuk menghadiri Technical Meeting pada:\nTanggal: 14 Agustus 2026\nWaktu: Pukul 16.30 WIB\nTempat: Kp. Batu Karut, RT 08/RW 04, Desa Padasuka, Kecamatan Baros, Kabupaten Serang, Banten (Rumah Pak Rudi Ketua Karang Taruna Desa Padasuka)\n\nMohon kehadirannya tepat waktu.\nTerima kasih.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
 
