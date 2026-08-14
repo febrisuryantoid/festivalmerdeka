@@ -177,7 +177,7 @@ export function TournamentBracket() {
     if (activeTab === "Mobile Legends") {
       return {
         badge: "MLBB SQUAD",
-        matchDate: "14 AGU • 20.00 WIB",
+        matchDate: "15 AGU • 20.00 WIB",
         accentColor: "from-amber-500 via-amber-400 to-yellow-500",
         stroke1: "#d97706",
         stroke2: "#f59e0b",

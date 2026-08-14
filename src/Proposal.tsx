@@ -157,7 +157,7 @@ export default function Proposal() {
                  <tbody>
                    <tr>
                      <td className="py-1 w-40 font-semibold align-top">• Hari/Tanggal</td>
-                     <td className="py-1">: Minggu - Sabtu, 2 - 15 Agustus 2026</td>
+                     <td className="py-1">: Minggu - Minggu, 2 - 16 Agustus 2026</td>
                    </tr>
                    <tr>
                      <td className="py-1 font-semibold align-top">• Waktu</td>
