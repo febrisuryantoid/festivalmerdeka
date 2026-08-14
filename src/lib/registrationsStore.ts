@@ -489,21 +489,6 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     firestoreSynced: true
   },
   {
-    id: "manual_spirit_ff",
-    localId: "manual_spirit_ff",
-    nama: "SPIRIT",
-    players: [],
-    anggotaTim: "",
-    usia: "13",
-    kategori: "SMP",
-    lomba: "Free Fire (4 Squad)",
-    alamat: "Batu Karut",
-    wa: "-",
-    status: "verified" as const,
-    createdAt: "2026-08-14T13:00:00.000Z",
-    firestoreSynced: true
-  },
-  {
     id: "manual_xtc_ff",
     localId: "manual_xtc_ff",
     nama: "XTC",
@@ -1030,7 +1015,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v3.0") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v3.1") === "true") {
     return;
   }
 
@@ -1092,7 +1077,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v3.0", "true");
+    localStorage.setItem("padasuka_manual_seeded_v3.1", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

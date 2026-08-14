@@ -100,7 +100,7 @@ export function TournamentBracket() {
     }
 
     // Default sorting:
-    // FORCE ZIEZAN to the top always
+    // When there is a BYE for SD in Free Fire, ensure the SD team (ZIEZAN / IFTAH / NYAWIT) receives the designated BYE seed slot
     const isZieA = (a.nama || "").toLowerCase() === "ziezan";
     const isZieB = (b.nama || "").toLowerCase() === "ziezan";
     if (isZieA && !isZieB) return -1;
@@ -124,7 +124,7 @@ export function TournamentBracket() {
 
   const [ffViewMode, setFfViewMode] = useState<"bracket" | "room">("bracket");
 
-  // Calculate bracket dimensions dynamically without any BYEs
+  // Calculate bracket dimensions dynamically
   const count = filteredParticipants.length;
 
   interface Match {
@@ -136,9 +136,39 @@ export function TournamentBracket() {
   const roundsData: Match[][] = [];
   let roundTitles: string[] = [];
 
-  if (activeTab === "Free Fire" && count >= 10 && count <= 12) {
-    // 12-Team Custom Knockout Tree (No BYEs!)
-    // Round 0: 6 Matches directly matching all 12 teams (Tim 1 vs 2, 3 vs 4, 5 vs 6, 7 vs 8, 9 vs 10, 11 vs 12)
+  if (activeTab === "Free Fire" && count === 11) {
+    // 11-Team Knockout Tree with exactly 1 BYE for an SD team (e.g. ZIEZAN / Tim SD)
+    // Find an SD team to grant the direct BYE pass to the Semifinals/Quarterfinals
+    const sdTeam = filteredParticipants.find(p => (p.kategori || "").toUpperCase() === "SD") || filteredParticipants[0];
+    const otherTeams = filteredParticipants.filter(p => p !== sdTeam);
+
+    // Round 0: 5 matches for 10 teams, plus 1 BYE match for the SD team
+    const r0: Match[] = [
+      { team1: sdTeam, team2: null, customLabel: "BYE (Lolos Otomatis Tim SD)" }
+    ];
+    for (let i = 0; i < otherTeams.length; i += 2) {
+      r0.push({
+        team1: otherTeams[i] || null,
+        team2: otherTeams[i + 1] || null
+      });
+    }
+    roundsData.push(r0);
+
+    // Round 1: 6 Besar (SD team auto advances + 5 winners)
+    roundsData.push([
+      { team1: sdTeam, team2: null, customLabel: `${sdTeam?.nama || "Tim SD"} vs Pemenang M2` },
+      { team1: null, team2: null, customLabel: "Pemenang M3 vs M4" },
+      { team1: null, team2: null, customLabel: "Pemenang M5 vs M6" }
+    ]);
+
+    // Round 2: Grand Final Showdown (3 Besar Finalis)
+    roundsData.push([
+      { team1: null, team2: null, customLabel: "Grand Final 3 Besar" }
+    ]);
+
+    roundTitles = ["Babak Penyisihan (5 Match + 1 BYE SD)", "Semi-Final (6 Besar)", "Grand Final"];
+  } else if (activeTab === "Free Fire" && count >= 12) {
+    // 12-Team Custom Knockout Tree (No BYEs)
     const r0: Match[] = [];
     for (let i = 0; i < count; i += 2) {
       r0.push({
@@ -148,14 +178,12 @@ export function TournamentBracket() {
     }
     roundsData.push(r0);
 
-    // Round 1: Semifinal 6 Besar (3 Matches from 6 winners)
     roundsData.push([
       { team1: null, team2: null, customLabel: "Pemenang M1 vs M2" },
       { team1: null, team2: null, customLabel: "Pemenang M3 vs M4" },
       { team1: null, team2: null, customLabel: "Pemenang M5 vs M6" }
     ]);
 
-    // Round 2: Grand Final Showdown (3 Besar Finalis)
     roundsData.push([
       { team1: null, team2: null, customLabel: "Grand Final 3 Besar" }
     ]);
@@ -481,7 +509,7 @@ export function TournamentBracket() {
               <Trophy className="w-7 h-7 text-amber-500 drop-shadow-sm" /> Bagan Turnamen Realtime (Terverifikasi)
             </h3>
             <p className="text-slate-600 text-xs sm:text-sm font-medium mt-1 max-w-xl">
-              Bagan otomatis dibuat khusus untuk <span className="font-mono font-bold text-slate-900">{count}</span> peserta terverifikasi (<span className="font-mono font-bold text-amber-600">{count} Tim • Sistem Pertandingan Langsung Tanpa BYE</span>).
+              Bagan otomatis dibuat khusus untuk <span className="font-mono font-bold text-slate-900">{count}</span> peserta terverifikasi (<span className="font-mono font-bold text-amber-600">{count} Tim • {activeTab === "Free Fire" && count === 11 ? "5 Match + 1 BYE Kategori SD" : "Sistem Pertandingan Langsung"}</span>).
             </p>
           </div>
 
@@ -546,7 +574,7 @@ export function TournamentBracket() {
                 }`}
               >
                 <Swords className="w-3.5 h-3.5" />
-                Bagan Knockout (6 Match • Tanpa BYE)
+                Bagan Knockout ({count === 11 ? "5 Match + 1 BYE SD" : "Knockout Bracket"})
               </button>
               <button
                 onClick={() => setFfViewMode("room")}
@@ -557,7 +585,7 @@ export function TournamentBracket() {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                Room Battle Royale (12 Slot Tim)
+                Room Battle Royale ({count} Slot Tim)
               </button>
             </div>
           )}
@@ -573,10 +601,10 @@ export function TournamentBracket() {
                     FORMAT RESMI FREE FIRE BATTLE ROYALE (4 SQUAD)
                   </span>
                   <h4 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-red-500" /> Lobby Room 12 Slot (12 Tim Bertanding Bersama)
+                    <Flame className="w-5 h-5 text-red-500" /> Lobby Room ({count} Tim Bertanding Bersama)
                   </h4>
                   <p className="text-xs text-slate-600 mt-1">
-                    Semua 12 Tim bertanding secara bersamaan dalam 1 Room Custom tanpa sistem eliminasi BYE.
+                    Semua {count} Tim bertanding secara bersamaan dalam 1 Room Custom Battle Royale.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2 text-xs font-mono font-bold">
