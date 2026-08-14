@@ -29,7 +29,10 @@ export function getFeeDetails(reg: RegistrationData) {
   // Manual Overrides for specific teams/players matching official table
   if (nameLower === "bee3ska") bayar = 75000;
   else if (nameLower === "ifal wibawa") bayar = 5000;
-  else if (nameLower === "ziezan") bayar = 25000;
+  else if (nameLower === "ziezan") {
+    if (lombaLower.includes("free fire") || lombaLower.includes("ff")) bayar = 20000;
+    else bayar = 25000;
+  }
   else if (nameLower === "o2") bayar = 75000;
   else if (nameLower === "ripiansyah") bayar = 5000;
   else if (nameLower === "wahab") bayar = 15000;
@@ -37,7 +40,7 @@ export function getFeeDetails(reg: RegistrationData) {
   else if (nameLower === "harimau gold line") bayar = 55000;
   else if (nameLower === "patah hati") bayar = 40000;
   else if (nameLower === "ihab") bayar = 32000;
-  else if (nameLower === "iftah") bayar = 15000;
+  else if (nameLower === "iftah") bayar = 20000;
   else if (nameLower === "ff 3") bayar = 32000;
   else if (nameLower === "kancil jamshot") bayar = 32000;
   else if (nameLower === "desta") bayar = 20000;
@@ -51,6 +54,8 @@ export function getFeeDetails(reg: RegistrationData) {
   else if (nameLower === "rahmat") bayar = 15000;
   else if (nameLower === "bkr") bayar = 75000;
   else if (nameLower === "kodel") bayar = 15000;
+  else if (nameLower === "spirit") bayar = 32000;
+  else if (nameLower === "xtc") bayar = 32000;
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -481,6 +486,36 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     wa: "-",
     status: "verified" as const,
     createdAt: "2026-08-13T15:49:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_spirit_ff",
+    localId: "manual_spirit_ff",
+    nama: "SPIRIT",
+    players: [],
+    anggotaTim: "",
+    usia: "13",
+    kategori: "SMP",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "Batu Karut",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-14T13:00:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_xtc_ff",
+    localId: "manual_xtc_ff",
+    nama: "XTC",
+    players: [],
+    anggotaTim: "",
+    usia: "14",
+    kategori: "SMP",
+    lomba: "Free Fire (4 Squad)",
+    alamat: "LA",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-14T13:00:00.000Z",
     firestoreSynced: true
   }
 ];
@@ -995,7 +1030,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v2.7") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v3.0") === "true") {
     return;
   }
 
@@ -1057,7 +1092,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v2.7", "true");
+    localStorage.setItem("padasuka_manual_seeded_v3.0", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }
