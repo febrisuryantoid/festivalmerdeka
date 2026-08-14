@@ -23,6 +23,7 @@ import {
 } from "./lib/registrationsStore";
 import { syncAllRegistrationsToSheet, DEFAULT_SPREADSHEET_ID } from "./sheets";
 import { googleSignIn } from "./auth";
+import { AdminBracketManager } from "./components/AdminBracketManager";
 
 // Security Salt & SHA-256 Hashes for credentials verification
 const SECURITY_SALT = "padasuka_esport_2026_salt_99";
@@ -65,6 +66,7 @@ export default function AdminPanel() {
 
   // CRUD & Auto Spreadsheet Sync States
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isBracketEditorOpen, setIsBracketEditorOpen] = useState(false);
   const [editingReg, setEditingReg] = useState<RegistrationData | null>(null);
   const [isUnauthorizedModalOpen, setIsUnauthorizedModalOpen] = useState(false);
   const [isCopiedDomain, setIsCopiedDomain] = useState(false);
@@ -792,6 +794,13 @@ export default function AdminPanel() {
             title="Sinkronisasi Data Lokal ke Firestore Cloud"
           >
             <RefreshCw className="w-3.5 h-3.5 text-blue-400" /> Sync Cloud
+          </button>
+          <button
+            onClick={() => setIsBracketEditorOpen(true)}
+            className="flex items-center gap-1.5 text-xs font-bold bg-amber-900/40 hover:bg-amber-800 text-amber-200 px-3.5 py-2 rounded-xl transition-all border border-amber-700/50 shadow-sm hover:shadow-md cursor-pointer"
+            title="Atur Urutan Bracket / Drawing Turnamen"
+          >
+            <Trophy className="w-3.5 h-3.5 text-amber-400" /> Atur Bracket
           </button>
           <button
             onClick={handleCleanRedundant}
@@ -1560,6 +1569,13 @@ export default function AdminPanel() {
           </div>
         </div>
       )}
-    </div>
+    
+      {isBracketEditorOpen && (
+        <AdminBracketManager
+          registrations={mergedRegistrations}
+          onClose={() => setIsBracketEditorOpen(false)}
+        />
+      )}
+</div>
   );
 }

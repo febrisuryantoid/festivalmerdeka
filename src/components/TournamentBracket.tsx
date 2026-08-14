@@ -7,6 +7,7 @@ import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 import { getLocalRegistrations, mergeRegistrations, RegistrationData, parseTimestampMillis } from "../lib/registrationsStore";
 
 export function TournamentBracket() {
+  const [bracketSeeds, setBracketSeeds] = useState<Record<string, string[]>>({});
   const [participants, setParticipants] = useState<RegistrationData[]>(() => {
     try {
       const local = getLocalRegistrations();
@@ -38,6 +39,20 @@ export function TournamentBracket() {
       document.body.style.overflow = "unset";
     };
   }, [isFullView]);
+
+
+  useEffect(() => {
+    import("firebase/firestore").then(({ doc, onSnapshot }) => {
+      const unsubSeeds = onSnapshot(doc(db, "settings", "bracketSeeds"), (docSnap) => {
+        if (docSnap.exists()) {
+          setBracketSeeds(docSnap.data());
+        }
+      }, (err) => {
+        console.warn("Bracket seeds realtime fetch failed:", err);
+      });
+      return unsubSeeds;
+    });
+  }, []);
 
   useEffect(() => {
     const unsub = onSnapshot(collection(db, "registrations"), (snapshot) => {
@@ -73,6 +88,12 @@ export function TournamentBracket() {
     if (activeTab === "PS 4 Pro FC26" && (l.includes("fc") || l.includes("ps") || l.includes("ea") || l.includes("fifa"))) return true;
     return false;
   }).sort((a, b) => {
+    // FORCE ZIEZAN to the top always
+    const isZieA = (a.nama || "").toLowerCase() === "ziezan";
+    const isZieB = (b.nama || "").toLowerCase() === "ziezan";
+    if (isZieA && !isZieB) return -1;
+    if (!isZieA && isZieB) return 1;
+
     // 1. Sort by age descending
     const ageA = parseInt(a.usia || "0", 10) || 0;
     const ageB = parseInt(b.usia || "0", 10) || 0;
@@ -95,8 +116,26 @@ export function TournamentBracket() {
   const bracketSize = count <= 2 ? 2 : Math.pow(2, Math.ceil(Math.log2(Math.max(2, count))));
   const totalRounds = Math.log2(bracketSize);
 
-  // Fill initial slots with verified participants or BYE/TBD
-  const initialSlots = Array(bracketSize).fill(null).map((_, i) => filteredParticipants[i] || null);
+  // Generate Standard Tournament Seeds to distribute BYEs evenly
+  const getStandardSeeds = (size: number): number[] => {
+    let seeds = [1];
+    while (seeds.length < size) {
+      const nextLength = seeds.length * 2;
+      const nextSeeds: number[] = [];
+      for (let i = 0; i < seeds.length; i++) {
+        nextSeeds.push(seeds[i]);
+        nextSeeds.push(nextLength + 1 - seeds[i]);
+      }
+      seeds = nextSeeds;
+    }
+    return seeds;
+  };
+
+  const seeds = getStandardSeeds(bracketSize);
+  const initialSlots = seeds.map(seed => {
+    const playerIndex = seed - 1;
+    return playerIndex < count ? filteredParticipants[playerIndex] : null;
+  });
 
   interface Match {
     team1: RegistrationData | null;
@@ -115,12 +154,27 @@ export function TournamentBracket() {
   }
   roundsData.push(round0);
 
-  // Subsequent rounds
+  // Subsequent rounds with Auto-Advance for BYEs
   for (let r = 1; r < totalRounds; r++) {
-    const matchesInRound = bracketSize / Math.pow(2, r + 1);
+    const prevRound = roundsData[r - 1];
     const roundMatches: Match[] = [];
-    for (let i = 0; i < matchesInRound; i++) {
-      roundMatches.push({ team1: null, team2: null });
+    for (let i = 0; i < prevRound.length; i += 2) {
+      const match1 = prevRound[i];
+      const match2 = prevRound[i + 1];
+
+      // Only auto-resolve BYEs originating from Round 0
+      const getWinner = (m: Match, roundIndex: number) => {
+        if (roundIndex === 0) {
+          if (m.team1 && !m.team2) return m.team1;
+          if (!m.team1 && m.team2) return m.team2;
+        }
+        return null; // TBD
+      };
+
+      roundMatches.push({
+        team1: getWinner(match1, r - 1),
+        team2: getWinner(match2, r - 1)
+      });
     }
     roundsData.push(roundMatches);
   }
@@ -342,9 +396,9 @@ export function TournamentBracket() {
           {/* Tab Selection with Active Full White & Animated Conic Border Radius */}
           <div className="flex justify-center flex-wrap mx-auto bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 w-full sm:w-max gap-2 shadow-inner">
             {[
-              { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("mobile") || (p.lomba||"").toLowerCase().includes("ml")).length },
-              { name: "Free Fire", key: "Free Fire", logo: FF_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("free") || (p.lomba||"").toLowerCase().includes("ff")).length },
-              { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("fc") || (p.lomba||"").toLowerCase().includes("ps")).length }
+              { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("mobile") || (p.lomba||"").toLowerCase().includes("ml"))).length },
+              { name: "Free Fire", key: "Free Fire", logo: FF_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("free") || (p.lomba||"").toLowerCase().includes("ff"))).length },
+              { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("fc") || (p.lomba||"").toLowerCase().includes("ps"))).length }
             ].map(game => {
               const isActive = activeTab === game.key;
               return isActive ? (
@@ -488,7 +542,7 @@ export function TournamentBracket() {
                                 </>
                               ) : (
                                 <span className="text-slate-400 font-normal text-[11px]">
-                                  {r === 0 ? (i * 2 + 1 <= count ? `#${i * 2 + 1}` : "BYE") : "Menunggu"}
+                                  {r === 0 ? "BYE" : "Menunggu"}
                                 </span>
                               )}
                             </span>
@@ -508,7 +562,7 @@ export function TournamentBracket() {
                                 </>
                               ) : (
                                 <span className="text-slate-400 font-normal text-[11px]">
-                                  {r === 0 ? (i * 2 + 2 <= count ? `#${i * 2 + 2}` : "BYE") : "Menunggu"}
+                                  {r === 0 ? "BYE" : "Menunggu"}
                                 </span>
                               )}
                             </span>
@@ -603,9 +657,9 @@ export function TournamentBracket() {
             <div className="flex items-center gap-4">
               <div className="flex justify-center flex-wrap bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200/90 gap-2 shadow-inner">
                 {[
-                  { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("mobile") || (p.lomba||"").toLowerCase().includes("ml")).length },
-                  { name: "Free Fire", key: "Free Fire", logo: FF_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("free") || (p.lomba||"").toLowerCase().includes("ff")).length },
-                  { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO, count: participants.filter(p => (p.lomba||"").toLowerCase().includes("fc") || (p.lomba||"").toLowerCase().includes("ps")).length }
+                  { name: "Mobile Legends", key: "Mobile Legends", logo: MLBB_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("mobile") || (p.lomba||"").toLowerCase().includes("ml"))).length },
+                  { name: "Free Fire", key: "Free Fire", logo: FF_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("free") || (p.lomba||"").toLowerCase().includes("ff"))).length },
+                  { name: "PS 4 Pro FC26", key: "PS 4 Pro FC26", logo: FC26_LOGO, count: participants.filter(p => p.status === "verified" && ((p.lomba||"").toLowerCase().includes("fc") || (p.lomba||"").toLowerCase().includes("ps"))).length }
                 ].map(game => {
                   const isActive = activeTab === game.key;
                   return isActive ? (
@@ -704,7 +758,7 @@ export function TournamentBracket() {
                                       </>
                                     ) : (
                                       <span className="text-slate-400 font-normal text-[11px]">
-                                        {r === 0 ? (i * 2 + 1 <= count ? `#${i * 2 + 1}` : "BYE") : "Menunggu"}
+                                        {r === 0 ? "BYE" : "Menunggu"}
                                       </span>
                                     )}
                                   </span>
@@ -724,7 +778,7 @@ export function TournamentBracket() {
                                       </>
                                     ) : (
                                       <span className="text-slate-400 font-normal text-[11px]">
-                                        {r === 0 ? (i * 2 + 2 <= count ? `#${i * 2 + 2}` : "BYE") : "Menunggu"}
+                                        {r === 0 ? "BYE" : "Menunggu"}
                                       </span>
                                     )}
                                   </span>
