@@ -278,8 +278,16 @@ export default function AdminPanel() {
     await signOut(auth).catch(() => {});
   };
 
+  const formatWaNumber = (wa?: string) => {
+    let phone = wa?.replace(/[^0-9]/g, '') || '';
+    if (phone.startsWith('0')) {
+      phone = '62' + phone.substring(1);
+    }
+    return phone;
+  };
+
   const generateTMUrl = (wa: string, nama: string) => {
-    const phone = wa?.replace(/[^0-9]/g, '');
+    const phone = formatWaNumber(wa);
     const message = `Halo ${nama},\n\nKami dari Panitia eSports Festival mengundang Anda selaku PIC tim/peserta untuk menghadiri Technical Meeting pada:\nTanggal: 14 Agustus 2026\nWaktu: Pukul 16.30 WIB\nTempat: Kp. Batu Karut, RT 08/RW 04, Desa Padasuka, Kecamatan Baros, Kabupaten Serang, Banten (Rumah Pak Rudi Ketua Karang Taruna Desa Padasuka)\n\nMohon kehadirannya tepat waktu.\nTerima kasih.`;
     return `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
   };
@@ -539,6 +547,56 @@ export default function AdminPanel() {
     }
   };
 
+  const handleCleanRedundant = async () => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus data redundan / duplikat secara paksa?")) return;
+    try {
+      showToast("Membersihkan data redundan...");
+      // 1. Clean local storage strictly
+      const local = getLocalRegistrations();
+      const uniqueLocalMap = new Map();
+      local.forEach(item => {
+        const sig = `${(item.nama||"").trim().toLowerCase()}|${(item.wa||"").trim()}|${(item.lomba||"").trim()}`;
+        if (!uniqueLocalMap.has(sig) || item.status === "verified") {
+          uniqueLocalMap.set(sig, item);
+        }
+      });
+      const uniqueLocal = Array.from(uniqueLocalMap.values());
+      localStorage.setItem("padasuka_registrations_v1", JSON.stringify(uniqueLocal));
+      
+      // 2. Clean Firestore
+      if (firestoreDocs.length > 0) {
+        let deleted = 0;
+        const seenSigs = new Map();
+        for (const doc of firestoreDocs) {
+          const sig = `${(doc.nama||"").trim().toLowerCase()}|${(doc.wa||"").trim()}|${(doc.lomba||"").trim()}`;
+          if (!seenSigs.has(sig)) {
+            seenSigs.set(sig, doc);
+          } else {
+            const existing = seenSigs.get(sig);
+            const isExistingVerified = existing.status === "verified";
+            const isCurrentVerified = doc.status === "verified";
+            let toDeleteId = doc.id;
+            if (isCurrentVerified && !isExistingVerified) {
+              toDeleteId = existing.id;
+              seenSigs.set(sig, doc);
+            }
+            await deleteRegistrationFromStore(toDeleteId);
+            deleted++;
+          }
+        }
+        showToast(`Berhasil menghapus ${deleted} data redundan dari Cloud & Lokal.`);
+      } else {
+        showToast(`Berhasil membersihkan duplikasi di penyimpanan lokal.`);
+      }
+      
+      const refreshedLocal = getLocalRegistrations();
+      setMergedRegistrations(refreshedLocal);
+    } catch(err: any) {
+      console.error("Clean redundant error:", err);
+      showToast("Gagal membersihkan data redundan.");
+    }
+  };
+
   const openSpreadsheet = () => {
     const sheetId = localStorage.getItem("padasuka_spreadsheet_id") || DEFAULT_SPREADSHEET_ID;
     const url = `https://docs.google.com/spreadsheets/d/${sheetId}/edit`;
@@ -734,6 +792,13 @@ export default function AdminPanel() {
             title="Sinkronisasi Data Lokal ke Firestore Cloud"
           >
             <RefreshCw className="w-3.5 h-3.5 text-blue-400" /> Sync Cloud
+          </button>
+          <button
+            onClick={handleCleanRedundant}
+            className="flex items-center gap-1.5 text-xs font-bold bg-red-900/40 hover:bg-red-800 text-red-200 px-3.5 py-2 rounded-xl transition-all border border-red-700/50 shadow-sm hover:shadow-md cursor-pointer"
+            title="Hapus Data Pendaftaran Duplikat/Redundan"
+          >
+            <Trash2 className="w-3.5 h-3.5 text-red-400" /> Hapus Redundan
           </button>
           <button
             onClick={exportToCSV}
@@ -1019,7 +1084,7 @@ export default function AdminPanel() {
                       <td className="px-6 py-4">
                         <div className="text-xs font-medium text-slate-700">{reg.alamat}</div>
                         <a
-                          href={`https://wa.me/${reg.wa?.replace(/[^0-9]/g, '')}`}
+                          href={`https://wa.me/${formatWaNumber(reg.wa)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-emerald-600 hover:underline font-bold text-xs inline-flex items-center gap-1.5 mt-1"
