@@ -2,9 +2,12 @@ import React, { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
-import { ShieldCheck, Trophy, Swords, ChevronsRight, Crown, Sparkles, Award, Flame, Gamepad2, Layers, Maximize2, Minimize2 } from "lucide-react";
+import { ShieldCheck, Trophy, Swords, ChevronsRight, Crown, Sparkles, Award, Flame, Gamepad2, Layers, Maximize2, Minimize2, CheckCircle2, XCircle, Check } from "lucide-react";
 import { FC26_LOGO, MLBB_LOGO, FF_LOGO } from "../lib/utils";
 import { getLocalRegistrations, mergeRegistrations, RegistrationData, parseTimestampMillis } from "../lib/registrationsStore";
+import { FreeFireResponsiveBracket } from "./FreeFireResponsiveBracket";
+import { MobileLegendsResponsiveBracket } from "./MobileLegendsResponsiveBracket";
+import { FC26ResponsiveBracket } from "./FC26ResponsiveBracket";
 
 export function TournamentBracket() {
   const [bracketSeeds, setBracketSeeds] = useState<Record<string, string[]>>({});
@@ -130,43 +133,161 @@ export function TournamentBracket() {
   interface Match {
     team1: RegistrationData | null;
     team2: RegistrationData | null;
+    team3?: RegistrationData | null;
+    winner?: 1 | 2 | 3 | null;
+    score1?: string | number;
+    score2?: string | number;
+    score3?: string | number;
     customLabel?: string;
+    matchName?: string;
   }
+
+  // Helper to locate team by name
+  const getTeam = (name: string): RegistrationData => {
+    const norm = name.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const found = filteredParticipants.find(p => {
+      const pNorm = (p.nama || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+      return pNorm === norm || pNorm.includes(norm) || norm.includes(pNorm);
+    });
+    if (found) return found;
+    return {
+      id: `ff_${name.toLowerCase().replace(/\s+/g, "_")}`,
+      nama: name,
+      players: [],
+      anggotaTim: "",
+      alamat: "Padasuka",
+      wa: "-",
+      kategori: name.toLowerCase().includes("ziezan") || name.toLowerCase().includes("desta") || name.toLowerCase().includes("iftah") || name.toLowerCase().includes("nyawit") ? "SD" : "SMP",
+      usia: "13",
+      lomba: "Free Fire (4 Squad)",
+      status: "verified"
+    };
+  };
 
   const roundsData: Match[][] = [];
   let roundTitles: string[] = [];
 
   if (activeTab === "Free Fire" && count === 11) {
-    // 11-Team Knockout Tree with exactly 1 BYE for an SD team (e.g. ZIEZAN / Tim SD)
-    // Find an SD team to grant the direct BYE pass to the Semifinals/Quarterfinals
-    const sdTeam = filteredParticipants.find(p => (p.kategori || "").toUpperCase() === "SD") || filteredParticipants[0];
-    const otherTeams = filteredParticipants.filter(p => p !== sdTeam);
-
-    // Round 0: 5 matches for 10 teams, plus 1 BYE match for the SD team
+    // 11-Team Knockout Tree with Complete Historical Progression:
+    // Round 0: Penyisihan (11 Tim: 5 Pertandingan + 1 BYE di awal untuk ZIEZAN)
+    // Round 1: Babak 6 Besar (Hasil ZIEZAN vs NYAWIT -> ZIEZAN MENANG, XTC vs KANCIL JAMSHOT -> XTC MENANG, KACUNG PRET vs LEO KACUNG -> KACUNG PRET MENANG)
+    // Round 2: Semi-Final 3 Besar / 4 Besar (KACUNG PRET BYE, XTC vs ZIEZAN)
+    // Round 3: Grand Final (KACUNG PRET vs Pemenang XTC vs ZIEZAN)
+    
+    // Round 0: Babak Penyisihan
     const r0: Match[] = [
-      { team1: sdTeam, team2: null, customLabel: "BYE (Lolos Otomatis Tim SD)" }
+      {
+        team1: getTeam("KACUNG PRET"),
+        team2: getTeam("IHAB"),
+        winner: 1, // KACUNG PRET Maju
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "Match 1 (Penyisihan)"
+      },
+      {
+        team1: getTeam("LEO KACUNG"),
+        team2: getTeam("SPRINT"),
+        winner: 1, // LEO KACUNG Maju
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "Match 2 (Penyisihan)"
+      },
+      {
+        team1: getTeam("XTC"),
+        team2: getTeam("DESTA"),
+        winner: 1, // XTC Maju
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "Match 3 (Penyisihan)"
+      },
+      {
+        team1: getTeam("KANCIL JAMSHOT"),
+        team2: getTeam("FF 3"),
+        winner: 1, // KANCIL JAMSHOT Maju
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "Match 4 (Penyisihan)"
+      },
+      {
+        team1: getTeam("ZIEZAN"),
+        team2: null,
+        winner: 1, // ZIEZAN BYE di awal
+        score1: "BYE",
+        customLabel: "BYE di Awal",
+        matchName: "Match 5 (BYE di Awal)"
+      },
+      {
+        team1: getTeam("NYAWIT"),
+        team2: getTeam("IFTAH"),
+        winner: 1, // NYAWIT Maju
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "Match 6 (Penyisihan)"
+      }
     ];
-    for (let i = 0; i < otherTeams.length; i += 2) {
-      r0.push({
-        team1: otherTeams[i] || null,
-        team2: otherTeams[i + 1] || null
-      });
-    }
     roundsData.push(r0);
 
-    // Round 1: 6 Besar (SD team auto advances + 5 winners)
+    // Round 1: Babak 6 Besar (Pertandingan Antara Pemenang Penyisihan)
     roundsData.push([
-      { team1: sdTeam, team2: null, customLabel: `${sdTeam?.nama || "Tim SD"} vs Pemenang M2` },
-      { team1: null, team2: null, customLabel: "Pemenang M3 vs M4" },
-      { team1: null, team2: null, customLabel: "Pemenang M5 vs M6" }
+      {
+        team1: getTeam("KACUNG PRET"),
+        team2: getTeam("LEO KACUNG"),
+        winner: 1, // KACUNG PRET Menang
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "6 Besar Match 1"
+      },
+      {
+        team1: getTeam("XTC"),
+        team2: getTeam("KANCIL JAMSHOT"),
+        winner: 1, // XTC Menang
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "6 Besar Match 2"
+      },
+      {
+        team1: getTeam("ZIEZAN"),
+        team2: getTeam("NYAWIT"),
+        winner: 1, // ZIEZAN Menang lawan NYAWIT
+        score1: "MENANG",
+        score2: "KALAH",
+        matchName: "6 Besar Match 3"
+      }
     ]);
 
-    // Round 2: Grand Final Showdown (3 Besar Finalis)
+    // Round 2: Semi-Final (Kacung Pret BYE & XTC vs ZIEZAN)
     roundsData.push([
-      { team1: null, team2: null, customLabel: "Grand Final 3 Besar" }
+      {
+        team1: getTeam("KACUNG PRET"),
+        team2: null,
+        winner: 1, // KACUNG PRET Maju via BYE
+        score1: "BYE",
+        customLabel: "BYE",
+        matchName: "Semi-Final 1 (BYE)"
+      },
+      {
+        team1: getTeam("XTC"),
+        team2: getTeam("ZIEZAN"),
+        matchName: "Semi-Final 2 (Eliminasi)"
+      }
     ]);
 
-    roundTitles = ["Babak Penyisihan (5 Match + 1 BYE SD)", "Semi-Final (6 Besar)", "Grand Final"];
+    // Round 3: Grand Final Championship
+    roundsData.push([
+      {
+        team1: getTeam("KACUNG PRET"),
+        team2: null,
+        customLabel: "Pemenang (XTC vs ZIEZAN)",
+        matchName: "Grand Final Championship"
+      }
+    ]);
+
+    roundTitles = [
+      "Babak Penyisihan (SELESAI)",
+      "Babak 6 Besar (SELESAI)",
+      "Semi-Final (3 Besar • BYE)",
+      "Grand Final"
+    ];
   } else if (activeTab === "Free Fire" && count >= 12) {
     // 12-Team Custom Knockout Tree (No BYEs)
     const r0: Match[] = [];
@@ -324,7 +445,15 @@ export function TournamentBracket() {
     const currCount = roundsData[r].length;
     const currY: number[] = [];
 
-    if (roundsData[r - 1].length === currCount * 2) {
+    if (prevY.length === 3 && currCount === 2) {
+      // 3 to 2 pairing: Match 0 (BYE) aligns with prevY[0], Match 1 aligns with midpoint of prevY[1] and prevY[2]
+      currY.push(prevY[0]);
+      currY.push((prevY[1] + prevY[2]) / 2);
+    } else if (roundsData[r - 1].length === 6 && currCount === 2) {
+      // 6 to 2 pairing: Match 0 aligns with midpoint of 0, 1, 2; Match 1 aligns with midpoint of 3, 4, 5
+      currY.push((prevY[0] + prevY[2]) / 2);
+      currY.push((prevY[3] + prevY[5]) / 2);
+    } else if (roundsData[r - 1].length === currCount * 2) {
       // Standard 2 to 1 parent pairing
       for (let i = 0; i < currCount; i++) {
         const p1 = prevY[2 * i];
@@ -399,10 +528,129 @@ export function TournamentBracket() {
       const xLeftNext = (r + 1) * (colWidth + colGap);
       const xMid = xRight + colGap / 2;
 
+      if (prevY.length === 3 && countNext === 2) {
+        // Match 0: Straight horizontal line from Parent 0 to Child 0 (BYE)
+        paths.push(
+          <path
+            key={`r-${r}-m-0-straight`}
+            d={`M ${xRight} ${prevY[0]} H ${xLeftNext}`}
+            fill="none"
+            stroke={`url(#bracketGrad-${activeTab.replace(/\s+/g, '')})`}
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" }}
+          />
+        );
+
+        // Match 1: Fork line connecting Parent 1 & Parent 2 to Child 1
+        const pathSF2 = `
+          M ${xRight} ${prevY[1]} H ${xMid}
+          M ${xRight} ${prevY[2]} H ${xMid}
+          M ${xMid} ${prevY[1]} V ${prevY[2]}
+          M ${xMid} ${nextY[1]} H ${xLeftNext}
+        `;
+        paths.push(
+          <path
+            key={`r-${r}-m-1-fork`}
+            d={pathSF2}
+            fill="none"
+            stroke={`url(#bracketGrad-${activeTab.replace(/\s+/g, '')})`}
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" }}
+          />
+        );
+        continue;
+      }
+
+      if (prevY.length === 6 && countNext === 2) {
+        for (let i = 0; i < 2; i++) {
+          const yP0 = prevY[3 * i];
+          const yP1 = prevY[3 * i + 1];
+          const yP2 = prevY[3 * i + 2];
+          const yChild = nextY[i];
+
+          const pathD = `
+            M ${xRight} ${yP0} H ${xMid}
+            M ${xRight} ${yP1} H ${xMid}
+            M ${xRight} ${yP2} H ${xMid}
+            M ${xMid} ${yP0} V ${yP2}
+            M ${xMid} ${yChild} H ${xLeftNext}
+          `;
+
+          paths.push(
+            <path
+              key={`r-${r}-m-6to2-${i}`}
+              d={pathD}
+              fill="none"
+              stroke={`url(#bracketGrad-${activeTab.replace(/\s+/g, '')})`}
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" }}
+            />
+          );
+        }
+        continue;
+      }
+
+      if (prevY.length === 3 && countNext === 1) {
+        const yP0 = prevY[0];
+        const yP1 = prevY[1];
+        const yP2 = prevY[2];
+        const yChild = nextY[0];
+
+        const pathD = `
+          M ${xRight} ${yP0} H ${xMid}
+          M ${xRight} ${yP1} H ${xMid}
+          M ${xRight} ${yP2} H ${xMid}
+          M ${xMid} ${yP0} V ${yP2}
+          M ${xMid} ${yChild} H ${xLeftNext}
+        `;
+
+        paths.push(
+          <path
+            key={`r-${r}-m-3to1`}
+            d={pathD}
+            fill="none"
+            stroke={`url(#bracketGrad-${activeTab.replace(/\s+/g, '')})`}
+            strokeWidth="3.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" }}
+          />
+        );
+        continue;
+      }
+
       for (let i = 0; i < countNext; i++) {
         const yP1 = prevY[2 * i];
         const yP2 = prevY[2 * i + 1];
         const yChild = nextY[i];
+
+        if (yP1 === undefined) continue;
+
+        if (yP2 === undefined) {
+          // Single parent line to child
+          const pathD = `
+            M ${xRight} ${yP1} H ${xLeftNext}
+          `;
+          paths.push(
+            <path
+              key={`r-${r}-m-${i}-single`}
+              d={pathD}
+              fill="none"
+              stroke={`url(#bracketGrad-${activeTab.replace(/\s+/g, '')})`}
+              strokeWidth="3.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.12))" }}
+            />
+          );
+          continue;
+        }
 
         // Path: Right edge of Parent 1 & 2 -> Midpoint -> Vertical connector -> Left edge of Child match
         const pathD = `
@@ -483,7 +731,7 @@ export function TournamentBracket() {
         <div className="absolute -inset-[150%] animate-[spin_7s_linear_infinite] bg-[conic-gradient(from_0deg,#f59e0b,#ef4444,#06b6d4,#10b981,#f59e0b)] opacity-85 blur-[1px]" />
 
         {/* Main Bracket Card Container - Full White */}
-        <div className="relative w-full bg-white rounded-[26px] p-4 sm:p-8 text-slate-900 z-10">
+        <div className="relative w-full bg-white rounded-2xl p-3 sm:p-5 text-slate-900 z-10">
           {/* Soft Background Accent Glow */}
           <div className={`absolute -top-24 -left-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
           <div className={`absolute -bottom-24 -right-24 w-96 h-96 bg-gradient-to-r ${theme.accentColor} opacity-5 blur-3xl rounded-full pointer-events-none`} />
@@ -491,25 +739,25 @@ export function TournamentBracket() {
           {/* Maximize Button to enter 16:9 full-screen broadcast view */}
           <button 
             onClick={() => setIsFullView(true)}
-            className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 bg-slate-100 hover:bg-gradient-to-r hover:from-amber-500 hover:to-orange-500 text-slate-700 hover:text-white rounded-xl border border-slate-200 hover:border-transparent transition-all duration-300 cursor-pointer flex items-center justify-center z-20 group shadow-sm hover:shadow-md"
+            className="absolute top-3 right-3 sm:top-4 sm:right-4 p-1.5 bg-slate-100 hover:bg-gradient-to-r hover:from-amber-500 hover:to-orange-500 text-slate-700 hover:text-white rounded-lg border border-slate-200 hover:border-transparent transition-all duration-300 cursor-pointer flex items-center justify-center z-20 group shadow-xs hover:shadow-sm"
             title="Tampilkan Layar Penuh (16:9)"
           >
-            <Maximize2 className="w-4 h-4 group-hover:scale-110 transition-transform" />
-            <span className="hidden sm:inline ml-1.5 text-xs font-black tracking-wider uppercase">Full View (16:9)</span>
+            <Maximize2 className="w-3.5 h-3.5 group-hover:scale-110 transition-transform" />
+            <span className="hidden sm:inline ml-1 text-[11px] font-black tracking-wider uppercase">Full View (16:9)</span>
           </button>
 
         {/* Header */}
-        <div className="flex flex-col items-center text-center gap-5 mb-8 relative z-10">
+        <div className="flex flex-col items-center text-center gap-3 mb-4 relative z-10">
           <div className="flex flex-col items-center w-full">
-            <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-mono font-bold tracking-widest uppercase border mb-2.5 shadow-sm ${theme.badgeBg}`}>
-              <Sparkles className="w-3.5 h-3.5" />
+            <div className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10.5px] font-mono font-bold tracking-widest uppercase border mb-1.5 shadow-xs ${theme.badgeBg}`}>
+              <Sparkles className="w-3 h-3" />
               {theme.badge} • <span className="text-amber-600 font-extrabold">{theme.matchDate}</span>
             </div>
-            <h3 className="font-heading text-2xl sm:text-3xl font-black text-slate-900 flex items-center justify-center gap-2">
-              <Trophy className="w-7 h-7 text-amber-500 drop-shadow-sm" /> Bagan Turnamen Realtime (Terverifikasi)
+            <h3 className="font-heading text-xl sm:text-2xl font-black text-slate-900 flex items-center justify-center gap-2">
+              <Trophy className="w-6 h-6 text-amber-500 drop-shadow-xs" /> Bagan Turnamen Realtime (Terverifikasi)
             </h3>
-            <p className="text-slate-600 text-xs sm:text-sm font-medium mt-1 max-w-xl">
-              Bagan otomatis dibuat khusus untuk <span className="font-mono font-bold text-slate-900">{count}</span> peserta terverifikasi (<span className="font-mono font-bold text-amber-600">{count} Tim • {activeTab === "Free Fire" && count === 11 ? "5 Match + 1 BYE Kategori SD" : "Sistem Pertandingan Langsung"}</span>).
+            <p className="text-slate-600 text-xs font-medium mt-0.5 max-w-xl">
+              Bagan resmi turnamen khusus <span className="font-mono font-bold text-slate-900">{count}</span> peserta terverifikasi (<span className="font-mono font-bold text-amber-600">Bagan Sistem Gugur / Knockout</span>).
             </p>
           </div>
 
@@ -561,124 +809,27 @@ export function TournamentBracket() {
               );
             })}
           </div>
-
-          {/* Sub-view toggle for Free Fire (Knockout Bracket vs Battle Royale 12 Slot Room) */}
-          {activeTab === "Free Fire" && (
-            <div className="flex items-center justify-center gap-2 mt-1">
-              <button
-                onClick={() => setFfViewMode("bracket")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
-                  ffViewMode === "bracket"
-                    ? "bg-red-600 text-white shadow-red-500/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Swords className="w-3.5 h-3.5" />
-                Bagan Knockout ({count === 11 ? "5 Match + 1 BYE SD" : "Knockout Bracket"})
-              </button>
-              <button
-                onClick={() => setFfViewMode("room")}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 shadow-sm ${
-                  ffViewMode === "room"
-                    ? "bg-red-600 text-white shadow-red-500/20"
-                    : "bg-slate-100 text-slate-600 hover:bg-slate-200"
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                Room Battle Royale ({count} Slot Tim)
-              </button>
-            </div>
-          )}
         </div>
 
-        {/* Free Fire 12 Slot Battle Royale Custom Room View */}
-        {activeTab === "Free Fire" && ffViewMode === "room" ? (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-red-500/10 via-orange-500/10 to-transparent p-4 sm:p-6 rounded-2xl border border-red-200">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                  <span className="text-[10px] font-mono font-bold tracking-widest uppercase text-red-600 block mb-1">
-                    FORMAT RESMI FREE FIRE BATTLE ROYALE (4 SQUAD)
-                  </span>
-                  <h4 className="text-lg font-black text-slate-900 flex items-center gap-2">
-                    <Flame className="w-5 h-5 text-red-500" /> Lobby Room ({count} Tim Bertanding Bersama)
-                  </h4>
-                  <p className="text-xs text-slate-600 mt-1">
-                    Semua {count} Tim bertanding secara bersamaan dalam 1 Room Custom Battle Royale.
-                  </p>
-                </div>
-                <div className="flex flex-wrap gap-2 text-xs font-mono font-bold">
-                  <span className="px-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-700 shadow-sm">
-                    🗺️ Match 1: Bermuda (20.00)
-                  </span>
-                  <span className="px-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-700 shadow-sm">
-                    🗺️ Match 2: Purgatory (20.30)
-                  </span>
-                  <span className="px-3 py-1.5 bg-white rounded-lg border border-slate-200 text-slate-700 shadow-sm">
-                    🗺️ Match 3: Kalahari (21.00)
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* 12 Slot Grid */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3.5">
-              {filteredParticipants.map((team, idx) => (
-                <div 
-                  key={team.id || idx}
-                  className="bg-white rounded-2xl p-4 border border-slate-200 hover:border-red-400 hover:shadow-md transition-all relative overflow-hidden group shadow-sm flex flex-col justify-between"
-                >
-                  <div className="flex items-start justify-between gap-2 mb-2">
-                    <div className="flex items-center gap-2">
-                      <span className="w-7 h-7 rounded-xl bg-red-50 text-red-600 font-mono font-black text-xs flex items-center justify-center border border-red-200 group-hover:bg-red-600 group-hover:text-white transition-colors">
-                        #{idx + 1}
-                      </span>
-                      <div>
-                        <h5 className="font-extrabold text-slate-900 text-sm tracking-tight line-clamp-1">
-                          {team.nama}
-                        </h5>
-                        <p className="text-[11px] text-slate-500 flex items-center gap-1">
-                          📍 {team.alamat || "Padasuka"}
-                        </p>
-                      </div>
-                    </div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
-                      {team.kategori || "UMUM"}
-                    </span>
-                  </div>
-
-                  <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
-                    <span>Usia: <b>{team.usia || "-"} th</b></span>
-                    <span className="text-emerald-600 font-bold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> TERVERIFIKASI
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            {/* Point Scoring System Summary */}
-            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
-              <div className="font-bold text-slate-800 mb-1 flex items-center gap-1.5">
-                <Award className="w-4 h-4 text-amber-500" /> Sistem Poin Resmi Battle Royale:
-              </div>
-              <p className="leading-relaxed">
-                Juara 1 (Booyah): <b>12 Poin</b> • Juara 2: <b>9 Poin</b> • Juara 3: <b>8 Poin</b> • Juara 4: <b>7 Poin</b> • Juara 5: <b>6 Poin</b> • Juara 6: <b>5 Poin</b> • Juara 7: <b>4 Poin</b> • Juara 8: <b>3 Poin</b> • Juara 9: <b>2 Poin</b> • Juara 10: <b>1 Poin</b> • Juara 11-12: <b>0 Poin</b> (+ <b>1 Poin per Kill</b>).
-              </p>
-            </div>
-          </div>
+        {activeTab === "Free Fire" ? (
+          <FreeFireResponsiveBracket />
+        ) : activeTab === "Mobile Legends" ? (
+          <MobileLegendsResponsiveBracket />
+        ) : activeTab === "PS 4 Pro FC26" ? (
+          <FC26ResponsiveBracket />
         ) : (
           <>
             {/* Mobile Scroll Indicator */}
-            <div className="lg:hidden flex items-center justify-end text-xs font-bold text-amber-600 mb-2 px-2 animate-pulse">
-              Geser ke kanan untuk melihat bagan lengkap <ChevronsRight className="w-4 h-4 ml-1" />
+            <div className="lg:hidden flex items-center justify-between text-[11px] font-bold text-slate-500 bg-slate-50 border border-slate-200/80 px-3 py-2 rounded-xl mb-3 animate-pulse">
+              <span className="flex items-center gap-1">📱 Tampilan HP: Sentuh & geser bagan ke samping</span>
+              <span className="text-amber-600 flex items-center gap-0.5">Geser <ChevronsRight className="w-3.5 h-3.5" /></span>
             </div>
 
             {/* Bracket Scroll/Desktop Full Width Canvas Area */}
-            <div className="overflow-x-auto pb-6 pt-2 w-full scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent flex justify-center">
+            <div className="overflow-x-auto pb-6 pt-2 w-full scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
               <div 
-                className="relative min-w-max lg:min-w-0 lg:w-full max-w-full mx-auto px-2"
-                style={{ width: `${totalCanvasWidth}px` }}
+                className="relative mx-auto px-2"
+                style={{ width: `${totalCanvasWidth}px`, minWidth: `${totalCanvasWidth}px` }}
               >
                 {/* Round Titles Row (Header Level) */}
                 <div 
@@ -736,7 +887,9 @@ export function TournamentBracket() {
                       <div key={r} className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
                         {roundMatches.map((match, i) => {
                           const centerY = yCenters[r][i];
-                          const topPos = centerY - cardHeight / 2;
+                          const is3Besar = match.team3 !== undefined && match.team3 !== null;
+                          const actualCardHeight = is3Besar ? 104 : cardHeight;
+                          const topPos = centerY - actualCardHeight / 2;
 
                           return (
                             <div
@@ -746,47 +899,156 @@ export function TournamentBracket() {
                                   ? 'bg-gradient-to-r from-amber-50 via-white to-amber-50 border-amber-400 shadow-amber-500/10'
                                   : 'bg-white border-slate-200 hover:border-amber-400'
                               }`}
-                              style={{ top: `${topPos}px`, height: `${cardHeight}px` }}
+                              style={{ top: `${topPos}px`, height: `${actualCardHeight}px` }}
                             >
+                              {/* Match Tag/Label Header */}
+                              {match.matchName && (
+                                <div className="flex items-center justify-between px-1 text-[8.5px] font-mono font-bold text-slate-400">
+                                  <span>{match.matchName}</span>
+                                  {match.winner ? (
+                                    <span className="text-emerald-600 font-extrabold flex items-center gap-0.5">
+                                      <Check className="w-2.5 h-2.5" /> SELESAI
+                                    </span>
+                                  ) : null}
+                                </div>
+                              )}
+
                               {/* Team 1 Slot */}
-                              <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
+                              <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
                                 match.team1 
-                                  ? 'bg-slate-50 text-slate-900 border border-slate-200/90' 
-                                  : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
+                                  ? match.winner === 1
+                                    ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                    : match.winner === 2 || match.winner === 3
+                                    ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                    : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                  : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200 font-medium'
                               }`}>
-                                <span className="truncate flex items-center gap-1 max-w-full">
+                                <span className="truncate flex items-center gap-1 max-w-[72%]">
                                   {match.team1 ? (
                                     <>
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                      <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team1.nama}</span>
+                                      {match.winner === 1 ? (
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                      ) : match.winner === 2 || match.winner === 3 ? (
+                                        <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                      ) : (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                      )}
+                                      <span className="text-[11px] tracking-tight truncate">{match.team1.nama}</span>
                                     </>
                                   ) : (
-                                    <span className="text-slate-400 font-normal text-[11px]">
+                                    <span className="text-slate-400 font-normal text-[10.5px]">
                                       {match.customLabel || (r === 0 ? "Peserta Terdaftar" : "Menunggu Pemenang")}
                                     </span>
                                   )}
                                 </span>
+                                {match.team1 && (
+                                  <div className="shrink-0 flex items-center gap-1">
+                                    {match.winner === 1 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                        LOLOS
+                                      </span>
+                                    ) : match.winner === 2 || match.winner === 3 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                        KALAH
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] font-mono font-bold text-slate-400">
+                                        {match.team1.kategori || "TIM"}
+                                      </span>
+                                    )}
+                                  </div>
+                                )}
                               </div>
 
                               {/* Team 2 Slot */}
-                              <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
+                              <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
                                 match.team2 
-                                  ? 'bg-slate-50 text-slate-900 border border-slate-200/90' 
-                                  : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
+                                  ? match.winner === 2
+                                    ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                    : match.winner === 1 || match.winner === 3
+                                    ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                    : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                  : (r === 0 || match.score1 === "BYE" || match.customLabel === "BYE") && !match.team2
+                                  ? 'bg-emerald-50/40 text-emerald-800 border border-dashed border-emerald-300 font-medium'
+                                  : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200 font-medium'
                               }`}>
-                                <span className="truncate flex items-center gap-1 max-w-full">
+                                <span className="truncate flex items-center gap-1 max-w-[72%]">
                                   {match.team2 ? (
                                     <>
-                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                      <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team2.nama}</span>
+                                      {match.winner === 2 ? (
+                                        <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                      ) : match.winner === 1 || match.winner === 3 ? (
+                                        <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                      ) : (
+                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                      )}
+                                      <span className="text-[11px] tracking-tight truncate">{match.team2.nama}</span>
                                     </>
                                   ) : (
-                                    <span className="text-slate-400 font-normal text-[11px]">
-                                      {match.customLabel || (r === 0 ? "Peserta Terdaftar" : "Menunggu Pemenang")}
+                                    <span className="text-slate-400 font-normal text-[10.5px]">
+                                      {match.customLabel || (r === 0 || match.score1 === "BYE" ? "BYE • Lolos Otomatis" : "Menunggu Pemenang")}
                                     </span>
                                   )}
                                 </span>
+                                {match.team2 ? (
+                                  <div className="shrink-0 flex items-center gap-1">
+                                    {match.winner === 2 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                        LOLOS
+                                      </span>
+                                    ) : match.winner === 1 || match.winner === 3 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                        KALAH
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] font-mono font-bold text-slate-400">
+                                        {match.team2.kategori || "TIM"}
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (r === 0 || match.score1 === "BYE" || match.customLabel === "BYE") ? (
+                                  <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-800 tracking-wider shrink-0">
+                                    BYE
+                                  </span>
+                                ) : null}
                               </div>
+
+                              {/* Team 3 Slot (for Grand Final 3 Besar) */}
+                              {match.team3 && (
+                                <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
+                                  match.winner === 3
+                                    ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                    : match.winner === 1 || match.winner === 2
+                                    ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                    : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                }`}>
+                                  <span className="truncate flex items-center gap-1 max-w-[72%]">
+                                    {match.winner === 3 ? (
+                                      <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                    ) : match.winner === 1 || match.winner === 2 ? (
+                                      <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                    ) : (
+                                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                    )}
+                                    <span className="text-[11px] tracking-tight truncate">{match.team3.nama}</span>
+                                  </span>
+                                  <div className="shrink-0 flex items-center gap-1">
+                                    {match.winner === 3 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                        LOLOS
+                                      </span>
+                                    ) : match.winner === 1 || match.winner === 2 ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                        KALAH
+                                      </span>
+                                    ) : (
+                                      <span className="text-[9px] font-mono font-bold text-slate-400">
+                                        {match.team3.kategori || "TIM"}
+                                      </span>
+                                    )}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           );
                         })}
@@ -928,145 +1190,270 @@ export function TournamentBracket() {
           </div>
 
           {/* Scaled Bracket Content Area */}
-          <div className="flex-1 flex items-center justify-center overflow-hidden relative">
-            <div 
-              style={{
-                transform: `scale(${scaleFactor})`,
-                transformOrigin: "center center",
-                transition: "transform 0.2s ease-out",
-                width: `${totalCanvasWidth}px`,
-                height: `${totalCanvasHeight}px`
-              }}
-              className="relative shrink-0 flex justify-center items-center select-none"
-            >
-                  {/* Matches Columns */}
-                  <div className="relative flex" style={{ height: `${totalCanvasHeight}px`, gap: `${colGap}px` }}>
-                    {/* SVG lines */}
-                    <svg className="absolute inset-0 pointer-events-none w-full h-full z-0 overflow-visible">
-                      <defs>
-                        <linearGradient id={`bracketGradDark-${activeTab.replace(/\s+/g, '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
-                          <stop offset="0%" stopColor={theme.stroke1} />
-                          <stop offset="100%" stopColor={theme.stroke2} />
-                        </linearGradient>
-                      </defs>
-                      {/* Connector paths */}
-                      {generateConnectorPaths()}
-                    </svg>
+          <div className="flex-1 flex items-center justify-center overflow-auto relative">
+            {activeTab === "Free Fire" ? (
+              <div className="w-full max-w-6xl mx-auto p-2">
+                <FreeFireResponsiveBracket />
+              </div>
+            ) : activeTab === "Mobile Legends" ? (
+              <div className="w-full max-w-6xl mx-auto p-2">
+                <MobileLegendsResponsiveBracket />
+              </div>
+            ) : activeTab === "PS 4 Pro FC26" ? (
+              <div className="w-full max-w-6xl mx-auto p-2">
+                <FC26ResponsiveBracket />
+              </div>
+            ) : (
+              <div 
+                style={{
+                  transform: `scale(${scaleFactor})`,
+                  transformOrigin: "center center",
+                  transition: "transform 0.2s ease-out",
+                  width: `${totalCanvasWidth}px`,
+                  height: `${totalCanvasHeight}px`
+                }}
+                className="relative shrink-0 flex justify-center items-center select-none"
+              >
+                    {/* Matches Columns */}
+                    <div className="relative flex" style={{ height: `${totalCanvasHeight}px`, gap: `${colGap}px` }}>
+                      {/* SVG lines */}
+                      <svg className="absolute inset-0 pointer-events-none w-full h-full z-0 overflow-visible">
+                        <defs>
+                          <linearGradient id={`bracketGradDark-${activeTab.replace(/\s+/g, '')}`} x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stopColor={theme.stroke1} />
+                            <stop offset="100%" stopColor={theme.stroke2} />
+                          </linearGradient>
+                        </defs>
+                        {/* Connector paths */}
+                        {generateConnectorPaths()}
+                      </svg>
 
-                    {roundsData.map((roundMatches, r) => {
-                      return (
-                        <div key={r} className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
-                          {roundMatches.map((match, i) => {
-                            const centerY = yCenters[r][i];
-                            const topPos = centerY - cardHeight / 2;
+                      {roundsData.map((roundMatches, r) => {
+                        return (
+                          <div key={r} className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
+                            {roundMatches.map((match, i) => {
+                              const centerY = yCenters[r][i];
+                              const is3Besar = match.team3 !== undefined && match.team3 !== null;
+                              const actualCardHeight = is3Besar ? 104 : cardHeight;
+                              const topPos = centerY - actualCardHeight / 2;
 
-                            return (
-                              <div
-                                key={i}
-                                className={`absolute w-full rounded-2xl p-1.5 shadow-md border transition-all duration-300 hover:scale-105 flex flex-col justify-center gap-1 z-10 bg-white border-slate-200`}
-                                style={{ top: `${topPos}px`, height: `${cardHeight}px` }}
-                              >
-                                {/* Team 1 Slot */}
-                                <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
-                                  match.team1 
-                                    ? 'bg-slate-50 text-slate-900 border border-slate-200' 
-                                    : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
-                                }`}>
-                                  <span className="truncate flex items-center gap-1 max-w-full">
-                                    {match.team1 ? (
-                                      <>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                        <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team1.nama}</span>
-                                      </>
-                                    ) : (
-                                      <span className="text-slate-400 font-normal text-[11px]">
-                                        {match.customLabel || (r === 0 ? "Peserta Terdaftar" : "Menunggu Pemenang")}
-                                      </span>
+                              return (
+                                <div
+                                  key={i}
+                                  className={`absolute w-full rounded-2xl p-1.5 shadow-md border transition-all duration-300 hover:scale-105 flex flex-col justify-center gap-1 z-10 bg-white border-slate-200`}
+                                  style={{ top: `${topPos}px`, height: `${actualCardHeight}px` }}
+                                >
+                                  {/* Match Tag/Label Header */}
+                                  {match.matchName && (
+                                    <div className="flex items-center justify-between px-1 text-[8.5px] font-mono font-bold text-slate-400">
+                                      <span>{match.matchName}</span>
+                                      {match.winner ? (
+                                        <span className="text-emerald-600 font-extrabold flex items-center gap-0.5">
+                                          <Check className="w-2.5 h-2.5" /> SELESAI
+                                        </span>
+                                      ) : null}
+                                    </div>
+                                  )}
+
+                                  {/* Team 1 Slot */}
+                                  <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
+                                    match.team1 
+                                      ? match.winner === 1
+                                        ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                        : match.winner === 2 || match.winner === 3
+                                        ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                        : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                      : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200 font-medium'
+                                  }`}>
+                                    <span className="truncate flex items-center gap-1 max-w-[72%]">
+                                      {match.team1 ? (
+                                        <>
+                                          {match.winner === 1 ? (
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                          ) : match.winner === 2 || match.winner === 3 ? (
+                                            <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                          ) : (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                          )}
+                                          <span className="text-[11px] tracking-tight truncate">{match.team1.nama}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400 font-normal text-[10.5px]">
+                                          {match.customLabel || (r === 0 ? "Peserta Terdaftar" : "Menunggu Pemenang")}
+                                        </span>
+                                      )}
+                                    </span>
+                                    {match.team1 && (
+                                      <div className="shrink-0 flex items-center gap-1">
+                                        {match.winner === 1 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                            LOLOS
+                                          </span>
+                                        ) : match.winner === 2 || match.winner === 3 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                            KALAH
+                                          </span>
+                                        ) : (
+                                          <span className="text-[9px] font-mono font-bold text-slate-400">
+                                            {match.team1.kategori || "TIM"}
+                                          </span>
+                                        )}
+                                      </div>
                                     )}
-                                  </span>
-                                </div>
+                                  </div>
 
-                                {/* Team 2 Slot */}
-                                <div className={`px-2 py-1 rounded-xl text-xs font-bold flex justify-between items-center transition-colors ${
-                                  match.team2 
-                                    ? 'bg-slate-50 text-slate-900 border border-slate-200' 
-                                    : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200'
-                                }`}>
-                                  <span className="truncate flex items-center gap-1 max-w-full">
+                                  {/* Team 2 Slot */}
+                                  <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
+                                    match.team2 
+                                      ? match.winner === 2
+                                        ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                        : match.winner === 1 || match.winner === 3
+                                        ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                        : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                      : (r === 0 || match.score1 === "BYE" || match.customLabel === "BYE") && !match.team2
+                                      ? 'bg-emerald-50/40 text-emerald-800 border border-dashed border-emerald-300 font-medium'
+                                      : 'bg-slate-50/50 text-slate-400 italic border border-dashed border-slate-200 font-medium'
+                                  }`}>
+                                    <span className="truncate flex items-center gap-1 max-w-[72%]">
+                                      {match.team2 ? (
+                                        <>
+                                          {match.winner === 2 ? (
+                                            <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                          ) : match.winner === 1 || match.winner === 3 ? (
+                                            <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                          ) : (
+                                            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                          )}
+                                          <span className="text-[11px] tracking-tight truncate">{match.team2.nama}</span>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400 font-normal text-[10.5px]">
+                                          {match.customLabel || (r === 0 || match.score1 === "BYE" ? "BYE • Lolos Otomatis" : "Menunggu Pemenang")}
+                                        </span>
+                                      )}
+                                    </span>
                                     {match.team2 ? (
-                                      <>
-                                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
-                                        <span className="text-slate-900 font-extrabold text-[11px] tracking-tight truncate">{match.team2.nama}</span>
-                                      </>
-                                    ) : (
-                                      <span className="text-slate-400 font-normal text-[11px]">
-                                        {match.customLabel || (r === 0 ? "Peserta Terdaftar" : "Menunggu Pemenang")}
+                                      <div className="shrink-0 flex items-center gap-1">
+                                        {match.winner === 2 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                            LOLOS
+                                          </span>
+                                        ) : match.winner === 1 || match.winner === 3 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                            KALAH
+                                          </span>
+                                        ) : (
+                                          <span className="text-[9px] font-mono font-bold text-slate-400">
+                                            {match.team2.kategori || "TIM"}
+                                          </span>
+                                        )}
+                                      </div>
+                                    ) : (r === 0 || match.score1 === "BYE" || match.customLabel === "BYE") ? (
+                                      <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-emerald-100 text-emerald-800 tracking-wider shrink-0">
+                                        BYE
                                       </span>
-                                    )}
-                                  </span>
+                                    ) : null}
+                                  </div>
+
+                                  {/* Team 3 Slot (for Grand Final 3 Besar) */}
+                                  {match.team3 && (
+                                    <div className={`px-2 py-1 rounded-xl text-xs flex justify-between items-center transition-all ${
+                                      match.winner === 3
+                                        ? 'bg-emerald-50/90 text-emerald-950 border border-emerald-400 font-black shadow-xs'
+                                        : match.winner === 1 || match.winner === 2
+                                        ? 'bg-slate-100/70 text-slate-400 border border-slate-200 line-through opacity-70'
+                                        : 'bg-slate-50 text-slate-900 border border-slate-200/90 font-extrabold'
+                                    }`}>
+                                      <span className="truncate flex items-center gap-1 max-w-[72%]">
+                                        {match.winner === 3 ? (
+                                          <CheckCircle2 className="w-3 h-3 text-emerald-600 shrink-0" />
+                                        ) : match.winner === 1 || match.winner === 2 ? (
+                                          <XCircle className="w-3 h-3 text-rose-400 shrink-0" />
+                                        ) : (
+                                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 shrink-0" />
+                                        )}
+                                        <span className="text-[11px] tracking-tight truncate">{match.team3.nama}</span>
+                                      </span>
+                                      <div className="shrink-0 flex items-center gap-1">
+                                        {match.winner === 3 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-black uppercase bg-emerald-500 text-white tracking-wider">
+                                            LOLOS
+                                          </span>
+                                        ) : match.winner === 1 || match.winner === 2 ? (
+                                          <span className="px-1.5 py-0.2 rounded text-[8px] font-bold uppercase bg-slate-200 text-slate-500 tracking-wider">
+                                            KALAH
+                                          </span>
+                                        ) : (
+                                          <span className="text-[9px] font-mono font-bold text-slate-400">
+                                            {match.team3.kategori || "TIM"}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  )}
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      );
-                    })}
-
-                    {/* Champion Podium */}
-                    <div className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
-                      <div
-                        className={`absolute w-full rounded-2xl p-3 border border-amber-400 bg-gradient-to-b from-white via-slate-50 to-white flex flex-col items-center justify-center text-center gap-2 z-20`}
-                        style={{
-                          top: `${yCenters[totalRounds - 1][0] - 70}px`,
-                          height: '140px',
-                          boxShadow: '0 4px 25px rgba(245, 158, 11, 0.15)'
-                        }}
-                      >
-                        {/* Glowing Crown/Cash Icon with custom scaling and conic border radius animation */}
-                        <div className="relative flex items-center justify-center p-[2px] rounded-full overflow-hidden w-11 h-11 shadow-inner">
-                          <div 
-                            className="absolute -inset-[150%] animate-[spin_4s_linear_infinite]" 
-                            style={{
-                              background: activeTab === "Mobile Legends"
-                                ? "conic-gradient(from 0deg, #f59e0b, #fff, #d97706, #fff, #f59e0b)"
-                                : activeTab === "Free Fire"
-                                ? "conic-gradient(from 0deg, #dc2626, #fff, #f97316, #fff, #dc2626)"
-                                : "conic-gradient(from 0deg, #0284c7, #fff, #2563eb, #fff, #0284c7)"
-                            }}
-                          />
-                          <div 
-                            className="relative z-10 w-full h-full rounded-full bg-white flex items-center justify-center shadow-md border border-slate-100"
-                            style={{ animation: 'pulse-scale 1.5s infinite alternate ease-in-out' }}
-                          >
-                            <Crown className={`w-5 h-5 ${
-                              activeTab === "Mobile Legends" 
-                                ? "text-amber-500" 
-                                : activeTab === "Free Fire" 
-                                ? "text-red-500" 
-                                : "text-cyan-600"
-                            } drop-shadow-sm`} />
+                              );
+                            })}
                           </div>
-                        </div>
+                        );
+                      })}
 
-                        <div>
-                          <span className="text-[9px] font-mono font-black uppercase tracking-widest text-amber-500 block mb-0.5">
-                            JUARA UTAMA
-                          </span>
-                          <h5 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight uppercase line-clamp-1">
-                            {filteredParticipants.length > 0 ? "PEMENANG FINAL" : "BYE"}
-                          </h5>
-                        </div>
+                      {/* Champion Podium */}
+                      <div className="relative shrink-0" style={{ width: `${colWidth}px`, height: `${totalCanvasHeight}px` }}>
+                        <div
+                          className={`absolute w-full rounded-2xl p-3 border border-amber-400 bg-gradient-to-b from-white via-slate-50 to-white flex flex-col items-center justify-center text-center gap-2 z-20`}
+                          style={{
+                            top: `${yCenters[totalRounds - 1][0] - 70}px`,
+                            height: '140px',
+                            boxShadow: '0 4px 25px rgba(245, 158, 11, 0.15)'
+                          }}
+                        >
+                          {/* Glowing Crown/Cash Icon with custom scaling and conic border radius animation */}
+                          <div className="relative flex items-center justify-center p-[2px] rounded-full overflow-hidden w-11 h-11 shadow-inner">
+                            <div 
+                              className="absolute -inset-[150%] animate-[spin_4s_linear_infinite]" 
+                              style={{
+                                background: activeTab === "Mobile Legends"
+                                  ? "conic-gradient(from 0deg, #f59e0b, #fff, #d97706, #fff, #f59e0b)"
+                                  : activeTab === "Free Fire"
+                                  ? "conic-gradient(from 0deg, #dc2626, #fff, #f97316, #fff, #dc2626)"
+                                  : "conic-gradient(from 0deg, #0284c7, #fff, #2563eb, #fff, #0284c7)"
+                              }}
+                            />
+                            <div 
+                              className="relative z-10 w-full h-full rounded-full bg-white flex items-center justify-center shadow-md border border-slate-100"
+                              style={{ animation: 'pulse-scale 1.5s infinite alternate ease-in-out' }}
+                            >
+                              <Crown className={`w-5 h-5 ${
+                                activeTab === "Mobile Legends" 
+                                  ? "text-amber-500" 
+                                  : activeTab === "Free Fire" 
+                                  ? "text-red-500" 
+                                  : "text-cyan-600"
+                              } drop-shadow-sm`} />
+                            </div>
+                          </div>
 
-                        <div className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black tracking-wider uppercase bg-amber-400 text-slate-900 shadow-sm`}>
-                          HADIAH UANG CASH
+                          <div>
+                            <span className="text-[9px] font-mono font-black uppercase tracking-widest text-amber-500 block mb-0.5">
+                              JUARA UTAMA
+                            </span>
+                            <h5 className="text-xs sm:text-sm font-black text-slate-900 tracking-tight uppercase line-clamp-1">
+                              {filteredParticipants.length > 0 ? "PEMENANG FINAL" : "BYE"}
+                            </h5>
+                          </div>
+
+                          <div className={`px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black tracking-wider uppercase bg-amber-400 text-slate-900 shadow-sm`}>
+                            HADIAH UANG CASH
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              </div>
+            )}
+          </div>
 
-              {/* Footer Broadcast info */}
+          {/* Footer Broadcast info */}
               <div className="flex justify-between items-center relative z-10 border-t border-slate-200 p-4 sm:px-6 text-[10px] font-mono font-bold tracking-wider text-slate-500 bg-white">
                 <div>OFFICIAL LIVE ESPORTS STREAM OVERLAY • 4K ULTRA QUALITY</div>
                 <div className="text-right">PRESS ESC TO CLOSE FULL VIEW</div>

@@ -45,17 +45,15 @@ export function getFeeDetails(reg: RegistrationData) {
   else if (nameLower === "kancil jamshot") bayar = 32000;
   else if (nameLower === "desta") bayar = 20000;
   else if (nameLower === "kacung pret") {
-    if (lombaLower.includes("free fire")) bayar = 40000;
-    else if (lombaLower.includes("mobile legends")) bayar = 50000;
+    if (lombaLower.includes("free fire") || lombaLower.includes("ff")) bayar = 40000;
+    else if (lombaLower.includes("mobile") || lombaLower.includes("ml")) bayar = 50000;
   }
   else if (nameLower === "leo kacung") bayar = 32000;
   else if (nameLower === "sprint") bayar = 32000;
-  else if (nameLower === "yang brow rasakan") bayar = 32000;
   else if (nameLower === "rahmat") bayar = 15000;
   else if (nameLower === "bkr") bayar = 75000;
-  else if (nameLower === "kodel") bayar = 15000;
-  else if (nameLower === "spirit") bayar = 32000;
   else if (nameLower === "xtc") bayar = 32000;
+  else if (nameLower === "densus") bayar = 75000;
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -414,21 +412,6 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     firestoreSynced: true
   },
   {
-    id: "manual_yang_brow_rasakan",
-    localId: "manual_yang_brow_rasakan",
-    nama: "YANG BROW RASAKAN",
-    players: [],
-    anggotaTim: "",
-    usia: "12",
-    kategori: "SMP",
-    lomba: "Free Fire (4 Squad)",
-    alamat: "Lembur Asem",
-    wa: "083836757460",
-    status: "pending" as const,
-    createdAt: "2026-08-13T14:02:00.000Z",
-    firestoreSynced: true
-  },
-  {
     id: "manual_rahmat",
     localId: "manual_rahmat",
     nama: "RAHMAT",
@@ -459,21 +442,6 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     firestoreSynced: true
   },
   {
-    id: "manual_kodel",
-    localId: "manual_kodel",
-    nama: "KODEL",
-    players: [],
-    anggotaTim: "",
-    usia: "20",
-    kategori: "UMUM",
-    lomba: "PS 4 Pro FC26 (Individu)",
-    alamat: "Muntur",
-    wa: "085931442631",
-    status: "pending" as const,
-    createdAt: "2026-08-13T14:34:00.000Z",
-    firestoreSynced: true
-  },
-  {
     id: "manual_ziezan_ff",
     localId: "manual_ziezan_ff",
     nama: "ZIEZAN",
@@ -500,7 +468,22 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     alamat: "LA",
     wa: "-",
     status: "verified" as const,
-    createdAt: "2026-08-14T13:00:00.000Z",
+    createdAt: "2026-08-13T15:49:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_densus_ml",
+    localId: "manual_densus_ml",
+    nama: "DENSUS",
+    players: [],
+    anggotaTim: "",
+    usia: "20",
+    kategori: "UMUM",
+    lomba: "Mobile Legends: Bang Bang (5v5 Squad)",
+    alamat: "Batu Karut",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-13T15:49:00.000Z",
     firestoreSynced: true
   }
 ];
@@ -1015,7 +998,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v3.1") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v4.0") === "true") {
     return;
   }
 
@@ -1077,7 +1060,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v3.1", "true");
+    localStorage.setItem("padasuka_manual_seeded_v4.0", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

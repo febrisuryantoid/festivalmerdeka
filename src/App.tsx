@@ -280,10 +280,10 @@ export default function App() {
             </div>
             <div className="flex items-center gap-2 md:gap-4 text-sm font-semibold text-secondary">
               <button
-                onClick={() => scrollTo("daftar")}
+                onClick={() => scrollTo("bagan")}
                 className="bg-primary hover:bg-primary-dark text-white px-3 sm:px-6 py-1.5 sm:py-2.5 rounded-full text-xs sm:text-sm font-bold shadow-lg shadow-primary/20 transition-all whitespace-nowrap"
               >
-                Daftar<span className="hidden sm:inline"> Sekarang</span>
+                Bracket<span className="hidden sm:inline"> Turnamen</span>
               </button>
             </div>
           </div>
@@ -368,10 +368,10 @@ export default function App() {
             className="w-full sm:w-auto px-4 sm:px-0"
           >
             <button
-              onClick={() => scrollTo("daftar")}
+              onClick={() => scrollTo("bagan")}
               className="w-full sm:w-auto group flex items-center justify-center gap-3 bg-white border-2 border-primary text-primary hover:bg-primary hover:text-white px-6 sm:px-8 py-3.5 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all shadow-xl shadow-primary/10 transform hover:-translate-y-1"
             >
-              Daftar Sekarang
+              Lihat Bracket Turnamen
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
           </motion.div>
