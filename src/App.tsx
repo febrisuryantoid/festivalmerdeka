@@ -989,43 +989,59 @@ export default function App() {
                   <ul className="space-y-2 text-xs sm:text-sm text-amber-950 font-medium mb-6">
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 mt-0.5">•</span>
-                      <span><strong>Pendaftaran:</strong> Rp5.000/peserta untuk semua jenjang usia.</span>
+                      <span><strong>Pendaftaran:</strong> SD Rp5.000 (5K), SMP Rp8.000 (8K), SMA/SMK Rp10.000 (10K), & Umum Rp15.000 (15K) per peserta.</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 mt-0.5">•</span>
-                      <span><strong>Kategori:</strong> Seluruh usia (SD, SMP, SMA/SMK, & Umum) disatukan dalam 1 Kategori Utama pada setiap cabang game.</span>
+                      <span><strong>Kategori:</strong> Pilihan kategori peserta disesuaikan dengan jenjang pendidikan (SD, SMP, SMA/SMK, dan Umum).</span>
                     </li>
                     <li className="flex items-start gap-2">
                       <span className="text-amber-600 mt-0.5">•</span>
-                      <span><strong>Hadiah:</strong> Nominal hadiah disesuaikan dengan kebijakan pendaftaran, tanpa mengurangi piagam penghargaan resmi Karang Taruna.</span>
+                      <span><strong>Hadiah:</strong> Total hadiah disesuaikan dengan kuota pendaftar dan dilengkapi sertifikat penghargaan resmi Karang Taruna Desa Padasuka.</span>
                     </li>
                   </ul>
 
                   <div className="border-t border-amber-200/60 pt-5">
                     <h4 className="font-heading text-amber-950 uppercase tracking-wide flex items-center gap-2 mb-3">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> BIAYA & KETENTUAN
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> BIAYA & KETENTUAN PENDAFTARAN
                     </h4>
                     
-                    <div className="bg-white/60 rounded-xl p-3 sm:p-4 mb-4 border border-amber-100">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-black text-primary text-xl sm:text-2xl">Rp5.000</span>
-                        <span className="text-amber-900 font-bold text-xs sm:text-sm">/ Peserta</span>
+                    {/* 4 Cards Grid for Categories */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 mb-4">
+                      <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 text-center shadow-xs">
+                        <span className="text-[10px] text-amber-900 font-bold uppercase block">Kategori SD</span>
+                        <span className="font-black text-primary text-base sm:text-lg">Rp5.000</span>
+                        <span className="text-[10px] text-slate-500 block font-medium">/ peserta (5K)</span>
                       </div>
-                      <p className="text-[11px] sm:text-xs text-amber-800 font-medium">Berlaku untuk SD, SMP, SMA/SMK, & Umum.</p>
+                      <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 text-center shadow-xs">
+                        <span className="text-[10px] text-amber-900 font-bold uppercase block">Kategori SMP</span>
+                        <span className="font-black text-primary text-base sm:text-lg">Rp8.000</span>
+                        <span className="text-[10px] text-slate-500 block font-medium">/ peserta (8K)</span>
+                      </div>
+                      <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 text-center shadow-xs">
+                        <span className="text-[10px] text-amber-900 font-bold uppercase block">Kategori SMA/K</span>
+                        <span className="font-black text-primary text-base sm:text-lg">Rp10.000</span>
+                        <span className="text-[10px] text-slate-500 block font-medium">/ peserta (10K)</span>
+                      </div>
+                      <div className="bg-white/80 p-3 rounded-xl border border-amber-200/80 text-center shadow-xs">
+                        <span className="text-[10px] text-amber-900 font-bold uppercase block">Kategori Umum</span>
+                        <span className="font-black text-primary text-base sm:text-lg">Rp15.000</span>
+                        <span className="text-[10px] text-slate-500 block font-medium">/ peserta (15K)</span>
+                      </div>
                     </div>
 
                     <ul className="space-y-2 text-[11px] sm:text-xs text-amber-950 font-medium">
                       <li className="flex items-start gap-2">
                         <span className="text-emerald-600 font-bold mt-0.5">✓</span>
-                        <span><strong>Mobile Legends:</strong> 5v5 — Rp25.000/squad.</span>
+                        <span><strong>Mobile Legends (5v5):</strong> SD Rp25.000 • SMP Rp40.000 • SMA/K Rp50.000 • Umum Rp75.000 per squad (5 org).</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-emerald-600 font-bold mt-0.5">✓</span>
-                        <span><strong>Free Fire:</strong> Squad — Rp20.000/squad.</span>
+                        <span><strong>Free Fire (Squad):</strong> SD Rp20.000 • SMP Rp32.000 • SMA/K Rp40.000 • Umum Rp60.000 per squad (4 org).</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-emerald-600 font-bold mt-0.5">✓</span>
-                        <span><strong>EA SPORTS FC 26:</strong> Individu — Rp5.000/peserta, menggunakan PS4 Pro panitia.</span>
+                        <span><strong>EA SPORTS FC 26 (Individu):</strong> SD Rp5.000 • SMP Rp8.000 • SMA/K Rp10.000 • Umum Rp15.000 per peserta (PlayStation 4 Pro panitia).</span>
                       </li>
                       <li className="flex items-start gap-2">
                         <span className="text-emerald-600 font-bold mt-0.5">✓</span>

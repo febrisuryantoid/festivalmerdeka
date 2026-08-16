@@ -1,5 +1,5 @@
 import React from "react";
-import { Trophy, Check, Award } from "lucide-react";
+import { Check, Award } from "lucide-react";
 import { TeamLogo, CheckmarkBadge, VsBadge } from "./FreeFireOfficialBracket";
 
 export function FreeFireDesktopBracket() {
@@ -377,33 +377,42 @@ export function FreeFireDesktopBracket() {
               </div>
             </div>
 
-            {/* COLUMN 5: GRAND FINAL & TROPHY (Left: 82%) */}
-            <div className="absolute left-[82%] top-[140px] w-[18%] z-10 flex flex-col items-center">
+            {/* COLUMN 5: GRAND FINAL & PODIUM (Left: 82%) */}
+            <div className="absolute left-[82%] top-[120px] w-[18%] z-10 flex flex-col items-center">
               <div className="self-start w-5 h-5 rounded bg-[#dc2626] text-white font-black text-[9px] flex items-center justify-center shrink-0 mb-1">GF</div>
               
               {/* Grand Final Box */}
-              <div className="w-full bg-white rounded-xl border-2 border-red-500 shadow-sm p-2 flex items-center justify-between gap-1">
-                <div className="space-y-1 flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-xs truncate">
-                    <TeamLogo name="ZIEZAN" size={20} />
+              <div className="w-full bg-white rounded-xl border-2 border-red-500 shadow-sm p-1.5 flex flex-col justify-between gap-1">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 font-bold text-slate-700 text-[10px] truncate">
+                    <TeamLogo name="ZIEZAN" size={16} />
                     <span className="truncate">ZIEZAN</span>
                   </div>
-                  <div className="text-center">
-                    <span className="text-[8px] font-black text-blue-600 bg-blue-50 px-1 py-0.2 rounded">VS</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-xs truncate">
-                    <TeamLogo name="KACUNG PRET" size={20} />
-                    <span className="truncate">KACUNG</span>
-                  </div>
+                  <span className="text-[7.5px] font-black bg-slate-100 text-slate-600 px-1 rounded">J2</span>
                 </div>
-                <Check className="w-4 h-4 text-emerald-500 stroke-[3] shrink-0" />
+                <div className="text-center -my-0.5">
+                  <span className="text-[7px] font-black text-blue-600 bg-blue-50 px-1 py-0.2 rounded">VS</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1 font-black text-slate-900 text-[10px] truncate">
+                    <TeamLogo name="KACUNK PRET" size={16} />
+                    <span className="truncate text-red-700">KACUNK</span>
+                  </div>
+                  <Check className="w-3.5 h-3.5 text-red-600 stroke-[3] shrink-0" />
+                </div>
               </div>
 
-              {/* Champion Trophy */}
-              <div className="mt-2.5 flex flex-col items-center">
-                <Trophy className="w-8 h-8 text-amber-500 drop-shadow-sm" />
-                <div className="bg-[#dc2626] text-white font-black text-[9px] tracking-widest uppercase px-2.5 py-0.5 rounded shadow-xs mt-1">
-                  CHAMPION
+              {/* Champion Certificate & Cash */}
+              <div className="mt-2 w-full bg-gradient-to-b from-red-50 to-amber-50 rounded-xl border border-red-300 p-1.5 shadow-xs flex flex-col items-center text-center">
+                <Award className="w-6 h-6 text-red-600 drop-shadow-xs" />
+                <div className="bg-[#dc2626] text-white font-black text-[7px] tracking-wider uppercase px-1.5 py-0.5 rounded shadow-xs mt-0.5">
+                  SERTIFIKAT & TUNAI
+                </div>
+                <div className="w-full mt-1 bg-amber-400 text-amber-950 font-black text-[8px] py-0.5 rounded truncate">
+                  J1: KACUNK PRET
+                </div>
+                <div className="w-full mt-0.5 bg-slate-100 text-slate-700 font-bold text-[7.5px] py-0.5 rounded truncate">
+                  J2: ZIEZAN
                 </div>
               </div>
             </div>

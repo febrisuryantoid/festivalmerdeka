@@ -54,6 +54,8 @@ export function getFeeDetails(reg: RegistrationData) {
   else if (nameLower === "bkr") bayar = 75000;
   else if (nameLower === "xtc") bayar = 32000;
   else if (nameLower === "densus") bayar = 75000;
+  else if (nameLower === "repan") bayar = 5000;
+  else if (nameLower === "naufal" || nameLower === "naufal abbas") bayar = 5000;
 
   const isSquad = (reg.lomba || "").toLowerCase().includes("squad") || 
                   (reg.lomba || "").toLowerCase().includes("5v5") || 
@@ -65,8 +67,18 @@ export function getFeeDetails(reg: RegistrationData) {
     ? reg.players.length 
     : (isSquad ? ((reg.lomba || "").toLowerCase().includes("free fire") ? 4 : 5) : 1);
 
-  // Kebijakan baru: Flat Rp5.000 per orang untuk semua kelompok usia
-  const pricePerOrg = 5000;
+  // Kebijakan Pendaftaran: SD Rp5.000, SMP Rp8.000, SMA/K Rp10.000, Umum Rp15.000 per orang
+  const katLower = (reg.kategori || "").toLowerCase();
+  let pricePerOrg = 15000;
+  if (katLower.includes("sd")) {
+    pricePerOrg = 5000;
+  } else if (katLower.includes("smp")) {
+    pricePerOrg = 8000;
+  } else if (katLower.includes("sma") || katLower.includes("smk")) {
+    pricePerOrg = 10000;
+  } else if (katLower.includes("umum") || katLower.includes("karang taruna")) {
+    pricePerOrg = 15000;
+  }
   const biaya = playerCount * pricePerOrg;
   
   if (bayar === 0) bayar = biaya;
@@ -484,6 +496,36 @@ export const DEFAULT_INITIAL_REGISTRATIONS: RegistrationData[] = [
     wa: "-",
     status: "verified" as const,
     createdAt: "2026-08-13T15:49:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_repan_fc",
+    localId: "manual_repan_fc",
+    nama: "REPAN",
+    players: [],
+    anggotaTim: "",
+    usia: "15",
+    kategori: "SMA",
+    lomba: "PS 4 Pro FC26 (Individu)",
+    alamat: "Nyomplong",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-16T10:08:00.000Z",
+    firestoreSynced: true
+  },
+  {
+    id: "manual_naufal_fc",
+    localId: "manual_naufal_fc",
+    nama: "NAUFAL ABBAS",
+    players: [],
+    anggotaTim: "",
+    usia: "12",
+    kategori: "SMP",
+    lomba: "PS 4 Pro FC26 (Individu)",
+    alamat: "Nyomplong",
+    wa: "-",
+    status: "verified" as const,
+    createdAt: "2026-08-16T10:11:00.000Z",
     firestoreSynced: true
   }
 ];
@@ -998,7 +1040,7 @@ export async function checkForDuplicateRegistration(data: {
  * Seed the requested manual registrations into LocalStorage and Firestore safely (no duplicates).
  */
 export async function seedManualRegistrations() {
-  if (localStorage.getItem("padasuka_manual_seeded_v4.0") === "true") {
+  if (localStorage.getItem("padasuka_manual_seeded_v4.2") === "true") {
     return;
   }
 
@@ -1060,7 +1102,7 @@ export async function seedManualRegistrations() {
       }
     }
     // Set localStorage flag so we don't repeat the firestore checks on every load
-    localStorage.setItem("padasuka_manual_seeded_v4.0", "true");
+    localStorage.setItem("padasuka_manual_seeded_v4.2", "true");
   } catch (err) {
     console.warn("Could not seed manual registrations to Firestore:", err);
   }

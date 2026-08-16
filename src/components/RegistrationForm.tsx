@@ -682,11 +682,11 @@ Saya akan segera melampirkan bukti transfer biaya pendaftaran. Terima kasih!`;
                   className="w-full px-4 py-3 rounded-[12px] border border-gray-200 bg-gray-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-dark text-sm sm:text-base appearance-none outline-none font-medium"
                 >
                   <option value="">Pilih Kategori Pendaftar</option>
-                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka - Rp 5K/org</option>
-                  <option value="Kategori Umum">Kategori Umum - Rp 5K/org</option>
-                  <option value="SD">Kategori SD - Rp 5K/org</option>
-                  <option value="SMP">Kategori SMP - Rp 5K/org</option>
-                  <option value="SMA / SMK">Kategori SMA / SMK - Rp 5K/org</option>
+                  <option value="Kategori SD">Kategori SD - Rp 5.000 / orang (5K)</option>
+                  <option value="Kategori SMP">Kategori SMP - Rp 8.000 / orang (8K)</option>
+                  <option value="Kategori SMA / SMK">Kategori SMA / SMK - Rp 10.000 / orang (10K)</option>
+                  <option value="Kategori Umum">Kategori Umum - Rp 15.000 / orang (15K)</option>
+                  <option value="Kategori Pemuda Karang Taruna Desa Padasuka">Kategori Pemuda Karang Taruna Desa Padasuka - Rp 15.000 / orang</option>
                 </select>
               </div>
               

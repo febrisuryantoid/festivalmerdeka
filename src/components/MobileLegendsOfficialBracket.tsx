@@ -1,5 +1,11 @@
 import React from "react";
-import { FileText, Star, Shield } from "lucide-react";
+import { FileText, Star, Shield, Award, Banknote, Check } from "lucide-react";
+
+export const MlbbCheckmarkBadge = () => (
+  <div className="w-5 h-5 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0 shadow-xs">
+    <Check className="w-3.5 h-3.5 stroke-[3]" />
+  </div>
+);
 
 // Team Logos specifically designed for MLBB Tournament
 export const MlbbTeamLogo = ({ name, size = 28 }: { name: string; size?: number }) => {
@@ -175,8 +181,8 @@ export const MlbbTeamLogo = ({ name, size = 28 }: { name: string; size?: number 
     );
   }
 
-  // 8. O2
-  if (norm.includes("o2") || norm.includes("02")) {
+  // 8. O2 / OXYGEN
+  if (norm.includes("o2") || norm.includes("02") || norm.includes("oxygen")) {
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" className="shrink-0 drop-shadow-sm">
         <defs>
@@ -335,11 +341,14 @@ export function MobileLegendsOfficialBracket() {
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
                   QF1
                 </div>
-                <div className="flex-1 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
-                  {/* Team 1 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
-                    <MlbbTeamLogo name="BEE3SKA" size={26} />
-                    <span>BEE3SKA</span>
+                <div className="flex-1 bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
+                  {/* Team 1 (WINNER) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                      <MlbbTeamLogo name="BEE3SKA" size={26} />
+                      <span>BEE3SKA</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
                   
                   {/* VS Badge with line */}
@@ -349,9 +358,9 @@ export function MobileLegendsOfficialBracket() {
                   </div>
 
                   {/* Team 2 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-xs tracking-tight">
                     <MlbbTeamLogo name="KACUNG PRET" size={26} />
-                    <span>KACUNG PRET</span>
+                    <span className="line-through decoration-slate-300">KACUNG PRET</span>
                   </div>
                 </div>
               </div>
@@ -361,11 +370,11 @@ export function MobileLegendsOfficialBracket() {
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
                   QF2
                 </div>
-                <div className="flex-1 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
+                <div className="flex-1 bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
                   {/* Team 1 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-xs tracking-tight">
                     <MlbbTeamLogo name="ZIEZAN" size={26} />
-                    <span>ZIEZAN</span>
+                    <span className="line-through decoration-slate-300">ZIEZAN</span>
                   </div>
                   
                   {/* VS Badge with line */}
@@ -374,10 +383,13 @@ export function MobileLegendsOfficialBracket() {
                     <MlbbVsBadge />
                   </div>
 
-                  {/* Team 2 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
-                    <MlbbTeamLogo name="BKR" size={26} />
-                    <span>BKR</span>
+                  {/* Team 2 (WINNER) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                      <MlbbTeamLogo name="BKR" size={26} />
+                      <span>BKR</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
                 </div>
               </div>
@@ -387,11 +399,14 @@ export function MobileLegendsOfficialBracket() {
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
                   QF3
                 </div>
-                <div className="flex-1 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
-                  {/* Team 1 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-[11px] tracking-tight">
-                    <MlbbTeamLogo name="HARIMAU GOLD LINE" size={26} />
-                    <span className="truncate">HARIMAU GOLD LINE</span>
+                <div className="flex-1 bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
+                  {/* Team 1 (WINNER) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-black text-slate-900 text-[11px] tracking-tight">
+                      <MlbbTeamLogo name="HARIMAU GOLD LINE" size={26} />
+                      <span className="truncate">HARIMAU GOLD LINE</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
                   
                   {/* VS Badge with line */}
@@ -401,9 +416,9 @@ export function MobileLegendsOfficialBracket() {
                   </div>
 
                   {/* Team 2 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-xs tracking-tight">
                     <MlbbTeamLogo name="PATAH HATI" size={26} />
-                    <span>PATAH HATI</span>
+                    <span className="line-through decoration-slate-300">PATAH HATI</span>
                   </div>
                 </div>
               </div>
@@ -413,11 +428,11 @@ export function MobileLegendsOfficialBracket() {
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
                   QF4
                 </div>
-                <div className="flex-1 bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
+                <div className="flex-1 bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[84px]">
                   {/* Team 1 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-xs tracking-tight">
                     <MlbbTeamLogo name="DENSUS" size={26} />
-                    <span>DENSUS</span>
+                    <span className="line-through decoration-slate-300">DENSUS</span>
                   </div>
                   
                   {/* VS Badge with line */}
@@ -426,10 +441,13 @@ export function MobileLegendsOfficialBracket() {
                     <MlbbVsBadge />
                   </div>
 
-                  {/* Team 2 */}
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
-                    <MlbbTeamLogo name="O2" size={26} />
-                    <span>O2</span>
+                  {/* Team 2 (WINNER) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
+                      <MlbbTeamLogo name="O2" size={26} />
+                      <span>O2</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
                 </div>
               </div>
@@ -442,54 +460,60 @@ export function MobileLegendsOfficialBracket() {
             {/* ========================================================================= */}
             <div className="absolute left-[290px] top-0 w-[205px] z-10">
               
-              {/* SF1 Box (Y=117) */}
+              {/* SF1 Box: BEE3SKA vs BKR (Y=117) */}
               <div className="absolute top-[68px] w-full">
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs mb-1.5">
                   SF1
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-3 relative flex flex-col justify-between h-[96px]">
-                  {/* Team 1 Placeholder */}
-                  <div className="flex items-center gap-3">
-                    <MlbbTeamLogo name="" size={28} />
-                    <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+                <div className="w-full bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[96px]">
+                  {/* Team 1 (WINNER: BEE3SKA) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
+                      <MlbbTeamLogo name="BEE3SKA" size={26} />
+                      <span>BEE3SKA</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
 
                   {/* VS Badge */}
-                  <div className="relative flex items-center justify-center my-1">
+                  <div className="relative flex items-center justify-center my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
 
-                  {/* Team 2 Placeholder */}
-                  <div className="flex items-center gap-3">
-                    <MlbbTeamLogo name="" size={28} />
-                    <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+                  {/* Team 2 (BKR) */}
+                  <div className="flex items-center gap-2.5 font-bold text-slate-400 text-xs tracking-tight">
+                    <MlbbTeamLogo name="BKR" size={26} />
+                    <span className="line-through decoration-slate-300">BKR</span>
                   </div>
                 </div>
               </div>
 
-              {/* SF2 Box (Y=397) */}
+              {/* SF2 Box: HARIMAU GOLD LINE vs O2 (Y=397) */}
               <div className="absolute top-[348px] w-full">
                 <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs mb-1.5">
                   SF2
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-3 relative flex flex-col justify-between h-[96px]">
-                  {/* Team 1 Placeholder */}
-                  <div className="flex items-center gap-3">
-                    <MlbbTeamLogo name="" size={28} />
-                    <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+                <div className="w-full bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[96px]">
+                  {/* Team 1 (HARIMAU GOLD LINE) */}
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-[11px] tracking-tight">
+                    <MlbbTeamLogo name="HARIMAU GOLD LINE" size={26} />
+                    <span className="truncate line-through decoration-slate-300">HARIMAU GOLD LINE</span>
                   </div>
 
                   {/* VS Badge */}
-                  <div className="relative flex items-center justify-center my-1">
+                  <div className="relative flex items-center justify-center my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
 
-                  {/* Team 2 Placeholder */}
-                  <div className="flex items-center gap-3">
-                    <MlbbTeamLogo name="" size={28} />
-                    <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+                  {/* Team 2 (WINNER: O2) */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
+                      <MlbbTeamLogo name="O2" size={26} />
+                      <span>O2</span>
+                    </div>
+                    <MlbbCheckmarkBadge />
                   </div>
                 </div>
               </div>
@@ -503,28 +527,36 @@ export function MobileLegendsOfficialBracket() {
             <div className="absolute left-[565px] top-[208px] w-[205px] z-10">
               
               {/* GF Badge */}
-              <div className="w-8 h-8 rounded-lg bg-[#003b95] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs mb-1.5">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-r from-amber-600 to-amber-500 text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs mb-1.5">
                 GF
               </div>
 
-              {/* Grand Final Card */}
-              <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-3 relative flex flex-col justify-between h-[96px]">
-                {/* Team 1 Placeholder */}
-                <div className="flex items-center gap-3">
-                  <MlbbTeamLogo name="" size={28} />
-                  <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+              {/* Grand Final Card: BEE3SKA vs O2 */}
+              <div className="w-full bg-white rounded-2xl border-2 border-amber-500 shadow-md p-2.5 relative flex flex-col justify-between h-[96px]">
+                {/* Team 1 (JUARA 1: BEE3SKA) */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
+                    <MlbbTeamLogo name="BEE3SKA" size={26} />
+                    <span className="text-amber-950">BEE3SKA</span>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-amber-500 flex items-center justify-center text-white shrink-0 shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                  </div>
                 </div>
 
                 {/* VS Badge */}
-                <div className="relative flex items-center justify-center my-1">
+                <div className="relative flex items-center justify-center my-0.5">
                   <div className="absolute left-0 right-0 h-px bg-slate-100" />
                   <MlbbVsBadge />
                 </div>
 
-                {/* Team 2 Placeholder */}
-                <div className="flex items-center gap-3">
-                  <MlbbTeamLogo name="" size={28} />
-                  <span className="font-mono font-bold text-slate-400 text-sm tracking-widest">.....</span>
+                {/* Team 2 (JUARA 2: O2 / OXYGEN) */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2.5 font-bold text-slate-600 text-xs tracking-tight">
+                    <MlbbTeamLogo name="O2" size={26} />
+                    <span>O2 (OXYGEN)</span>
+                  </div>
+                  <span className="text-[9px] font-black bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">J2</span>
                 </div>
               </div>
 
@@ -532,18 +564,25 @@ export function MobileLegendsOfficialBracket() {
 
 
             {/* ========================================================================= */}
-            {/* COLUMN 4: CHAMPION TROPHY CARD - Left: 810px */}
+            {/* COLUMN 4: CHAMPION CERTIFICATE & CASH CARD - Left: 810px */}
             {/* ========================================================================= */}
-            <div className="absolute left-[810px] top-[75px] w-[220px] z-10">
+            <div className="absolute left-[810px] top-[40px] w-[230px] z-10">
               
-              {/* Golden Trophy Presentation Card */}
-              <div className="w-full bg-amber-50/40 rounded-3xl border border-amber-300/80 shadow-md p-5 flex flex-col items-center justify-center relative overflow-hidden">
+              {/* Champion Presentation Card */}
+              <div className="w-full bg-gradient-to-b from-blue-50/90 via-white to-amber-50/70 rounded-3xl border-2 border-amber-400 shadow-xl p-4 flex flex-col items-center justify-center relative overflow-hidden">
                 
                 {/* Background Glow */}
                 <div className="absolute -top-10 -right-10 w-32 h-32 bg-amber-300/20 rounded-full blur-2xl pointer-events-none" />
 
-                {/* Golden Trophy with Laurel Wreath */}
-                <div className="relative flex items-center justify-center w-36 h-36 my-2">
+                {/* Stars Header */}
+                <div className="flex items-center justify-center gap-1 mb-1 text-amber-500 drop-shadow-xs">
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                  <Star className="w-5 h-5 fill-amber-500 text-amber-500" />
+                  <Star className="w-3.5 h-3.5 fill-amber-500 text-amber-500" />
+                </div>
+
+                {/* Award with Laurel Wreath */}
+                <div className="relative flex items-center justify-center w-28 h-28 my-1">
                   {/* Laurels Graphic */}
                   <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-amber-500 drop-shadow-xs">
                     {/* Left Laurel Leaves */}
@@ -560,40 +599,39 @@ export function MobileLegendsOfficialBracket() {
                     <circle cx="70" cy="16" r="4" fill="#f59e0b" />
                   </svg>
 
-                  {/* 3D ML Golden Trophy SVG */}
-                  <svg viewBox="0 0 120 120" className="w-28 h-28 relative z-10 drop-shadow-lg">
-                    <defs>
-                      <linearGradient id="trophy_gold_cup" x1="0%" y1="0%" x2="100%" y2="100%">
-                        <stop offset="0%" stopColor="#fef08a" />
-                        <stop offset="35%" stopColor="#f59e0b" />
-                        <stop offset="70%" stopColor="#d97706" />
-                        <stop offset="100%" stopColor="#78350f" />
-                      </linearGradient>
-                      <linearGradient id="trophy_base" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stopColor="#1e293b" />
-                        <stop offset="50%" stopColor="#334155" />
-                        <stop offset="100%" stopColor="#0f172a" />
-                      </linearGradient>
-                    </defs>
-                    {/* Cup Handles */}
-                    <path d="M30 35 C15 35 15 65 35 70" fill="none" stroke="url(#trophy_gold_cup)" strokeWidth="6" strokeLinecap="round" />
-                    <path d="M90 35 C105 35 105 65 85 70" fill="none" stroke="url(#trophy_gold_cup)" strokeWidth="6" strokeLinecap="round" />
-                    {/* Main Cup Body */}
-                    <path d="M32 25 H88 V55 C88 75 60 85 60 85 C60 85 32 75 32 55 Z" fill="url(#trophy_gold_cup)" stroke="#fbbf24" strokeWidth="2" />
-                    {/* ML Engraved Emblem in Center */}
-                    <polygon points="60,40 74,48 74,64 60,72 46,64 46,48" fill="#78350f" stroke="#fef08a" strokeWidth="1.5" />
-                    <text x="60" y="60" fill="#fef08a" fontSize="11" fontWeight="900" textAnchor="middle" letterSpacing="0.5">ML</text>
-                    {/* Stem */}
-                    <rect x="54" y="84" width="12" height="14" fill="url(#trophy_gold_cup)" />
-                    {/* Pedestal Stand */}
-                    <path d="M40 98 H80 L86 112 H34 Z" fill="url(#trophy_base)" stroke="#f59e0b" strokeWidth="1.5" />
-                    <rect x="42" y="102" width="36" height="6" rx="1" fill="#fef08a" />
-                  </svg>
+                  {/* Award Visual */}
+                  <div className="relative z-10 flex flex-col items-center justify-center">
+                    <Award className="w-14 h-14 text-amber-600 drop-shadow-md" />
+                  </div>
                 </div>
 
-                {/* Champion Banner Placeholder Bar */}
-                <div className="w-full mt-4 bg-white border border-amber-300/80 rounded-xl py-2 px-3 shadow-inner flex items-center justify-center">
-                  <span className="text-xs font-mono font-black tracking-widest text-slate-400 uppercase">.....</span>
+                {/* Champion Title Plaque */}
+                <div className="w-full mt-1 bg-gradient-to-r from-[#003b95] via-blue-700 to-[#003b95] border border-blue-500 rounded-xl py-1 px-2 shadow-md flex items-center justify-center text-center">
+                  <span className="text-[9px] font-black tracking-wider text-white uppercase">SERTIFIKAT & UANG TUNAI</span>
+                </div>
+
+                {/* JUARA 1 WINNER BADGE */}
+                <div className="w-full mt-3 bg-gradient-to-r from-amber-500 via-amber-400 to-yellow-500 border border-amber-400 rounded-xl p-2 shadow-md flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <MlbbTeamLogo name="BEE3SKA" size={28} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[8px] font-black text-amber-950 uppercase tracking-widest">JUARA 1</div>
+                      <div className="text-xs font-black text-slate-900 truncate">BEE3SKA</div>
+                    </div>
+                  </div>
+                  <Star className="w-4 h-4 text-amber-950 fill-amber-950 shrink-0" />
+                </div>
+
+                {/* JUARA 2 RUNNER-UP BADGE */}
+                <div className="w-full mt-2 bg-slate-50 border border-slate-200 rounded-xl p-2 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <MlbbTeamLogo name="O2" size={24} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[8px] font-black text-slate-500 uppercase tracking-widest">JUARA 2</div>
+                      <div className="text-[11px] font-bold text-slate-800 truncate">(O2) OXYGEN</div>
+                    </div>
+                  </div>
+                  <span className="text-[8.5px] font-bold text-slate-500 bg-slate-200/80 px-1.5 py-0.5 rounded">Runner Up</span>
                 </div>
 
               </div>

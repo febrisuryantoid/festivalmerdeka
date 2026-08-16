@@ -1,6 +1,6 @@
 import React from "react";
-import { Trophy, Star, Shield, FileText } from "lucide-react";
-import { MlbbTeamLogo, MlbbVsBadge } from "./MobileLegendsOfficialBracket";
+import { Star, Shield, FileText, Award, Check } from "lucide-react";
+import { MlbbTeamLogo, MlbbVsBadge, MlbbCheckmarkBadge } from "./MobileLegendsOfficialBracket";
 
 export function MobileLegendsResponsiveBracket() {
   return (
@@ -27,9 +27,9 @@ export function MobileLegendsResponsiveBracket() {
         </div>
       </div>
 
-      {/* Main Bracket Canvas: Width scaled down to 880px max so it fits in 1 desktop screen */}
+      {/* Main Bracket Canvas */}
       <div className="w-full overflow-x-auto pb-4 scrollbar-thin scrollbar-thumb-slate-300">
-        <div className="relative w-full min-w-[840px] max-w-[940px] mx-auto px-2">
+        <div className="relative w-full min-w-[860px] max-w-[960px] mx-auto px-2">
           
           {/* Round Header Labels */}
           <div className="grid grid-cols-4 gap-4 mb-4 text-center">
@@ -56,13 +56,13 @@ export function MobileLegendsResponsiveBracket() {
 
             <div>
               <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white rounded-t-xl py-1.5 px-2 shadow-xs">
-                <div className="text-[11px] font-black tracking-widest uppercase">CHAMPION</div>
+                <div className="text-[11px] font-black tracking-widest uppercase">HASIL JUARA</div>
               </div>
             </div>
           </div>
 
           {/* Bracket Canvas Area */}
-          <div className="relative h-[480px]">
+          <div className="relative h-[490px]">
             {/* SVG Connecting Lines Overlay */}
             <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
               <g stroke="#003b95" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round">
@@ -78,7 +78,7 @@ export function MobileLegendsResponsiveBracket() {
                 <path d="M 408 94 H 434 V 318 H 408" />
                 <path d="M 434 206 H 460" />
 
-                {/* 4. GF (Y=206) -> Trophy (Y=206) */}
+                {/* 4. GF (Y=206) -> Champion (Y=206) */}
                 <path d="M 630 206 H 660" />
               </g>
             </svg>
@@ -88,18 +88,23 @@ export function MobileLegendsResponsiveBracket() {
               {/* QF1: BEE3SKA vs KACUNG PRET (Y=42) */}
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs">QF1</div>
-                <div className="flex-1 bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="BEE3SKA" size={20} />
-                    <span className="truncate">BEE3SKA</span>
+                <div className="flex-1 bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
+                      <MlbbTeamLogo name="BEE3SKA" size={18} />
+                      <span className="truncate">BEE3SKA</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="KACUNG PRET" size={20} />
-                    <span className="truncate">KACUNG PRET</span>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-400 text-[11px] truncate">
+                    <MlbbTeamLogo name="KACUNG PRET" size={18} />
+                    <span className="truncate line-through decoration-slate-300">KACUNG PRET</span>
                   </div>
                 </div>
               </div>
@@ -107,18 +112,23 @@ export function MobileLegendsResponsiveBracket() {
               {/* QF2: ZIEZAN vs BKR (Y=146) */}
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs">QF2</div>
-                <div className="flex-1 bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="ZIEZAN" size={20} />
-                    <span className="truncate">ZIEZAN</span>
+                <div className="flex-1 bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-400 text-[11px] truncate">
+                    <MlbbTeamLogo name="ZIEZAN" size={18} />
+                    <span className="truncate line-through decoration-slate-300">ZIEZAN</span>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="BKR" size={20} />
-                    <span className="truncate">BKR</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
+                      <MlbbTeamLogo name="BKR" size={18} />
+                      <span className="truncate">BKR</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -126,18 +136,23 @@ export function MobileLegendsResponsiveBracket() {
               {/* QF3: HARIMAU GOLD LINE vs PATAH HATI (Y=266) */}
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs">QF3</div>
-                <div className="flex-1 bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[10.5px] truncate">
-                    <MlbbTeamLogo name="HARIMAU GOLD LINE" size={20} />
-                    <span className="truncate">HARIMAU GOLD</span>
+                <div className="flex-1 bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[10.5px] truncate">
+                      <MlbbTeamLogo name="HARIMAU GOLD LINE" size={18} />
+                      <span className="truncate">HARIMAU GOLD</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="PATAH HATI" size={20} />
-                    <span className="truncate">PATAH HATI</span>
+                  <div className="flex items-center gap-1.5 font-bold text-slate-400 text-[11px] truncate">
+                    <MlbbTeamLogo name="PATAH HATI" size={18} />
+                    <span className="truncate line-through decoration-slate-300">PATAH HATI</span>
                   </div>
                 </div>
               </div>
@@ -145,18 +160,23 @@ export function MobileLegendsResponsiveBracket() {
               {/* QF4: DENSUS vs O2 (Y=370) */}
               <div className="flex items-center gap-1.5">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs">QF4</div>
-                <div className="flex-1 bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="DENSUS" size={20} />
-                    <span className="truncate">DENSUS</span>
+                <div className="flex-1 bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-1.5 relative flex flex-col justify-between h-[70px]">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-400 text-[11px] truncate">
+                    <MlbbTeamLogo name="DENSUS" size={18} />
+                    <span className="truncate line-through decoration-slate-300">DENSUS</span>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
-                    <MlbbTeamLogo name="O2" size={20} />
-                    <span className="truncate">O2</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
+                      <MlbbTeamLogo name="O2" size={18} />
+                      <span className="truncate">O2</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -164,40 +184,50 @@ export function MobileLegendsResponsiveBracket() {
 
             {/* COLUMN 2: SEMI FINAL (Left: 238px to 408px) */}
             <div className="absolute left-[238px] top-0 w-[170px] z-10">
-              {/* SF1 Box (Y=94) */}
+              {/* SF1 Box: BEE3SKA vs BKR (Y=94) */}
               <div className="absolute top-[55px] w-full">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs mb-1">SF1</div>
-                <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-xs p-2 relative flex flex-col justify-between h-[78px]">
-                  <div className="flex items-center gap-2">
-                    <MlbbTeamLogo name="" size={22} />
-                    <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+                <div className="w-full bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-2 relative flex flex-col justify-between h-[78px]">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MlbbTeamLogo name="BEE3SKA" size={20} />
+                      <span className="font-black text-slate-900 text-xs truncate">BEE3SKA</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MlbbTeamLogo name="" size={22} />
-                    <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-xs">
+                    <MlbbTeamLogo name="BKR" size={20} />
+                    <span className="line-through decoration-slate-300">BKR</span>
                   </div>
                 </div>
               </div>
 
-              {/* SF2 Box (Y=318) */}
+              {/* SF2 Box: HARIMAU GOLD LINE vs O2 (Y=318) */}
               <div className="absolute top-[279px] w-full">
                 <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs mb-1">SF2</div>
-                <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-xs p-2 relative flex flex-col justify-between h-[78px]">
-                  <div className="flex items-center gap-2">
-                    <MlbbTeamLogo name="" size={22} />
-                    <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+                <div className="w-full bg-white rounded-xl border-2 border-emerald-500/80 shadow-xs p-2 relative flex flex-col justify-between h-[78px]">
+                  <div className="flex items-center gap-2 font-bold text-slate-400 text-[11px] truncate">
+                    <MlbbTeamLogo name="HARIMAU GOLD LINE" size={20} />
+                    <span className="truncate line-through decoration-slate-300">HARIMAU GOLD</span>
                   </div>
                   <div className="relative flex items-center justify-center -my-0.5">
                     <div className="absolute left-0 right-0 h-px bg-slate-100" />
                     <MlbbVsBadge />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <MlbbTeamLogo name="" size={22} />
-                    <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MlbbTeamLogo name="O2" size={20} />
+                      <span className="font-black text-slate-900 text-xs truncate">O2</span>
+                    </div>
+                    <div className="w-4 h-4 rounded-full bg-emerald-500 flex items-center justify-center text-white shrink-0">
+                      <Check className="w-2.5 h-2.5 stroke-[3]" />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -205,27 +235,35 @@ export function MobileLegendsResponsiveBracket() {
 
             {/* COLUMN 3: GRAND FINAL (Left: 460px to 630px) */}
             <div className="absolute left-[460px] top-[167px] w-[170px] z-10">
-              <div className="w-6 h-6 rounded-md bg-[#003b95] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs mb-1">GF</div>
-              <div className="w-full bg-white rounded-xl border border-slate-200/90 shadow-xs p-2 relative flex flex-col justify-between h-[78px]">
-                <div className="flex items-center gap-2">
-                  <MlbbTeamLogo name="" size={22} />
-                  <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+              <div className="w-6 h-6 rounded-md bg-amber-500 text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs mb-1">GF</div>
+              <div className="w-full bg-white rounded-xl border-2 border-amber-500 shadow-md p-2 relative flex flex-col justify-between h-[78px]">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5">
+                    <MlbbTeamLogo name="BEE3SKA" size={20} />
+                    <span className="font-black text-slate-900 text-xs truncate">BEE3SKA</span>
+                  </div>
+                  <div className="w-4 h-4 rounded-full bg-amber-500 flex items-center justify-center text-white shrink-0">
+                    <Check className="w-2.5 h-2.5 stroke-[3]" />
+                  </div>
                 </div>
                 <div className="relative flex items-center justify-center -my-0.5">
                   <div className="absolute left-0 right-0 h-px bg-slate-100" />
                   <MlbbVsBadge />
                 </div>
-                <div className="flex items-center gap-2">
-                  <MlbbTeamLogo name="" size={22} />
-                  <span className="font-mono font-bold text-slate-400 text-xs tracking-widest">.....</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 font-bold text-slate-600 text-xs">
+                    <MlbbTeamLogo name="O2" size={20} />
+                    <span className="truncate">O2 (OXYGEN)</span>
+                  </div>
+                  <span className="text-[8px] font-black bg-slate-100 text-slate-600 px-1 py-0.2 rounded">J2</span>
                 </div>
               </div>
             </div>
 
-            {/* COLUMN 4: CHAMPION TROPHY CARD (Left: 660px) */}
-            <div className="absolute left-[660px] top-[75px] w-[180px] z-10">
-              <div className="w-full bg-amber-50/40 rounded-2xl border border-amber-300/80 shadow-sm p-3.5 flex flex-col items-center justify-center relative overflow-hidden">
-                <div className="relative flex items-center justify-center w-28 h-28 my-1">
+            {/* COLUMN 4: CHAMPION CERTIFICATE & CASH CARD (Left: 660px) */}
+            <div className="absolute left-[660px] top-[40px] w-[190px] z-10">
+              <div className="w-full bg-gradient-to-b from-blue-50/90 via-white to-amber-50/80 rounded-2xl border-2 border-amber-400 shadow-md p-3 flex flex-col items-center justify-center relative overflow-hidden">
+                <div className="relative flex items-center justify-center w-20 h-20 my-0.5">
                   <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-amber-500 drop-shadow-xs">
                     <path d="M22 72 C12 50 16 28 35 12 C26 28 24 48 32 64" fill="none" stroke="#d97706" strokeWidth="3" strokeLinecap="round" />
                     <circle cx="18" cy="58" r="3" fill="#f59e0b" />
@@ -236,11 +274,35 @@ export function MobileLegendsResponsiveBracket() {
                     <circle cx="84" cy="42" r="3" fill="#f59e0b" />
                     <circle cx="80" cy="28" r="3" fill="#f59e0b" />
                   </svg>
-                  <Trophy className="w-14 h-14 text-amber-500 drop-shadow-md relative z-10" />
+                  <Award className="w-10 h-10 text-amber-600 drop-shadow-md relative z-10" />
                 </div>
-                <div className="w-full mt-2 bg-white border border-amber-300/80 rounded-lg py-1 px-2 shadow-inner text-center">
-                  <span className="text-[10px] font-black tracking-widest text-slate-400 uppercase">.....</span>
+                
+                <div className="w-full mt-1 bg-[#003b95] text-white rounded-lg py-1 px-1 text-center shadow-xs">
+                  <span className="text-[8px] font-black tracking-wider uppercase">SERTIFIKAT & UANG TUNAI</span>
                 </div>
+
+                <div className="w-full mt-2 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg p-1.5 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <MlbbTeamLogo name="BEE3SKA" size={22} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7.5px] font-black text-amber-950 uppercase tracking-wider">JUARA 1</div>
+                      <div className="text-[11px] font-black text-slate-900 truncate">BEE3SKA</div>
+                    </div>
+                  </div>
+                  <Star className="w-3.5 h-3.5 text-amber-950 fill-amber-950 shrink-0" />
+                </div>
+
+                <div className="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-lg p-1.5 flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <MlbbTeamLogo name="O2" size={18} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">JUARA 2</div>
+                      <div className="text-[10px] font-bold text-slate-800 truncate">(O2) OXYGEN</div>
+                    </div>
+                  </div>
+                  <span className="text-[7.5px] font-bold text-slate-500 bg-slate-200 px-1 py-0.2 rounded">Runner Up</span>
+                </div>
+
               </div>
             </div>
 

@@ -443,52 +443,79 @@ export function FreeFireResponsiveBracket() {
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 5: GRAND FINAL & TROPHY (Left: 885px, Width: 175px) */}
+            {/* COLUMN 5: GRAND FINAL & PODIUM (Left: 885px, Width: 175px) */}
             {/* ========================================================================= */}
             <div className="absolute left-[885px] top-0 w-[175px] h-full z-10 flex flex-col items-center">
               
-              {/* Grand Final Card (Center Y = 201px -> top = 145px) */}
-              <div className="absolute top-[145px] left-0 w-full">
+              {/* Grand Final Card (Center Y = 201px -> top = 120px) */}
+              <div className="absolute top-[120px] left-0 w-full">
                 <div className="w-6 h-6 rounded-md bg-[#dc2626] text-white font-black text-[10px] flex items-center justify-center shrink-0 shadow-xs mb-1">GF</div>
                 
-                <div className="w-full bg-white rounded-2xl border-2 border-red-500 shadow-sm p-2 flex items-center justify-between gap-1.5">
-                  <div className="space-y-1.5 flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11.5px] truncate">
-                      <TeamLogo name="ZIEZAN" size={22} />
+                <div className="w-full bg-white rounded-2xl border-2 border-red-500 shadow-sm p-2 flex flex-col justify-between gap-1">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-bold text-slate-700 text-[11px] truncate">
+                      <TeamLogo name="ZIEZAN" size={20} />
                       <span className="truncate">ZIEZAN</span>
                     </div>
-                    <div className="flex justify-center -my-1">
-                      <VsBadge />
+                    <span className="text-[8px] font-black bg-slate-100 text-slate-600 px-1 py-0.5 rounded">J2</span>
+                  </div>
+                  <div className="flex justify-center -my-1">
+                    <VsBadge />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11px] truncate">
+                      <TeamLogo name="KACUNK PRET" size={20} />
+                      <span className="truncate text-red-700">KACUNK PRET</span>
                     </div>
-                    <div className="flex items-center gap-1.5 font-black text-slate-900 text-[11.5px] truncate">
-                      <TeamLogo name="KACUNG PRET" size={22} />
-                      <span className="truncate">KACUNG PRET</span>
+                    <div className="w-4 h-4 rounded-full bg-red-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                      <Check className="w-3 h-3 stroke-[3.5]" />
                     </div>
                   </div>
-                  <CheckmarkBadge />
                 </div>
               </div>
 
-              {/* Champion Trophy Presentation (Top = 330px) */}
-              <div className="absolute top-[330px] left-0 w-full flex flex-col items-center">
-                <div className="relative flex items-center justify-center w-24 h-24">
-                  {/* Golden Laurels Graphic */}
-                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-amber-500 drop-shadow-xs">
-                    <path d="M22 68 C15 50 18 30 35 15 C28 28 26 48 34 60" fill="none" stroke="#d97706" strokeWidth="3" />
-                    <circle cx="20" cy="55" r="3.5" fill="#f59e0b" />
-                    <circle cx="18" cy="40" r="3.5" fill="#f59e0b" />
-                    <circle cx="22" cy="28" r="3.5" fill="#f59e0b" />
-                    <path d="M78 68 C85 50 82 30 65 15 C72 28 74 48 66 60" fill="none" stroke="#d97706" strokeWidth="3" />
-                    <circle cx="80" cy="55" r="3.5" fill="#f59e0b" />
-                    <circle cx="82" cy="40" r="3.5" fill="#f59e0b" />
-                    <circle cx="78" cy="28" r="3.5" fill="#f59e0b" />
+              {/* Champion Certificate & Cash Podium Box (Top = 270px) */}
+              <div className="absolute top-[270px] left-0 w-full bg-gradient-to-b from-red-50/90 via-white to-amber-50/70 rounded-2xl border-2 border-red-400 p-2.5 shadow-md flex flex-col items-center">
+                <div className="relative flex items-center justify-center w-16 h-16">
+                  {/* Laurels Graphic */}
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-red-500 drop-shadow-xs">
+                    <path d="M22 68 C15 50 18 30 35 15 C28 28 26 48 34 60" fill="none" stroke="#dc2626" strokeWidth="3" />
+                    <circle cx="20" cy="55" r="3.5" fill="#ef4444" />
+                    <circle cx="18" cy="40" r="3.5" fill="#ef4444" />
+                    <circle cx="22" cy="28" r="3.5" fill="#ef4444" />
+                    <path d="M78 68 C85 50 82 30 65 15 C72 28 74 48 66 60" fill="none" stroke="#dc2626" strokeWidth="3" />
+                    <circle cx="80" cy="55" r="3.5" fill="#ef4444" />
+                    <circle cx="82" cy="40" r="3.5" fill="#ef4444" />
+                    <circle cx="78" cy="28" r="3.5" fill="#ef4444" />
                   </svg>
-                  <Trophy className="w-12 h-12 text-amber-500 drop-shadow-md relative z-10" />
+                  <Award className="w-8 h-8 text-red-600 drop-shadow-md relative z-10" />
                 </div>
 
-                {/* Ribbon Banner CHAMPION */}
-                <div className="w-full mt-1 bg-[#dc2626] text-white font-black text-[10px] tracking-widest uppercase py-1 rounded shadow-xs flex items-center justify-center">
-                  <span>CHAMPION</span>
+                {/* Plaque: SERTIFIKAT & UANG TUNAI */}
+                <div className="w-full mt-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black text-[7.5px] tracking-wider uppercase py-1 px-1 rounded-lg shadow-xs text-center">
+                  SERTIFIKAT & UANG TUNAI
+                </div>
+
+                {/* JUARA 1 */}
+                <div className="w-full mt-1.5 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-lg p-1.5 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <TeamLogo name="KACUNK PRET" size={20} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7px] font-black text-amber-950 uppercase">JUARA 1</div>
+                      <div className="text-[10px] font-black text-slate-900 truncate">KACUNK PRET</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* JUARA 2 */}
+                <div className="w-full mt-1 bg-slate-50 border border-slate-200 rounded-lg p-1 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1 min-w-0">
+                    <TeamLogo name="ZIEZAN" size={18} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7px] font-black text-slate-500 uppercase">JUARA 2</div>
+                      <div className="text-[10px] font-bold text-slate-800 truncate">ZIEZAN</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 

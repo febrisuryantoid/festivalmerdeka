@@ -1,5 +1,5 @@
 import React from "react";
-import { Check, Trophy, FileText, Calendar, Award } from "lucide-react";
+import { Check, Award, FileText, Calendar, Banknote, Star } from "lucide-react";
 
 // Team Logos & Badges as SVG Emblems
 export const TeamLogo = ({ name, size = 28 }: { name: string; size?: number }) => {
@@ -37,7 +37,7 @@ export const TeamLogo = ({ name, size = 28 }: { name: string; size?: number }) =
     );
   }
 
-  if (norm.includes("kacung") && !norm.includes("leo")) {
+  if ((norm.includes("kacung") || norm.includes("kacunk")) && !norm.includes("leo")) {
     return (
       <svg width={size} height={size} viewBox="0 0 100 100" className="shrink-0 drop-shadow-sm">
         <defs>
@@ -692,9 +692,9 @@ export function FreeFireOfficialBracket() {
 
 
             {/* ========================================================================= */}
-            {/* COLUMN 5: GRAND FINAL & TROPHY (Left: 885px) */}
+            {/* COLUMN 5: GRAND FINAL & PODIUM (Left: 885px) */}
             {/* ========================================================================= */}
-            <div className="absolute left-[885px] top-[190px] w-[180px] z-10 flex flex-col items-center">
+            <div className="absolute left-[885px] top-[140px] w-[190px] z-10 flex flex-col items-center">
               
               {/* GF Badge */}
               <div className="self-start w-7 h-7 rounded-lg bg-[#dc2626] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs mb-1.5">
@@ -702,51 +702,82 @@ export function FreeFireOfficialBracket() {
               </div>
 
               {/* Grand Final Box with Red Border */}
-              <div className="w-full bg-white rounded-2xl border-2 border-red-500 shadow-md p-3 flex items-center justify-between gap-2">
-                <div className="space-y-1.5 flex-1">
-                  <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
-                    <TeamLogo name="ZIEZAN" size={28} />
+              <div className="w-full bg-white rounded-2xl border-2 border-red-500 shadow-md p-2.5 flex flex-col justify-between gap-1.5">
+                {/* Team 1: ZIEZAN (Juara 2) */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold text-slate-700 text-xs tracking-tight">
+                    <TeamLogo name="ZIEZAN" size={24} />
                     <span>ZIEZAN</span>
                   </div>
-                  <div className="flex justify-center -my-0.5">
-                    <VsBadge />
-                  </div>
+                  <span className="text-[8.5px] font-black bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded">J2</span>
+                </div>
+
+                <div className="flex justify-center -my-1">
+                  <VsBadge />
+                </div>
+
+                {/* Team 2: KACUNK PRET (Juara 1) */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 font-black text-slate-900 text-xs tracking-tight">
-                    <TeamLogo name="KACUNG PRET" size={28} />
-                    <span>KACUNG PRET</span>
+                    <TeamLogo name="KACUNK PRET" size={24} />
+                    <span className="text-red-700">KACUNK PRET</span>
+                  </div>
+                  <div className="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center text-white shrink-0 shadow-xs">
+                    <Check className="w-3.5 h-3.5 stroke-[3.5]" />
                   </div>
                 </div>
-                <CheckmarkBadge />
               </div>
 
-              {/* Champion Trophy Graphic & Ribbon */}
-              <div className="mt-5 flex flex-col items-center">
-                {/* Golden Trophy with Laurel Wreath */}
-                <div className="relative flex items-center justify-center w-24 h-24">
+              {/* Champion Certificate & Cash Podium Box */}
+              <div className="mt-4 w-full bg-gradient-to-b from-red-50/90 via-white to-amber-50/70 rounded-2xl border-2 border-red-400 p-3 shadow-md flex flex-col items-center">
+                {/* Award with Laurel Wreath */}
+                <div className="relative flex items-center justify-center w-20 h-20">
                   {/* Laurels */}
-                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-amber-500 drop-shadow-xs">
+                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-red-500 drop-shadow-xs">
                     {/* Left Laurel Leaves */}
-                    <path d="M22 68 C15 50 18 30 35 15 C28 28 26 48 34 60" fill="none" stroke="#d97706" strokeWidth="3" />
-                    <circle cx="20" cy="55" r="3.5" fill="#f59e0b" />
-                    <circle cx="18" cy="40" r="3.5" fill="#f59e0b" />
-                    <circle cx="22" cy="28" r="3.5" fill="#f59e0b" />
-                    <circle cx="32" cy="18" r="3.5" fill="#f59e0b" />
+                    <path d="M22 68 C15 50 18 30 35 15 C28 28 26 48 34 60" fill="none" stroke="#dc2626" strokeWidth="3" />
+                    <circle cx="20" cy="55" r="3.5" fill="#ef4444" />
+                    <circle cx="18" cy="40" r="3.5" fill="#ef4444" />
+                    <circle cx="22" cy="28" r="3.5" fill="#ef4444" />
+                    <circle cx="32" cy="18" r="3.5" fill="#ef4444" />
                     {/* Right Laurel Leaves */}
-                    <path d="M78 68 C85 50 82 30 65 15 C72 28 74 48 66 60" fill="none" stroke="#d97706" strokeWidth="3" />
-                    <circle cx="80" cy="55" r="3.5" fill="#f59e0b" />
-                    <circle cx="82" cy="40" r="3.5" fill="#f59e0b" />
-                    <circle cx="78" cy="28" r="3.5" fill="#f59e0b" />
-                    <circle cx="68" cy="18" r="3.5" fill="#f59e0b" />
+                    <path d="M78 68 C85 50 82 30 65 15 C72 28 74 48 66 60" fill="none" stroke="#dc2626" strokeWidth="3" />
+                    <circle cx="80" cy="55" r="3.5" fill="#ef4444" />
+                    <circle cx="82" cy="40" r="3.5" fill="#ef4444" />
+                    <circle cx="78" cy="28" r="3.5" fill="#ef4444" />
+                    <circle cx="68" cy="18" r="3.5" fill="#ef4444" />
                   </svg>
-                  {/* Golden Trophy Cup */}
-                  <Trophy className="w-14 h-14 text-amber-500 drop-shadow-md relative z-10" />
+                  {/* Award Icon */}
+                  <Award className="w-10 h-10 text-red-600 drop-shadow-md relative z-10" />
                 </div>
 
-                {/* Ribbon Banner CHAMPION */}
-                <div className="relative -mt-2 bg-[#dc2626] text-white font-black text-xs tracking-widest uppercase px-5 py-1 rounded-sm shadow-md flex items-center justify-center">
-                  <div className="absolute -left-2 top-0 bottom-0 w-2 bg-[#991b1b] transform -skew-y-12 rounded-l-xs" />
-                  <span>CHAMPION</span>
-                  <div className="absolute -right-2 top-0 bottom-0 w-2 bg-[#991b1b] transform skew-y-12 rounded-r-xs" />
+                {/* Plaque: SERTIFIKAT & UANG TUNAI */}
+                <div className="w-full mt-1 bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black text-[8.5px] tracking-wider uppercase py-1 px-1.5 rounded-lg shadow-xs text-center">
+                  SERTIFIKAT & UANG TUNAI
+                </div>
+
+                {/* JUARA 1 */}
+                <div className="w-full mt-2 bg-gradient-to-r from-amber-500 to-yellow-500 rounded-xl p-2 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <TeamLogo name="KACUNK PRET" size={24} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7.5px] font-black text-amber-950 uppercase tracking-wider">JUARA 1</div>
+                      <div className="text-xs font-black text-slate-900 truncate">KACUNK PRET</div>
+                    </div>
+                  </div>
+                  <Star className="w-3.5 h-3.5 text-amber-950 fill-amber-950 shrink-0" />
+                </div>
+
+                {/* JUARA 2 */}
+                <div className="w-full mt-1.5 bg-slate-50 border border-slate-200 rounded-xl p-1.5 shadow-xs flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <TeamLogo name="ZIEZAN" size={20} />
+                    <div className="text-left leading-tight">
+                      <div className="text-[7.5px] font-black text-slate-500 uppercase tracking-wider">JUARA 2</div>
+                      <div className="text-[11px] font-bold text-slate-800 truncate">ZIEZAN</div>
+                    </div>
+                  </div>
+                  <span className="text-[7.5px] font-bold text-slate-500 bg-slate-200 px-1.5 py-0.5 rounded">Runner Up</span>
                 </div>
               </div>
 

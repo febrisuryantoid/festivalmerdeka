@@ -35,15 +35,19 @@ export function formatTeamName(str: string): string {
 
 export const getPricingConfig = () => {
   return [
-    { label: "Kategori Pemuda Karang Taruna Desa Padasuka", price: 5000 },
-    { label: "Kategori Umum", price: 5000 },
     { label: "Kategori SD", price: 5000 },
-    { label: "Kategori SMP", price: 5000 },
-    { label: "Kategori SMA / SMK", price: 5000 },
+    { label: "Kategori SMP", price: 8000 },
+    { label: "Kategori SMA / SMK", price: 10000 },
+    { label: "Kategori Umum", price: 15000 },
+    { label: "Kategori Pemuda Karang Taruna Desa Padasuka", price: 15000 },
     { label: "SD", price: 5000 },
-    { label: "SMP", price: 5000 },
-    { label: "SMA / SMK", price: 5000 },
-    { label: "UMUM", price: 5000 },
+    { label: "SMP", price: 8000 },
+    { label: "SMA / SMK", price: 10000 },
+    { label: "SMA/K", price: 10000 },
+    { label: "SMA", price: 10000 },
+    { label: "SMK", price: 10000 },
+    { label: "UMUM", price: 15000 },
+    { label: "Umum", price: 15000 },
   ];
 };
 
