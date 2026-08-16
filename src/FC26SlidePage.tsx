@@ -9,17 +9,16 @@ import { FC26MinimalNavbar } from "./components/fc26/FC26MinimalNavbar";
 import { useFC26Audio, FC26_TRACKS } from "./components/fc26/FC26AudioController";
 
 // Durasi masing-masing slide:
-// Slide 1 (Cover): 10 detik (10.000 ms)
+// Slide 1 (Cover): 25 detik (25.000 ms) - khusus spotlight cover
 // Slide 2 (Overview): 5 widget @ 0.5s (2.5s animasi) + jeda 10s = 12.5 detik (12.500 ms)
 // Slide 3 (Bracket): 6 widget @ 0.5s (3.0s animasi) + jeda 10s = 13.0 detik (13.000 ms)
 // Slide 4 (Champion): 6 widget @ 0.5s (3.0s animasi) + jeda 10s = 13.0 detik (13.000 ms)
-const SLIDE_DURATIONS: number[] = [10000, 12500, 13000, 13000];
+const SLIDE_DURATIONS: number[] = [25000, 12500, 13000, 13000];
 
 export default function FC26SlidePage() {
   const navigate = useNavigate();
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isAutoPlay, setIsAutoPlay] = useState(true); // Default Auto Play aktif
-  const [isAspect169, setIsAspect169] = useState(false); // false = Full screen width, true = 16:9 container
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [touchStartX, setTouchStartX] = useState<number | null>(null);
 
@@ -157,14 +156,8 @@ export default function FC26SlidePage() {
         </div>
       )}
 
-      {/* Presentation Stage Container (Full width or 16:9 ratio) */}
-      <div
-        className={`relative transition-all duration-500 overflow-hidden flex items-center justify-center ${
-          isAspect169
-            ? "w-full max-w-[177.78vh] aspect-video max-h-screen shadow-2xl rounded-2xl border border-white/10"
-            : "w-full h-full"
-        }`}
-      >
+      {/* Presentation Stage Container (Always Full Screen Auto-Cover) */}
+      <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
         {/* Animated Slide Transition */}
         <AnimatePresence mode="wait">
           <motion.div
@@ -191,8 +184,6 @@ export default function FC26SlidePage() {
           onToggleMusic={toggleMusic}
           currentTrackIndex={currentTrackIndex}
           onSelectTrack={(idx) => setCurrentTrackIndex(idx)}
-          isAspect169={isAspect169}
-          onToggleAspectRatio={() => setIsAspect169(!isAspect169)}
           isFullscreen={isFullscreen}
           onToggleFullscreen={toggleFullscreen}
           onGoHome={() => navigate("/")}

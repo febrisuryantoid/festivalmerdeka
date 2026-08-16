@@ -177,7 +177,7 @@ export function CoverSlide({ onStartPresentation }: { onStartPresentation?: () =
       >
         {/* Layer 1: Gambar default hitam putih (Gelap misterius, kontras tinggi) */}
         <div
-          className="absolute inset-0 bg-contain bg-no-repeat bg-center transition-all duration-700"
+          className="absolute inset-0 bg-cover bg-no-repeat bg-center transition-all duration-700"
           style={{
             backgroundImage: `url(${imageUrl})`,
             filter: "grayscale(100%) contrast(1.3) brightness(0.22)",
@@ -187,7 +187,7 @@ export function CoverSlide({ onStartPresentation }: { onStartPresentation?: () =
         {/* Layer 2: Gambar berwarna dengan 2 masking cahaya bioskop */}
         <div
           ref={colorLayerRef}
-          className="absolute inset-0 bg-contain bg-no-repeat bg-center pointer-events-none"
+          className="absolute inset-0 bg-cover bg-no-repeat bg-center pointer-events-none"
           style={{
             backgroundImage: `url(${imageUrl})`,
             imageRendering: "high-quality",

@@ -11,8 +11,6 @@ import {
   Home,
   Music,
   ListMusic,
-  Tv,
-  Monitor,
   Sparkles
 } from "lucide-react";
 import { FC26_TRACKS, FC26Track } from "./FC26AudioController";
@@ -28,8 +26,6 @@ interface FC26MinimalNavbarProps {
   onToggleMusic: () => void;
   currentTrackIndex: number;
   onSelectTrack: (index: number) => void;
-  isAspect169: boolean;
-  onToggleAspectRatio: () => void;
   isFullscreen: boolean;
   onToggleFullscreen: () => void;
   onGoHome: () => void;
@@ -46,8 +42,6 @@ export function FC26MinimalNavbar({
   onToggleMusic,
   currentTrackIndex,
   onSelectTrack,
-  isAspect169,
-  onToggleAspectRatio,
   isFullscreen,
   onToggleFullscreen,
   onGoHome,
@@ -189,20 +183,6 @@ export function FC26MinimalNavbar({
         </div>
 
         <div className="w-px h-4 bg-white/15 mx-0.5" />
-
-        {/* Aspect Ratio Toggle (16:9 Cinema / Full Screen Width) */}
-        <button
-          onClick={onToggleAspectRatio}
-          title={isAspect169 ? "Ubah ke Mode Layar Penuh (Full Width)" : "Ubah ke Aspek Rasio Normal (16:9)"}
-          className={`p-1.5 rounded-full transition-colors ${
-            isAspect169
-              ? "text-blue-400 bg-blue-500/10 hover:bg-blue-500/20"
-              : "text-slate-300 hover:text-white hover:bg-white/10"
-          }`}
-          aria-label="Toggle Aspect Ratio"
-        >
-          {isAspect169 ? <Tv className="w-3.5 h-3.5" /> : <Monitor className="w-3.5 h-3.5" />}
-        </button>
 
         {/* Native Fullscreen Toggle */}
         <button
