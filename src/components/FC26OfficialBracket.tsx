@@ -1,5 +1,5 @@
 import React from "react";
-import { FileText, Award, Shield, Banknote } from "lucide-react";
+import { Award, Shield, Banknote, Crown, Trophy, CheckCircle2, AlertCircle } from "lucide-react";
 
 // Soccer Ball & Gamepad Shield Logos for FC26 Players
 export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad" | "placeholder"; color?: "green" | "red" | "blue" | "purple"; size?: number }) => {
@@ -9,7 +9,7 @@ export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad
         style={{ width: size, height: size * 1.15 }} 
         className="rounded-md bg-slate-300/90 flex items-center justify-center shrink-0 shadow-xs"
       >
-        <Shield className="w-5 h-5 text-slate-400 fill-slate-400" />
+        <Shield className="w-4 h-4 text-slate-400 fill-slate-400" />
       </div>
     );
   }
@@ -30,7 +30,6 @@ export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad
   if (type === "ball") {
     return (
       <svg width={size} height={size * 1.15} viewBox="0 0 100 115" className="shrink-0 drop-shadow-sm">
-        {/* Outer Shield */}
         <path 
           d="M50 5 L88 20 V60 C88 85 50 110 50 110 C50 110 12 85 12 60 V20 Z" 
           fill="#090d16" 
@@ -38,9 +37,7 @@ export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad
           strokeWidth="6" 
           style={{ filter: `drop-shadow(0 0 6px ${glowColor})` }}
         />
-        {/* Inner Football */}
         <circle cx="50" cy="52" r="26" fill="#ffffff" stroke="#000000" strokeWidth="2" />
-        {/* Soccer Pentagons & Seams */}
         <polygon points="50,42 60,49 56,61 44,61 40,49" fill="#000000" />
         <path d="M50 42 L50 26" stroke="#000000" strokeWidth="2" />
         <path d="M60 49 L74 44" stroke="#000000" strokeWidth="2" />
@@ -59,7 +56,6 @@ export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad
   // Gamepad / Controller Shield
   return (
     <svg width={size} height={size * 1.15} viewBox="0 0 100 115" className="shrink-0 drop-shadow-sm">
-      {/* Outer Shield */}
       <path 
         d="M50 5 L88 20 V60 C88 85 50 110 50 110 C50 110 12 85 12 60 V20 Z" 
         fill="#090d16" 
@@ -67,510 +63,438 @@ export const Fc26PlayerLogo = ({ type, color, size = 32 }: { type: "ball" | "pad
         strokeWidth="6" 
         style={{ filter: `drop-shadow(0 0 6px ${glowColor})` }}
       />
-      {/* Gamepad Controller Vector */}
       <path 
         d="M32 40 C24 40 20 48 24 64 C26 72 32 72 38 66 L44 60 H56 L62 66 C68 72 74 72 76 64 C80 48 76 40 68 40 Z" 
         fill="#ffffff" 
         stroke="#0f172a" 
         strokeWidth="2" 
       />
-      {/* D-pad Cross */}
       <path d="M32 46 V56 M27 51 H37" stroke="#0f172a" strokeWidth="2.5" strokeLinecap="round" />
-      {/* Action Buttons */}
       <circle cx="64" cy="48" r="2" fill="#ef4444" />
       <circle cx="68" cy="52" r="2" fill="#22c55e" />
       <circle cx="60" cy="52" r="2" fill="#3b82f6" />
       <circle cx="64" cy="56" r="2" fill="#facc15" />
-      {/* Center detail */}
       <rect x="46" y="49" width="8" height="4" rx="2" fill="#0f172a" />
     </svg>
   );
 };
 
 export const Fc26VsBadge = ({ variant = "navy" }: { variant?: "navy" | "green" }) => (
-  <div className={`w-5 h-5 rounded-full ${variant === "green" ? "bg-[#15803d]" : "bg-[#0b2447]"} flex items-center justify-center text-[8px] font-black text-white shrink-0 shadow-sm leading-none z-10`}>
+  <div className={`w-4 h-4 rounded-full ${variant === "green" ? "bg-[#15803d]" : "bg-[#0b2447]"} flex items-center justify-center text-[7px] font-black text-white shrink-0 shadow-xs leading-none z-10`}>
     VS
   </div>
 );
+
+interface MatchPlayerProps {
+  name: string;
+  isWinner?: boolean;
+  isWithdrawn?: boolean;
+  isBye?: boolean;
+  score?: string;
+  logoType?: "ball" | "pad" | "placeholder";
+  logoColor?: "green" | "red" | "blue" | "purple";
+  isChampion?: boolean;
+}
+
+const PlayerRow: React.FC<MatchPlayerProps> = ({
+  name,
+  isWinner,
+  isWithdrawn,
+  isBye,
+  score,
+  logoType = "pad",
+  logoColor = "blue",
+  isChampion
+}) => {
+  return (
+    <div className={`flex items-center justify-between px-2 py-1 rounded-lg transition-colors ${
+      isChampion 
+        ? "bg-amber-50 text-amber-950 font-black" 
+        : isWinner 
+          ? "bg-emerald-50/80 text-slate-900 font-bold" 
+          : isWithdrawn
+            ? "bg-rose-50/50 text-rose-700/80 line-through"
+            : isBye
+              ? "bg-slate-50 text-slate-400 italic"
+              : "text-slate-600"
+    }`}>
+      <div className="flex items-center gap-1.5 min-w-0 pr-1">
+        {isBye ? (
+          <div className="w-5 h-5 rounded bg-slate-200 flex items-center justify-center text-[8px] font-black text-slate-500 shrink-0">
+            BYE
+          </div>
+        ) : (
+          <Fc26PlayerLogo type={logoType as "ball" | "pad" | "placeholder"} color={logoColor as "green" | "red" | "blue" | "purple"} size={20} />
+        )}
+        <span className={`text-[11px] truncate ${isWinner ? "font-extrabold text-slate-900" : isWithdrawn ? "text-rose-600 font-semibold" : ""}`}>
+          {name}
+        </span>
+      </div>
+
+      <div className="flex items-center gap-1 shrink-0">
+        {isChampion && <Crown className="w-3 h-3 text-amber-500 fill-amber-400" />}
+        {isWinner && !isChampion && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+        {isWithdrawn && <span className="text-[8.5px] px-1 py-0.2 rounded bg-rose-100 text-rose-700 font-bold">WO</span>}
+        {score && <span className="text-[10px] font-mono font-bold px-1 rounded bg-slate-100 text-slate-700">{score}</span>}
+      </div>
+    </div>
+  );
+};
 
 export function FC26OfficialBracket() {
   return (
     <div className="w-full flex flex-col items-center select-none bg-white py-4 px-2 sm:px-6">
       
-      {/* ========================================================================= */}
-      {/* TOP HEADER: PS4 LOGO, TITLE, FC26 LOGO & ACCENTS */}
-      {/* ========================================================================= */}
-      <div className="relative w-full max-w-5xl flex items-center justify-between mb-8 pb-4 border-b border-slate-100">
-        
-        {/* Left Official PS4 Branding */}
+      {/* TOP HEADER */}
+      <div className="relative w-full max-w-6xl flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+        {/* Left PS4 Branding */}
         <div className="flex items-center gap-2">
-          {/* PS Family Logo */}
-          <svg viewBox="0 0 100 100" className="w-8 h-8 sm:w-10 sm:h-10 text-slate-900 fill-current">
+          <svg viewBox="0 0 100 100" className="w-7 h-7 sm:w-9 sm:h-9 text-slate-900 fill-current">
             <path d="M42 12 C44 10 47 10 48 12 L70 54 C72 58 68 62 63 62 H54 V88 C54 92 50 95 46 95 C42 95 38 92 38 88 V20 C38 15 39 13 42 12 Z" />
             <path d="M22 68 C16 70 12 75 14 80 C16 85 24 88 34 88 C44 88 54 85 54 80 C54 75 48 71 42 69 L54 62 C62 60 76 60 84 66 C92 72 90 82 78 88 C66 94 48 96 32 94 C14 92 2 84 2 74 C2 65 12 60 22 58 Z" />
           </svg>
-          <span className="text-xl sm:text-3xl font-black italic tracking-tighter text-slate-900 font-sans">
+          <span className="text-xl sm:text-2xl font-black italic tracking-tighter text-slate-900 font-sans">
             PS4<span className="text-xs font-normal not-italic align-top ml-0.5">®</span>
           </span>
         </div>
 
-        {/* Center Main Title with Green Geometric Slash Accents */}
+        {/* Center Main Title */}
         <div className="flex-1 text-center px-2">
-          <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-slate-900 font-heading uppercase">
-            BRACKET TURNAMEN
+          <h2 className="text-xl sm:text-3xl font-black tracking-tight text-slate-900 font-heading uppercase">
+            BAGAN RESMI TURNAMEN EA SPORTS FC 26
           </h2>
           
-          {/* PS4 FC26 Title with Slashes */}
           <div className="flex items-center justify-center gap-2 mt-0.5">
-            {/* Green Slashes Left */}
             <div className="flex items-center gap-1 opacity-90">
-              <div className="w-2.5 h-6 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
-              <div className="w-2.5 h-6 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
+              <div className="w-2 h-5 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
+              <div className="w-2 h-5 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
             </div>
 
-            <div className="text-2xl sm:text-4xl font-black italic tracking-wide uppercase">
-              <span className="text-[#0b2447]">PS4 </span>
-              <span className="text-[#16a34a]">FC26</span>
+            <div className="text-lg sm:text-2xl font-black italic tracking-wide uppercase">
+              <span className="text-[#0b2447]">PLAYSTATION 4 PRO </span>
+              <span className="text-[#16a34a]">FC 26</span>
             </div>
 
-            {/* Green Slashes Right */}
             <div className="flex items-center gap-1 opacity-90">
-              <div className="w-2.5 h-6 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
-              <div className="w-2.5 h-6 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
+              <div className="w-2 h-5 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
+              <div className="w-2 h-5 bg-[#16a34a] transform -skew-x-20 rounded-xs" />
             </div>
           </div>
 
-          {/* Sub-banner Pill */}
-          <div className="inline-block mt-2 bg-[#0b2447] text-white text-[10.5px] sm:text-[11.5px] font-black tracking-widest px-6 py-1 rounded-sm uppercase shadow-sm">
-            6 PLAYER — SINGLE ELIMINATION (BO3)
+          <div className="inline-block mt-1.5 bg-[#0b2447] text-white text-[10.5px] font-black tracking-widest px-4 py-0.5 rounded-full uppercase shadow-xs">
+            10 GLADIATOR — SISTEM GUGUR KNOCKOUT (BO3)
           </div>
         </div>
 
-        {/* Right Official EA SPORTS FC26 Badge */}
+        {/* Right EA Sports FC26 Badge */}
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-black flex flex-col items-center justify-center text-white text-[7px] font-black leading-tight">
+          <div className="w-7 h-7 rounded-full bg-black flex flex-col items-center justify-center text-white text-[6.5px] font-black leading-tight">
             <span>EA</span>
-            <span className="text-[5.5px] text-slate-300">SPORTS</span>
+            <span className="text-[5px] text-slate-300">SPORTS</span>
           </div>
-          <div className="text-xl sm:text-3xl font-black italic tracking-tighter text-black font-sans">
+          <div className="text-lg sm:text-2xl font-black italic tracking-tighter text-black font-sans">
             FC<span className="text-slate-900">26</span>
           </div>
         </div>
-
       </div>
 
-      {/* ========================================================================= */}
-      {/* MAIN BRACKET GRID WITH VECTOR CONNECTORS */}
-      {/* ========================================================================= */}
+      {/* 5-COLUMN BRACKET CONTAINER */}
       <div className="w-full overflow-x-auto pb-6 scrollbar-thin scrollbar-thumb-slate-300">
-        <div className="relative min-w-[1040px] max-w-6xl mx-auto px-2">
+        <div className="relative min-w-[1100px] max-w-6xl mx-auto px-2">
           
-          {/* Round Headers: 4 Columns */}
-          <div className="grid grid-cols-4 gap-6 mb-6 text-center">
-            
-            {/* Header 1: Babak 1 / Penyisihan */}
+          {/* Column Header Titles */}
+          <div className="grid grid-cols-5 gap-3.5 mb-4 text-center">
             <div>
-              <div className="bg-[#0b2447] text-white rounded-t-xl py-2 px-3 shadow-sm">
-                <div className="text-xs font-black tracking-wider uppercase">BABAK 1 (PENYISIHAN)</div>
-                <div className="text-[9.5px] font-bold text-blue-200 uppercase">3 MATCH (BO3)</div>
+              <div className="bg-[#0b2447] text-white rounded-xl py-2 px-2 shadow-xs">
+                <div className="text-[11px] font-black tracking-wider uppercase">BABAK 1 (PENYISIHAN)</div>
+                <div className="text-[8.5px] font-bold text-blue-200 uppercase">7 MATCH (BO3)</div>
               </div>
             </div>
 
-            {/* Header 2: Semi Final */}
             <div>
-              <div className="bg-[#0b2447] text-white rounded-t-xl py-2 px-3 shadow-sm">
-                <div className="text-xs font-black tracking-wider uppercase">SEMI FINAL</div>
-                <div className="text-[9.5px] font-bold text-blue-200 uppercase">SF1 (BYE) • SF2 (M2 vs M3)</div>
+              <div className="bg-[#0b2447] text-white rounded-xl py-2 px-2 shadow-xs">
+                <div className="text-[11px] font-black tracking-wider uppercase">BABAK 2 (7 BESAR)</div>
+                <div className="text-[8.5px] font-bold text-blue-200 uppercase">5 MATCH (BO3)</div>
               </div>
             </div>
 
-            {/* Header 3: Grand Final */}
             <div>
-              <div className="bg-[#15803d] text-white rounded-t-xl py-2 px-3 shadow-sm">
-                <div className="text-xs font-black tracking-wider uppercase">GRAND FINAL</div>
-                <div className="text-[9.5px] font-bold text-green-200 uppercase">1 MATCH (BO3)</div>
+              <div className="bg-[#0b2447] text-white rounded-xl py-2 px-2 shadow-xs">
+                <div className="text-[11px] font-black tracking-wider uppercase">BABAK 3 (5 BESAR)</div>
+                <div className="text-[8.5px] font-bold text-blue-200 uppercase">3 MATCH (BO3)</div>
               </div>
             </div>
 
-            {/* Header 4: Champion */}
             <div>
-              <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-white rounded-t-xl py-2 px-3 shadow-sm">
-                <div className="text-xs font-black tracking-widest uppercase">CHAMPION</div>
-                <div className="text-[9.5px] font-bold text-amber-100 uppercase">JUARA RESMI</div>
+              <div className="bg-[#0b2447] text-white rounded-xl py-2 px-2 shadow-xs">
+                <div className="text-[11px] font-black tracking-wider uppercase">SEMI FINAL (3 BESAR)</div>
+                <div className="text-[8.5px] font-bold text-blue-200 uppercase">2 MATCH (BO3)</div>
               </div>
             </div>
 
+            <div>
+              <div className="bg-gradient-to-r from-amber-600 via-amber-500 to-amber-600 text-slate-950 rounded-xl py-2 px-2 shadow-xs">
+                <div className="text-[11px] font-black tracking-widest uppercase">GRAND FINAL & JUARA</div>
+                <div className="text-[8.5px] font-extrabold text-slate-900 uppercase">PODIUM RESMI</div>
+              </div>
+            </div>
           </div>
 
-          {/* Bracket Canvas Area */}
-          <div className="relative h-[480px]">
+          {/* Bracket Body */}
+          <div className="grid grid-cols-5 gap-3.5 items-start">
             
-            {/* SVG Connector Lines */}
-            <svg className="absolute inset-0 w-full h-full pointer-events-none z-0 overflow-visible">
-              
-              {/* 1. Line: M1 (Y=52) -> SF1 (Y=52) */}
-              <g stroke="#0b2447" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 240 52 H 275" />
-              </g>
-
-              {/* 2. Line: M2 (Y=217) & M3 (Y=382) -> SF2 (Y=300) */}
-              <g stroke="#0b2447" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 240 217 H 258 V 382 H 240" />
-                <path d="M 258 300 H 275" />
-              </g>
-
-              {/* 3. Line: SF1 (Y=52) & SF2 (Y=300) -> Grand Final (Y=176) */}
-              <g stroke="#0b2447" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 515 52 H 540 V 300 H 515" />
-                <path d="M 540 176 H 565" />
-              </g>
-
-              {/* 4. Green Line: Grand Final (Y=176) -> Champion Trophy (Y=176) */}
-              <g stroke="#15803d" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M 800 176 H 840" />
-              </g>
-
-            </svg>
-
             {/* ========================================================================= */}
-            {/* COLUMN 1: BABAK 1 / PENYISIHAN (M1, M2, M3) - Left: 0px to 240px */}
+            {/* COLUMN 1: BABAK 1 (PENYISIHAN - 7 MATCH) */}
             {/* ========================================================================= */}
-            <div className="absolute left-0 top-0 w-[240px] z-10 space-y-[26px]">
-              
-              {/* M1 Match: WAHAB vs REPAN (Center Y = 52px) */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-[#0b2447] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                    M1
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">PENYISIHAN 1</span>
+            <div className="space-y-2">
+              {/* M1 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M1</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[104px] hover:border-blue-400 transition-colors">
-                  
-                  {/* Player: WAHAB */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="ball" color="blue" size={26} />
-                    <span className="truncate uppercase">WAHAB</span>
-                  </div>
-
-                  {/* VS Divider Badge */}
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="absolute left-0 right-0 h-px bg-slate-100" />
-                    <Fc26VsBadge variant="navy" />
-                  </div>
-
-                  {/* Player: REPAN */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="pad" color="green" size={26} />
-                    <span className="truncate uppercase">REPAN</span>
-                  </div>
-
-                </div>
+                <PlayerRow name="IFAL WIBAWA" isWithdrawn logoType="pad" logoColor="red" />
+                <PlayerRow name="RIPIANSYAH" isWinner logoType="pad" logoColor="blue" />
               </div>
 
-              {/* M2 Match: RAHMAT vs NAUFAL ABBAS (Center Y = 217px) */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-[#0b2447] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                    M2
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">PENYISIHAN 2</span>
+              {/* M2 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M2</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[104px] hover:border-blue-400 transition-colors">
-                  
-                  {/* Player: RAHMAT */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="pad" color="purple" size={26} />
-                    <span className="truncate uppercase">RAHMAT</span>
-                  </div>
-
-                  {/* VS Divider Badge */}
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="absolute left-0 right-0 h-px bg-slate-100" />
-                    <Fc26VsBadge variant="navy" />
-                  </div>
-
-                  {/* Player: NAUFAL ABBAS */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="ball" color="red" size={26} />
-                    <span className="truncate uppercase">NAUFAL ABBAS</span>
-                  </div>
-
-                </div>
+                <PlayerRow name="NAUFAL ABBAS" logoType="pad" logoColor="green" />
+                <PlayerRow name="RAHMAT" isWinner logoType="pad" logoColor="purple" />
               </div>
 
-              {/* M3 Match: IFAL WIBAWA vs RIPIANSYAH (Center Y = 382px) */}
-              <div>
-                <div className="flex items-center justify-between mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-[#0b2447] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                    M3
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase">PENYISIHAN 3</span>
+              {/* M3 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M3</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[104px] hover:border-blue-400 transition-colors">
-                  
-                  {/* Player: IFAL WIBAWA */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="ball" color="green" size={26} />
-                    <span className="truncate uppercase">IFAL WIBAWA</span>
-                  </div>
-
-                  {/* VS Divider Badge */}
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="absolute left-0 right-0 h-px bg-slate-100" />
-                    <Fc26VsBadge variant="navy" />
-                  </div>
-
-                  {/* Player: RIPIANSYAH */}
-                  <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="pad" color="red" size={26} />
-                    <span className="truncate uppercase">RIPIANSYAH</span>
-                  </div>
-
-                </div>
+                <PlayerRow name="REPAN" isWinner logoType="pad" logoColor="green" />
+                <PlayerRow name="WAHAB" logoType="ball" logoColor="red" />
               </div>
 
+              {/* M4 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M4</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
+                </div>
+                <PlayerRow name="FERY" isWinner logoType="ball" logoColor="blue" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+
+              {/* M5 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M5</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
+                </div>
+                <PlayerRow name="ERIK" isWinner logoType="pad" logoColor="purple" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+
+              {/* M6 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M6</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
+                </div>
+                <PlayerRow name="AMAR" isWinner logoType="ball" logoColor="green" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+
+              {/* M7 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">M7</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">PENYISIHAN</span>
+                </div>
+                <PlayerRow name="KODEL" isWinner logoType="pad" logoColor="red" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
             </div>
 
             {/* ========================================================================= */}
-            {/* COLUMN 2: SEMI FINAL (SF1 & SF2) - Left: 275px to 515px */}
+            {/* COLUMN 2: BABAK 2 (7 BESAR - 5 MATCH) */}
             {/* ========================================================================= */}
-            <div className="absolute left-[275px] top-0 w-[240px] z-10">
-              
-              {/* SF1 Match: PEMENANG M1 vs BYE (Center Y = 52px -> Top: 0px) */}
-              <div className="absolute top-0 left-0 w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-[#0b2447] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                    SF1
-                  </div>
-                  <span className="text-[10px] font-bold text-emerald-600 font-mono uppercase">BYE ADVANCEMENT</span>
+            <div className="space-y-2.5 pt-2">
+              {/* R2 - M1 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R2-M1</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">7 BESAR</span>
                 </div>
-                <div className="w-full bg-white rounded-2xl border-2 border-emerald-500/80 shadow-sm p-2.5 relative flex flex-col justify-between h-[104px] hover:border-emerald-500 transition-colors">
-                  
-                  {/* Top Player: PEMENANG M1 */}
-                  <div className="flex items-center gap-2.5 font-bold text-slate-800 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="placeholder" size={26} />
-                    <span className="truncate uppercase font-black text-slate-900">PEMENANG M1</span>
-                  </div>
+                <PlayerRow name="RIPIANSYAH" logoType="pad" logoColor="blue" />
+                <PlayerRow name="REPAN" isWinner logoType="pad" logoColor="green" />
+              </div>
 
-                  {/* VS Divider Badge */}
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="absolute left-0 right-0 h-px bg-slate-100" />
-                    <Fc26VsBadge variant="green" />
-                  </div>
+              {/* R2 - M2 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R2-M2</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">7 BESAR</span>
+                </div>
+                <PlayerRow name="RAHMAT" isWinner logoType="pad" logoColor="purple" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
 
-                  {/* Bottom: BYE */}
-                  <div className="flex items-center justify-between gap-2 text-xs tracking-tight">
-                    <div className="flex items-center gap-2">
-                      <div className="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-black text-[10px]">
-                        ✓
+              {/* R2 - M3 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R2-M3</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">7 BESAR</span>
+                </div>
+                <PlayerRow name="FERY" logoType="ball" logoColor="blue" />
+                <PlayerRow name="ERIK" isWinner logoType="pad" logoColor="purple" />
+              </div>
+
+              {/* R2 - M4 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R2-M4</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">7 BESAR</span>
+                </div>
+                <PlayerRow name="AMAR" isWinner logoType="ball" logoColor="green" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+
+              {/* R2 - M5 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R2-M5</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">7 BESAR</span>
+                </div>
+                <PlayerRow name="KODEL" isWinner logoType="pad" logoColor="red" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* COLUMN 3: BABAK 3 (5 BESAR - 3 MATCH) */}
+            {/* ========================================================================= */}
+            <div className="space-y-4 pt-8">
+              {/* R3 - M1 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R3-M1</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">5 BESAR</span>
+                </div>
+                <PlayerRow name="AMAR" logoType="ball" logoColor="green" />
+                <PlayerRow name="REPAN" isWinner logoType="pad" logoColor="green" />
+              </div>
+
+              {/* R3 - M2 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R3-M2</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">5 BESAR</span>
+                </div>
+                <PlayerRow name="RAHMAT" isWinner logoType="pad" logoColor="purple" />
+                <PlayerRow name="ERIK" logoType="pad" logoColor="purple" />
+              </div>
+
+              {/* R3 - M3 */}
+              <div className="bg-white rounded-xl border border-slate-200/90 shadow-xs p-1.5 hover:border-blue-400 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9px] font-mono font-black text-blue-900 bg-blue-50 px-1 rounded">R3-M3</span>
+                  <span className="text-[8.5px] font-bold text-slate-400 uppercase">5 BESAR</span>
+                </div>
+                <PlayerRow name="KODEL" isWinner logoType="pad" logoColor="red" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* COLUMN 4: SEMI FINAL (3 BESAR - 2 MATCH) */}
+            {/* ========================================================================= */}
+            <div className="space-y-6 pt-16">
+              {/* SF1 */}
+              <div className="bg-white rounded-xl border-2 border-blue-200 shadow-sm p-2 hover:border-blue-500 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9.5px] font-mono font-black text-blue-900 bg-blue-100 px-1.5 py-0.5 rounded">SF 1</span>
+                  <span className="text-[8.5px] font-extrabold text-blue-600 uppercase">SEMI FINAL</span>
+                </div>
+                <PlayerRow name="REPAN" isWinner logoType="pad" logoColor="green" />
+                <PlayerRow name="BYE (Lolos Otomatis)" isBye />
+              </div>
+
+              {/* SF2 */}
+              <div className="bg-white rounded-xl border-2 border-blue-200 shadow-sm p-2 hover:border-blue-500 transition-colors">
+                <div className="flex items-center justify-between px-1.5 mb-1">
+                  <span className="text-[9.5px] font-mono font-black text-blue-900 bg-blue-100 px-1.5 py-0.5 rounded">SF 2</span>
+                  <span className="text-[8.5px] font-extrabold text-blue-600 uppercase">SEMI FINAL</span>
+                </div>
+                <PlayerRow name="RAHMAT" isWinner logoType="pad" logoColor="purple" />
+                <PlayerRow name="KODEL" logoType="pad" logoColor="red" />
+              </div>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* COLUMN 5: GRAND FINAL & JUARA */}
+            {/* ========================================================================= */}
+            <div className="space-y-4 pt-12">
+              {/* Grand Final Match Card */}
+              <div className="bg-gradient-to-b from-amber-500/10 via-white to-amber-500/5 rounded-2xl border-2 border-amber-400 shadow-md p-2.5">
+                <div className="flex items-center justify-between px-1.5 mb-1.5">
+                  <span className="text-[10px] font-black text-amber-950 bg-amber-200 px-2 py-0.5 rounded-full flex items-center gap-1">
+                    <Trophy className="w-3 h-3 text-amber-700" /> GRAND FINAL
+                  </span>
+                  <span className="text-[8.5px] font-black text-amber-700 uppercase">BO3 SERIES</span>
+                </div>
+
+                <div className="space-y-1">
+                  <div className="bg-amber-100/80 border border-amber-300 rounded-xl p-1.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Fc26PlayerLogo type="pad" color="purple" size={24} />
+                      <div>
+                        <div className="text-xs font-black text-amber-950">RAHMAT</div>
+                        <div className="text-[8px] font-bold text-amber-700 uppercase">🏆 JUARA 1 (CHAMPION)</div>
                       </div>
-                      <span className="truncate uppercase font-black text-emerald-700 text-[11px]">BYE (LOLOS FINAL)</span>
                     </div>
-                    <span className="text-[9px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">AUTO GF</span>
+                    <Crown className="w-4 h-4 text-amber-600 fill-amber-500" />
                   </div>
 
+                  <div className="bg-slate-100 border border-slate-200 rounded-xl p-1.5 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5">
+                      <Fc26PlayerLogo type="pad" color="green" size={24} />
+                      <div>
+                        <div className="text-xs font-black text-slate-800">REPAN</div>
+                        <div className="text-[8px] font-bold text-slate-500 uppercase">🥈 JUARA 2 (RUNNER UP)</div>
+                      </div>
+                    </div>
+                    <Award className="w-4 h-4 text-slate-500" />
+                  </div>
                 </div>
               </div>
 
-              {/* SF2 Match: PEMENANG M2 vs PEMENANG M3 (Center Y = 300px -> Top: 248px) */}
-              <div className="absolute top-[248px] left-0 w-full">
-                <div className="flex items-center justify-between mb-1">
-                  <div className="w-7 h-7 rounded-lg bg-[#0b2447] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                    SF2
-                  </div>
-                  <span className="text-[10px] font-bold text-blue-600 font-mono uppercase">KNOCKOUT (M2 vs M3)</span>
+              {/* Official Champions Podium Box */}
+              <div className="bg-gradient-to-br from-slate-900 to-slate-950 text-white rounded-2xl p-3 border border-amber-400/40 shadow-lg text-center space-y-2">
+                <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[9px] font-black uppercase tracking-wider">
+                  <Award className="w-3 h-3 text-amber-400" /> HASIL AKHIR FC26
                 </div>
-                <div className="w-full bg-white rounded-2xl border border-slate-200/90 shadow-sm p-2.5 relative flex flex-col justify-between h-[104px] hover:border-blue-400 transition-colors">
-                  
-                  {/* Top Player: PEMENANG M2 */}
-                  <div className="flex items-center gap-2.5 font-bold text-slate-700 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="placeholder" size={26} />
-                    <span className="truncate uppercase text-[11px] text-slate-800 font-extrabold">PEMENANG M2</span>
-                  </div>
 
-                  {/* VS Divider Badge */}
-                  <div className="relative flex items-center justify-center my-0.5">
-                    <div className="absolute left-0 right-0 h-px bg-slate-100" />
-                    <Fc26VsBadge variant="navy" />
+                <div className="text-left space-y-1.5 text-xs">
+                  <div className="flex items-center justify-between bg-amber-400/10 px-2 py-1 rounded-lg border border-amber-400/20">
+                    <span className="font-extrabold text-amber-300">🥇 Juara 1:</span>
+                    <span className="font-black text-white">RAHMAT</span>
                   </div>
-
-                  {/* Bottom: PEMENANG M3 */}
-                  <div className="flex items-center gap-2.5 font-bold text-slate-700 text-xs tracking-tight">
-                    <Fc26PlayerLogo type="placeholder" size={26} />
-                    <span className="truncate uppercase text-[11px] text-slate-800 font-extrabold">PEMENANG M3</span>
+                  <div className="flex items-center justify-between bg-slate-800/60 px-2 py-1 rounded-lg border border-slate-700">
+                    <span className="font-bold text-slate-300">🥈 Juara 2:</span>
+                    <span className="font-bold text-white">REPAN</span>
                   </div>
+                </div>
 
+                <div className="text-[9px] text-emerald-400 font-bold flex items-center justify-center gap-1 pt-1 border-t border-slate-800">
+                  <Banknote className="w-3 h-3" /> Sertifikat Penghargaan & Uang Tunai
                 </div>
               </div>
 
             </div>
 
-            {/* ========================================================================= */}
-            {/* COLUMN 3: GRAND FINAL (1 MATCH) - Left: 565px to 800px */}
-            {/* ========================================================================= */}
-            <div className="absolute left-[565px] top-[105px] w-[235px] z-10">
-              <div className="flex items-center justify-between mb-1.5">
-                <div className="w-7 h-7 rounded-lg bg-[#15803d] text-white font-black text-xs flex items-center justify-center shrink-0 shadow-xs">
-                  GF
-                </div>
-                <span className="text-[10px] font-black text-green-700 uppercase tracking-wider">CHAMPIONSHIP MATCH</span>
-              </div>
-              
-              {/* Grand Final Card with Green Border */}
-              <div className="w-full bg-white rounded-3xl border-2 border-[#16a34a] shadow-md p-4 relative flex flex-col justify-between h-[142px]">
-                
-                {/* Winner SF1 Slot */}
-                <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                  <Fc26PlayerLogo type="placeholder" size={28} />
-                  <span className="uppercase text-[11px]">PEMENANG SF1 (M1)</span>
-                </div>
-
-                {/* VS Divider Badge with Green Accent */}
-                <div className="relative flex items-center justify-center my-1">
-                  <div className="absolute left-0 right-0 h-px bg-green-200" />
-                  <Fc26VsBadge variant="green" />
-                </div>
-
-                {/* Winner SF2 Slot */}
-                <div className="flex items-center gap-2.5 font-black text-slate-900 text-xs tracking-tight">
-                  <Fc26PlayerLogo type="placeholder" size={28} />
-                  <span className="uppercase text-[11px]">PEMENANG SF2</span>
-                </div>
-
-              </div>
-
-            </div>
-
-            {/* ========================================================================= */}
-            {/* COLUMN 4: CHAMPION PRESENTATION CARD - Left: 840px */}
-            {/* ========================================================================= */}
-            <div className="absolute left-[840px] top-[30px] w-[200px] z-10">
-              
-              {/* Certificate & Cash Prize Presentation Card */}
-              <div className="w-full bg-emerald-50/60 rounded-3xl border border-emerald-300/80 shadow-md p-4 flex flex-col items-center justify-center relative overflow-hidden">
-                
-                {/* Background Emerald Glow */}
-                <div className="absolute -top-10 -right-10 w-36 h-36 bg-emerald-300/25 rounded-full blur-2xl pointer-events-none" />
-
-                {/* Stars Header */}
-                <div className="flex items-center justify-center gap-1 mb-1 text-emerald-500 drop-shadow-xs">
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#10b981"><polygon points="12,2 15,8 22,9 17,14 18,21 12,18 6,21 7,14 2,9 9,8" /></svg>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="#10b981"><polygon points="12,2 15,8 22,9 17,14 18,21 12,18 6,21 7,14 2,9 9,8" /></svg>
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="#10b981"><polygon points="12,2 15,8 22,9 17,14 18,21 12,18 6,21 7,14 2,9 9,8" /></svg>
-                </div>
-
-                {/* Laurel Wreath with Award Icon */}
-                <div className="relative flex items-center justify-center w-32 h-32 my-1">
-                  {/* Laurels Graphic */}
-                  <svg viewBox="0 0 100 100" className="absolute inset-0 w-full h-full text-emerald-500 drop-shadow-xs">
-                    <path d="M22 74 C10 50 16 28 35 12 C26 28 24 48 32 64" fill="none" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
-                    <circle cx="18" cy="60" r="3.5" fill="#10b981" />
-                    <circle cx="16" cy="44" r="3.5" fill="#10b981" />
-                    <circle cx="20" cy="30" r="3.5" fill="#10b981" />
-                    <circle cx="30" cy="18" r="3.5" fill="#10b981" />
-                    <path d="M78 74 C90 50 84 28 65 12 C74 28 76 48 68 64" fill="none" stroke="#059669" strokeWidth="3.5" strokeLinecap="round" />
-                    <circle cx="82" cy="60" r="3.5" fill="#10b981" />
-                    <circle cx="84" cy="44" r="3.5" fill="#10b981" />
-                    <circle cx="80" cy="30" r="3.5" fill="#10b981" />
-                    <circle cx="70" cy="18" r="3.5" fill="#10b981" />
-                  </svg>
-
-                  {/* Award Icon */}
-                  <div className="relative z-10 flex flex-col items-center justify-center">
-                    <Award className="w-16 h-16 text-emerald-600 drop-shadow-md" />
-                  </div>
-                </div>
-
-                {/* Champion Plaque */}
-                <div className="w-full mt-2 bg-gradient-to-r from-emerald-600 via-emerald-500 to-emerald-600 border border-emerald-400 rounded-xl py-1.5 px-2 shadow-md flex items-center justify-center text-center">
-                  <span className="text-[9.5px] font-black tracking-wider text-white uppercase">SERTIFIKAT & UANG TUNAI</span>
-                </div>
-
-              </div>
-
-            </div>
-
-          </div>
-
-          {/* ========================================================================= */}
-          {/* FOOTER SECTION: KETERANGAN, LEGENDA, CATATAN & BOTTOM BAR */}
-          {/* ========================================================================= */}
-          <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            {/* 1. KETERANGAN Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 flex items-start gap-3.5">
-              <div className="w-10 h-10 rounded-xl bg-[#0b2447] text-white flex items-center justify-center shrink-0 shadow-xs">
-                <FileText className="w-5 h-5" />
-              </div>
-              <div className="space-y-1 text-xs">
-                <div className="font-black text-[#0b2447] tracking-wider uppercase text-[11px]">KETERANGAN</div>
-                <div className="space-y-1 text-slate-700 text-[11px] leading-relaxed">
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-[#0b2447] font-bold">•</span>
-                    <span>Sistem : <b>Single Elimination</b></span>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-[#0b2447] font-bold">•</span>
-                    <span>Semi Final & Final : <b>Best Of 3 (BO3)</b></span>
-                  </div>
-                  <div className="flex items-start gap-1.5">
-                    <span className="text-[#0b2447] font-bold">•</span>
-                    <span>Hadiah Resmi : <b>Sertifikat & Uang Tunai</b></span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. LEGENDA Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 space-y-2 text-xs">
-              <div className="font-black text-[#0b2447] tracking-wider uppercase text-[11px]">LEGENDA</div>
-              <div className="space-y-2 pt-1 text-[11.5px] font-semibold text-slate-700">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-1 bg-[#0b2447] rounded-full" />
-                  <span>Semi Final</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-1 bg-[#15803d] rounded-full" />
-                  <span>Grand Final</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-1 bg-emerald-500 rounded-full" />
-                  <span>Hadiah Resmi</span>
-                </div>
-              </div>
-            </div>
-
-            {/* 3. CATATAN Card */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-4 flex items-start gap-3.5">
-              <div className="w-9 h-9 rounded-full bg-[#0b2447] text-white flex items-center justify-center shrink-0 shadow-xs mt-0.5">
-                <Award className="w-4 h-4 text-emerald-300" />
-              </div>
-              <div className="space-y-1.5 text-xs">
-                <div className="font-black text-[#0b2447] tracking-wider uppercase text-[11px]">CATATAN</div>
-                <div className="text-slate-700 text-[11.5px] leading-relaxed font-medium">
-                  <div>Junjung sportivitas,</div>
-                  <div>bermain fair play dan raih penghargaan terbaik!</div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          {/* Bottom Angled Navy Ribbon with Green Accents */}
-          <div className="mt-5 relative w-full flex items-center justify-center bg-[#0b2447] text-white py-2.5 px-4 rounded-xl font-black text-xs sm:text-sm tracking-wider uppercase shadow-md overflow-hidden">
-            <div className="flex items-center justify-center gap-2 text-center z-10">
-              <span>PLAY <span className="text-[#22c55e]">FAIR</span>, RESPECT <span className="text-[#22c55e]">EVERYONE!</span></span>
-            </div>
-            {/* Green corner geometric stripes */}
-            <div className="absolute right-0 top-0 bottom-0 flex items-center gap-1 pr-3 opacity-90">
-              <div className="w-2 h-full bg-[#22c55e] transform -skew-x-20" />
-              <div className="w-3.5 h-full bg-[#15803d] transform -skew-x-20" />
-            </div>
-            <div className="absolute left-0 top-0 bottom-0 flex items-center gap-1 pl-3 opacity-90">
-              <div className="w-3.5 h-full bg-[#15803d] transform skew-x-20" />
-              <div className="w-2 h-full bg-[#22c55e] transform skew-x-20" />
-            </div>
           </div>
 
         </div>

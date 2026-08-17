@@ -32,7 +32,7 @@ export function OverviewSlide() {
             <Award className="w-6 h-6 text-emerald-400" />
             <div>
               <div className="text-[10px] font-bold text-slate-400 uppercase leading-tight">TOTAL PESERTA</div>
-              <div className="text-sm font-black text-emerald-400 uppercase">6 PEMAIN TERVERIFIKASI</div>
+              <div className="text-sm font-black text-emerald-400 uppercase">10 PEMAIN TERVERIFIKASI</div>
             </div>
           </div>
         </motion.div>
@@ -165,7 +165,7 @@ export function OverviewSlide() {
           </div>
           <div>
             <div className="text-xs font-black text-emerald-400 uppercase tracking-wider">ROSTER TURNAMEN</div>
-            <div className="text-sm font-bold text-white">6 Gladiator Siap Tempur Memperebutkan Mahkota Juara FC26</div>
+            <div className="text-sm font-bold text-white">10 Gladiator Siap Tempur Memperebutkan Mahkota Juara FC26</div>
           </div>
         </motion.div>
 
